@@ -1,3 +1,12 @@
+
+# coding: utf-8
+
+# # MPS code
+
+# In[2]:
+
+
+get_ipython().run_line_magic('matplotlib', 'inline')
 import numpy as np
 import scipy as sc
 import matplotlib.pyplot as plt
@@ -73,7 +82,7 @@ linestyle = ['solid','dashed','dashdot','dotted','solid']
 # Let us consider a TLS on a waveguide. We need up to 4 photons in the environment and a system vector with size 2. $\gamma_R=0$
 # <img src='U_mat_TLS.png'>
 
-# In[8]:
+# In[ ]:
 
 
 #index in the init list = timebin index: 0=16, ..., 15=1, 16=0, 17=S, 18=-1, 19=-2, 20=-3
@@ -82,8 +91,8 @@ init = [0]*endt
 l=3
 initTLS = np.array([0,1]) #starting at |e>
 
-gamma_L = 0.
-Om_TLS  = np.pi#*gamma_L
+gamma_L = 10.
+Om_TLS  = 10.*np.pi#*gamma_L
 Delta_T = 0.0
 dt      = .0001
 # Initial state of the system
@@ -125,6 +134,9 @@ m=0
 exc2 = np.zeros(endt-3,complex)
 norm = np.zeros(endt-3,complex)
 exc = np.zeros(endt-3,complex)
+
+#IMPORTANT: One needs to be careful with the final indices that come out of the summation of einsum, better to define them.
+
 for m in np.arange(endt-4,-1,-1):
 #    print("before\n",init[m].shape)
 #    print(init[m])
@@ -134,15 +146,18 @@ for m in np.arange(endt-4,-1,-1):
 
     ### Calculating the norm ###
     if m==endt-4:
+        #print(init[m])
         nor1 = np.dot(init[m],np.conjugate(init[m]))
+        #print("nor1",nor1)
     elif m==endt-5:
-        nor2 = np.einsum("ik,jk",init[m+1],np.conjugate(init[m+1]))
-        #print(nor2.shape)
-        nor1 = np.einsum("ij,ij",np.einsum("li,lj",init[m],np.conjugate(init[m])),nor2)
+        nor2 = np.einsum("ik,jk->ij",init[m+1],np.conjugate(init[m+1]))
+        nor1 = np.einsum("ij,ij",np.einsum("li,lj->ij",init[m],np.conjugate(init[m])),nor2)
     else:
-        nor2 = np.einsum("minj,ij",np.einsum("mli,nlj",init[m+1],np.conjugate(init[m+1])),nor2)
+        nor3 = np.einsum("mli,nlj->minj",init[m+1],np.conjugate(init[m+1]))
+        nor2 = np.einsum("minj,ij->mn",nor3,nor2)
+        #print("nor2=",nor2)
         #print(nor2.shape)
-        nor1 = np.einsum("mn,mn",np.einsum("lm,ln",init[m],np.conjugate(init[m])),nor2)
+        nor1 = np.einsum("mn,mn",np.einsum("lm,ln->mn",init[m],np.conjugate(init[m])),nor2)
     norm[m] = nor1
 
     ### Determining the excitation level of the qubit ###
@@ -150,8 +165,8 @@ for m in np.arange(endt-4,-1,-1):
         exc[m]=np.einsum("k,k",np.einsum("i,ik",init[m],np.array([[1,0],[0,0]])),np.conjugate(init[m]))
         exc2[m]=np.einsum("k,k",np.einsum("i,ik",init[m],np.array([[0,0],[0,1]])),np.conjugate(init[m]))
     else:
-        exc2[m]=np.einsum("jk,kj",np.einsum("ij,ik",init[m],np.array([[0,0],[0,1]])),np.conjugate(init[m]))
-        exc[m]=np.einsum("jk,kj",np.einsum("ij,ik",init[m],np.array([[1,0],[0,0]])),np.conjugate(init[m]))
+        exc2[m]=np.einsum("jk,kj",np.einsum("ij,ik->jk",init[m],np.array([[0,0],[0,1]])),np.conjugate(init[m]))
+        exc[m]=np.einsum("jk,kj",np.einsum("ij,ik->jk",init[m],np.array([[1,0],[0,0]])),np.conjugate(init[m]))
     
     ### A time-step ###
     # We consider up to 4 excitations in the environmental timebin (first array)
@@ -186,7 +201,7 @@ for m in np.arange(endt-4,-1,-1):
 #print(init[-1])
 
 ### Plotting to be happy ###
-t=np.arange(0,endt-3)*dt*1#gamma_L
+t=np.arange(0,endt-3)*dt*gamma_L
 plt.figure(figsize = (12,7))
 plt.plot(t,np.flip(np.real(exc),0),lw=2,label="ground",color=colors["green"])
 plt.plot(t,np.flip(np.real(exc2),0),lw=2,label="excited",color=colors["blue"])
@@ -200,24 +215,7 @@ plt.grid(True)
 plt.figure(2,figsize = (12,7))
 plt.plot(t,np.flip(np.real(norm-1),0),lw=2,label="norm",color=colors["purple"])
 plt.grid(True)
-plt.xlim(-.1,1.1)
+plt.ylabel("$\left<\psi(t)|\psi(t)\\right>-1$",fontsize=40)
+plt.xlabel("$\gamma_Lt$",fontsize=40)
+plt.show()
 
-
-# In[6]:
-
-
-plt.figure(figsize = (12,7))
-plt.plot(t,np.flip(np.real(exc),0),lw=2,label="ground",color=colors["green"])
-plt.plot(t,np.flip(np.real(exc2),0),lw=2,label="excited",color=colors["blue"])
-plt.plot(t,np.flip(np.real(exc),0)+np.flip(np.real(exc2),0),lw=2,label="ground",color=colors["yellow"])
-#plt.plot(t,np.exp(-2*gamma_L*t),ls="--",lw=4,color=colors["orange"],label="$\exp{(-\gamma_Lt)}$")
-#plt.xlim(0,8)
-#print(np.flip(np.real(exc),0)+np.flip(np.real(exc2),0))
-#print(np.flip(np.real(exc),0))
-#print(np.flip(np.real(exc2),0))
-#plt.ylim(-0.01,1.01)
-plt.xlabel("$t$",fontsize=40)
-plt.ylabel("$\left<\sigma_+\sigma_-\\right>$",fontsize=40)
-plt.grid(True)
-
-#Hi! This is Victor!
