@@ -3,7 +3,7 @@
 
 # # MPS code
 
-# In[2]:
+# In[80]:
 
 
 get_ipython().run_line_magic('matplotlib', 'inline')
@@ -12,6 +12,7 @@ import scipy as sc
 import matplotlib.pyplot as plt
 from scipy.linalg import svd
 import matplotlib as mpl
+import time
 mpl.rcParams['mathtext.fontset'] = 'cm'
 mpl.rcParams['mathtext.rm'] = 'serif'
 mpl.rc('font',family='FreeSerif')
@@ -82,19 +83,22 @@ linestyle = ['solid','dashed','dashdot','dotted','solid']
 # Let us consider a TLS on a waveguide. We need up to 4 photons in the environment and a system vector with size 2. $\gamma_R=0$
 # <img src='U_mat_TLS.png'>
 
-# In[ ]:
+# In[121]:
 
 
 #index in the init list = timebin index: 0=16, ..., 15=1, 16=0, 17=S, 18=-1, 19=-2, 20=-3
-endt=10000
+start = time.time()
+endt=1000000
 init = [0]*endt
 l=3
 initTLS = np.array([0,1]) #starting at |e>
+initenv = np.zeros(2)
+initenv[0] = 1
 
 gamma_L = 10.
 Om_TLS  = 10.*np.pi#*gamma_L
 Delta_T = 0.0
-dt      = .0001
+dt      = .000001
 # Initial state of the system
 init[endt-4] = initTLS
 
@@ -108,24 +112,28 @@ def U(tk,tS): #tk: time bin state at k, tS: state of S
     sp       = sc.eye(2,2,-1) # sigma_+
     
     ### Different terms in U ###
-    #####First step####
+    
+    #####Identity#####
     T_0      = np.tensordot(tk,tS,0) #identity operation
-    T_sqdt_1 = -np.sqrt(dt)*np.tensordot(np.dot(U_m,tk),np.dot(sp,tS),0)*np.sqrt(gamma_L)
-    #print(T_sqdt_1)
-    T_sqdt_2 = np.sqrt(dt)*np.tensordot(np.dot(U_p,tk),np.dot(sm,tS),0)*np.sqrt(gamma_L)
-    #print(T_sqdt_2)
-    T_dt_S_1 = -1j*dt*Delta_T*np.tensordot(tk,np.dot(np.array([[0,0],[0,1]]),tS),0)
-    #print(T_dt_S_1)
-    T_dt_S_2 = -1j*dt*Om_TLS*np.tensordot(tk,np.dot(sp,tS),0)
-    #print(T_dt_S_2)
-    T_dt_S_3 = -1j*dt*Om_TLS*np.tensordot(tk,np.dot(sm,tS),0)
-    #print(T_dt_S_3)
-    T_dt_B_1 = -.5*gamma_L*dt*np.tensordot(np.arange(1,tk.size+1)*tk,np.dot(np.array([[0,0],[0,1]]),tS),0)
-    #print(T_dt_B_1)
-    T_dt_B_2 = -.5*gamma_L*dt*np.tensordot(np.arange(0,tk.size)*tk,np.dot(np.array([[1,0],[0,0]]),tS),0)
-    #print(T_dt_B_2)
-        
-    nextstep = T_0 + T_sqdt_1 + T_sqdt_2 + T_dt_S_1 + T_dt_S_2 + T_dt_S_3 + T_dt_B_1 + T_dt_B_2
+    
+    #####Terms with \delta_{i_Tg}\Delta_{j_Te}#####
+    U_tk_ig_je = - 1j*dt*Om_TLS*sc.eye(tk.size,tk.size) +                 ( -1 + dt*gamma_L/6*np.arange(0,tk.size) + .5j*Delta_T*dt )*np.sqrt(dt*gamma_L)*U_m 
+    T_ig_je = np.tensordot(np.dot(U_tk_ig_je,tk),np.dot(sp,tS),0)    
+    
+    #####Terms with \delta_{i_Te}\Delta_{j_Tg}#####
+    U_tk_ie_jg = - 1j*dt*Om_TLS*sc.eye(tk.size,tk.size) +                 ( 1- dt*gamma_L/6*np.arange(1,tk.size+1) - .5*Delta_T*dt )*np.sqrt(dt*gamma_L)*U_p 
+    T_ie_jg = np.tensordot(np.dot(U_tk_ie_jg,tk),np.dot(sm,tS),0)    
+
+    #####Terms with \delta_{i_Te}\Delta_{j_Te}#####
+    U_tk_ie_je = -(.5*gamma_L*np.arange(1,tk.size+1) + 1j*Delta_T)*dt*sc.eye(tk.size,tk.size) -                1j*Om_TLS/2.*np.sqrt(gamma_L)*dt**1.5*(U_p - U_m)
+    T_ie_je = np.tensordot(np.dot(U_tk_ie_je,tk), np.dot(np.array([[0,0],[0,1]]),tS),0)
+
+    #####Terms with \delta_{i_Tg}\Delta_{j_Tg}#####
+    U_tk_ig_jg = -(.5*gamma_L*np.arange(0,tk.size))*dt*sc.eye(tk.size,tk.size) +                1j*Om_TLS/2.*np.sqrt(gamma_L)*dt**1.5*(U_m - U_p)
+    T_ig_jg = np.tensordot(np.dot(U_tk_ig_jg,tk), np.dot(np.array([[1,0],[0,0]]),tS),0)
+    
+    #nextstep = T_0 + T_sqdt_1 + T_sqdt_2 + T_dt_S_1 + T_dt_S_2 + T_dt_S_3 + T_dt_B_1 + T_dt_B_2    
+    nextstep = T_0 + T_ig_je + T_ie_jg + T_ie_je + T_ig_jg
     return(nextstep)
 
 print("initial excitation:",np.einsum("k,k",np.einsum("i,ik",initTLS,np.array([[0,0],[0,1]])),np.conjugate(initTLS)))
@@ -133,6 +141,10 @@ print("initial ground probability:",np.einsum("k,k",np.einsum("i,ik",initTLS,np.
 m=0
 exc2 = np.zeros(endt-3,complex)
 norm = np.zeros(endt-3,complex)
+norm2 = np.zeros(endt-2,complex)
+norm2[endt-3] = np.dot(init[endt-4],np.conjugate(init[endt-4]))
+norm3 = np.zeros(endt-2,complex)
+norm3[endt-3] = np.dot(init[endt-4],np.conjugate(init[endt-4]))
 exc = np.zeros(endt-3,complex)
 
 #IMPORTANT: One needs to be careful with the final indices that come out of the summation of einsum, better to define them.
@@ -147,30 +159,34 @@ for m in np.arange(endt-4,-1,-1):
     ### Calculating the norm ###
     if m==endt-4:
         #print(init[m])
-        nor1 = np.dot(init[m],np.conjugate(init[m]))
+        nor11 = np.dot(init[m],np.conjugate(init[m]))
         #print("nor1",nor1)
     elif m==endt-5:
-        nor2 = np.einsum("ik,jk->ij",init[m+1],np.conjugate(init[m+1]))
-        nor1 = np.einsum("ij,ij",np.einsum("li,lj->ij",init[m],np.conjugate(init[m])),nor2)
+        nor21 = np.einsum("ik,jk->ij",init[m+1],np.conjugate(init[m+1]))
+        nor11 = np.einsum("ij,ij",np.einsum("li,lj->ij",init[m],np.conjugate(init[m])),nor21)
     else:
-        nor3 = np.einsum("mli,nlj->minj",init[m+1],np.conjugate(init[m+1]))
-        nor2 = np.einsum("minj,ij->mn",nor3,nor2)
+        nor31 = np.einsum("mli,nlj->minj",init[m+1],np.conjugate(init[m+1]))
+        nor21 = np.einsum("minj,ij->mn",nor31,nor21)
         #print("nor2=",nor2)
         #print(nor2.shape)
-        nor1 = np.einsum("mn,mn",np.einsum("lm,ln->mn",init[m],np.conjugate(init[m])),nor2)
-    norm[m] = nor1
+        nor11 = np.einsum("mn,mn",np.einsum("lm,ln->mn",init[m],np.conjugate(init[m])),nor21)
+    norm[m] = nor11
 
     ### Determining the excitation level of the qubit ###
     if m==endt-4:
         exc[m]=np.einsum("k,k",np.einsum("i,ik",init[m],np.array([[1,0],[0,0]])),np.conjugate(init[m]))
         exc2[m]=np.einsum("k,k",np.einsum("i,ik",init[m],np.array([[0,0],[0,1]])),np.conjugate(init[m]))
     else:
-        exc2[m]=np.einsum("jk,kj",np.einsum("ij,ik->jk",init[m],np.array([[0,0],[0,1]])),np.conjugate(init[m]))
-        exc[m]=np.einsum("jk,kj",np.einsum("ij,ik->jk",init[m],np.array([[1,0],[0,0]])),np.conjugate(init[m]))
+#        exc2[m]=np.einsum("jk,kj",np.einsum("ij,ik->jk",init[m],np.array([[0,0],[0,1]])),np.conjugate(init[m]))
+        exc2_pre=np.einsum("ik,kj->ij",np.einsum("li,lk->ik",init[m],np.array([[0,0],[0,1]])),np.conjugate(init[m]))
+        exc2[m] = np.einsum("ij,ij",exc2_pre,nor21)
+        exc_pre=np.einsum("ik,kj->ij",np.einsum("li,lk->ik",init[m],np.array([[1,0],[0,0]])),np.conjugate(init[m]))
+        exc[m] = np.einsum("ij,ij",exc_pre,nor21)
+#        exc[m]=np.einsum("jk,kj",np.einsum("ij,ik->jk",init[m],np.array([[1,0],[0,0]])),np.conjugate(init[m]))
     
     ### A time-step ###
     # We consider up to 4 excitations in the environmental timebin (first array)
-    together = U(np.array([1,0,0,0,0]),init[m])
+    together = U(initenv,init[m]) #normalized
 #    print("together shape\n",together.shape)
     if m==endt-4:
         tog_swap = np.einsum("ij->ji",together)
@@ -196,12 +212,35 @@ for m in np.arange(endt-4,-1,-1):
     ### Storing the different Matrices of the timebins and system (I'm not convinced that this is necessary) ###
     init[m] = tog_svd[2]
     init[m-1] = np.dot(tog_svd[0],np.diag(tog_svd[1]))
+    ### Calculating the norm ###
+#    if m==endt-4:
+#        nor22 = np.einsum("ik,jk->ij",init[m],np.conjugate(init[m]))
+#        nor12 = np.einsum("ij,ij",np.einsum("li,lj->ij",init[m-1],np.conjugate(init[m-1])),nor22)
+#    else:
+#        nor32 = np.einsum("mli,nlj->minj",init[m],np.conjugate(init[m]))
+#        nor22 = np.einsum("minj,ij->mn",nor32,nor22)
+#        nor12 = np.einsum("mn,mn",np.einsum("lm,ln->mn",init[m-1],np.conjugate(init[m-1])),nor22)
+#    norm2[m] = nor12
+    
+#    for mi in range(endt-4,m-1,-1):
+#        init[mi] = init[mi]/np.sqrt(norm2[mi])
+#    init[m-1] = init[m-1]/np.sqrt(norm2[m])
+    
+    
 #    print("after\n",init[m].shape)
 #    print(init[m-1].shape)
 #print(init[-1])
 
 ### Plotting to be happy ###
 t=np.arange(0,endt-3)*dt*gamma_L
+t2=np.arange(0,endt-2)*dt*gamma_L
+end = time.time()
+timeh = int((end-start)/3600)
+timem = int((end-start)/60-timeh*60)
+times = int((end-start)-timeh*3600-60*timem)
+print("elapsed time: %02d:%02d:%02d" % (timeh,timem,times))
+
+
 plt.figure(figsize = (12,7))
 plt.plot(t,np.flip(np.real(exc),0),lw=2,label="ground",color=colors["green"])
 plt.plot(t,np.flip(np.real(exc2),0),lw=2,label="excited",color=colors["blue"])
@@ -217,5 +256,41 @@ plt.plot(t,np.flip(np.real(norm-1),0),lw=2,label="norm",color=colors["purple"])
 plt.grid(True)
 plt.ylabel("$\left<\psi(t)|\psi(t)\\right>-1$",fontsize=40)
 plt.xlabel("$\gamma_Lt$",fontsize=40)
+plt.show()
+
+
+# In[111]:
+
+
+delt = np.zeros(6)
+spin = np.zeros(6)
+
+
+# In[122]:
+
+
+delt[3]=dt
+spin[3]=exc[0]
+
+
+# In[123]:
+
+
+print(spin)
+plt.semilogx(delt,spin)
+plt.ylim(0.5,0.6)
+plt.grid(True)
+
+
+# In[72]:
+
+
+plt.figure(2,figsize = (12,7))
+plt.plot(t,np.flip(np.real(norm-1),0),lw=2,label="norm",color=colors["purple"])
+plt.grid(True)
+plt.ylabel("$\left<\psi(t)|\psi(t)\\right>-1$",fontsize=40)
+plt.xlabel("$\gamma_Lt$",fontsize=40)
+plt.xlim(0,.002)
+plt.ylim(0,.000002)
 plt.show()
 
