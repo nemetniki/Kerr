@@ -274,7 +274,7 @@ plt.grid(True)
 # Let us consider a TLS on a waveguide. We need up to 4 photons in the environment and a system vector with size 2. $\gamma_R=0$
 # <img src='2nd_order.png'>
 
-# In[90]:
+# In[11]:
 
 
 #************************************#
@@ -546,6 +546,10 @@ def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
     
     return nextstep
 
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+
 ############################
 ### Calculating the norm ###
 ############################
@@ -573,6 +577,13 @@ def norm(M,L,state,norm_L):
         norm = np.einsum("ij,ij",norm,norm_S)
     return norm,norm_L
 
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+
+#######################
+### Merging indices ###
+#######################
 def merge(block,where):
     """Merging indices to provide a lower-rank tensor from block
     where defines which side of the tensor should the indices be merged"""
@@ -628,6 +639,13 @@ def merge(block,where):
             dims = np.array([d1,d2,d3,d4])
     return merged_block, dims
 
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+
+###################################
+### Undo the merging of indices ###
+###################################
 def unmerge(block,dims,where):
     """Unmerging indices to provide a higher-rank tensor from block
     where defines which side of the tensor should the merge of indices be reversed
@@ -646,6 +664,13 @@ def unmerge(block,dims,where):
             unmerged_block[:,I%d2,int((I-(I%d2))/d2)]  = block[:,I]
     return unmerged_block
 
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+
+##########################################
+### Relocating the orthognality centre ###
+##########################################
 def OC_reloc(state_left,state_right,where):
     """Relocating the orthogonality centre from either of the states
     to the direction specified in "where"."""
@@ -727,10 +752,62 @@ def OC_reloc(state_left,state_right,where):
             new_right_merged=None
             # unmerging the indices on the left
             new_left = unmerge(Combo_merged_svd[0],dims_left,"left")
+        Combo_merged_svd=None
     return new_left,new_right
 
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 
-# In[109]:
+####################################
+### Separate two physical blocks ###
+####################################
+def cut(block,how,OC=None):
+    """cutting up a block to different time bins with link index locations specified by the argument how
+    and the final position of the orthogonality centre can be given as an optional argument"""
+    
+    # merging the link indices into the physical indices
+    block_merged, dims = merge(block,how)
+    # separate the block
+    block_merged_svd = svd(block_merged,full_matrices=False)
+    block_merged=None
+    # specifying the link dimension
+    link_dim = block_merged_svd[1].size
+    if how=="left":
+        # specifying the final indices of the left block
+        left_dims = np.concatenate((dims,np.array([link_dim])),axis=0)
+        # unmerging the link index
+        new_left = unmerge(block_merged_svd[0],left_dims,"left")
+        # position the orthogonality centre to the right
+        new_right = np.einsum("ij,jkl",np.diag(block_merged_svd[1]),block_merged_svd[2])
+    elif how=="right":
+        # specifying the final indices of the right block
+        right_dims = np.concatenate((np.array([link_dim]),right_dims),axis=0)
+        new_left = block_merged_svd[0]
+        # position the orthogonality centre to the right and unmerging the link index
+        new_right = unmerge(np.einsum("ij,jkl",np.diag(block_merged_svd[1]),block_merged_svd[2]),u_dims,"right")
+    elif how=="both":
+        # specifying the final indices of the blocks
+        left_dims = np.concatenate((dims[:2],np.array([link_dim])),axis=0)
+        right_dims = np.concatenate((np.array([link_dim]),dims[2:]),axis=0)
+        if OC=="left":
+            # positioning the orthognality centre to the left
+            new_right = unmerge(block_merged_svd[2],right_dims,"right")
+            new_left = unmerge(np.einsum("ijk,kl",block_merged_svd[0],np.diag(block_merged_svd[1])),left_dims,"left")
+        elif OC=="right":
+            # positioning the orthognality centre to the right
+            new_right = unmerge(np.einsum("ij,jkl",np.diag(block_merged_svd[1]),block_merged_svd[2]),right_dims,"right")
+            new_left = unmerge(block_merged_svd[0],left_dims,"left")
+        elif OC== None:
+            print("Please specify where is the orthogonality centre after operation with the keywords 'left' or 'right'")
+    left_dims = None
+    right_dims = None
+    block_merged_svd = None
+    return new_left,new_right
+        
+
+
+# In[8]:
 
 
 a1 = np.array([0,1,2,3,4],complex)
@@ -747,8 +824,8 @@ print(e.shape,b.shape)
 eins = np.einsum("ijk,klm",b,e)
 print(eins)
 
-
-help(merge)
+print(a2[2:])
+#help(merge)
 
 
 # In[104]:
