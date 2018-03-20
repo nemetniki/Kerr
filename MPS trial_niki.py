@@ -3,7 +3,7 @@
 
 # # MPS code
 
-# In[1]:
+# In[9]:
 
 
 get_ipython().run_line_magic('matplotlib', 'inline')
@@ -83,7 +83,7 @@ linestyle = ['solid','dashed','dashdot','dotted','solid']
 # Let us consider a TLS on a waveguide. We need up to 4 photons in the environment and a system vector with size 2. $\gamma_R=0$
 # <img src='U_mat_TLS.png'>
 
-# In[6]:
+# In[10]:
 
 
 #index in the init list = timebin index: 0=16, ..., 15=1, 16=0, 17=S, 18=-1, 19=-2, 20=-3
@@ -274,7 +274,7 @@ plt.grid(True)
 # Let us consider a TLS on a waveguide. We need up to 4 photons in the environment and a system vector with size 2. $\gamma_R=0$
 # <img src='2nd_order.png'>
 
-# In[11]:
+# In[138]:
 
 
 #************************************#
@@ -290,6 +290,9 @@ def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
     """Evolution operator up to dt^2 using
     states at the current time (t_k), the delayed time (t_l) and the system state (t_S) at timestep M
     Remember, at M=0 the state is separable"""
+    
+    print(tk.shape,tS.shape,tl.shape,M)
+    
     
     ####--------------------------####
     #### Parameters and operators ####
@@ -335,7 +338,7 @@ def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
     if M == 0:
         T_0      = np.tensordot(np.tensordot(tk,tS,0),tl,0) #identity operation
     else:
-        T_0      = np.tensordot(tk,np.einsum("ij,jkl",tS,tl),0) #identity operation
+        T_0      = np.tensordot(tk,np.einsum("ij,jkl->ikl",tS,tl),0) #identity operation
     
     #####Terms with \delta_{i_Tg}\Delta_{j_Te}#####
     U_ig_je_0 = - 1j*dt*Om_TLS*( 1. -1j*.5*dt*Delta_T) # constant
@@ -361,22 +364,22 @@ def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
                                  np.tensordot(np.tensordot(np.dot(U_m_tk,tk),S_ig_je,0),np.dot(U_m_tl,tl),0)) )
                                  
     else:
-        T_ig_je = ( U_ig_je_0*np.tensordot(tk,np.einsum("ij,jkl",S_ig_je,tl),0) +                # constant
-                np.tensordot(np.dot(U_ig_je_k,tk),np.einsum("ij,jkl",S_ig_je,tl),0) +            # only k-dependent
-                np.tensordot(tk,np.einsum("ij,jkl",S_ig_je,np.einsum("ij,kjl",U_ig_je_l,tl)),0)+ # only l-dependent
+        T_ig_je = ( U_ig_je_0*np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ig_je,tl),0) +                # constant
+                np.tensordot(np.dot(U_ig_je_k,tk),np.einsum("ij,jkl->ikl",S_ig_je,tl),0) +            # only k-dependent
+                np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ig_je,np.einsum("ij,kjl->kil",U_ig_je_l,tl)),0)+ # only l-dependent
                 np.tensordot(np.dot(U_p_tk,tk),                                                  # 3rd order mixed terms
-                             np.einsum("ij,jkl",S_ig_je,np.einsum("ij,kjl",U_2m_tl,tl)),0)/6.+ 
+                             np.einsum("ij,jkl->ikl",S_ig_je,np.einsum("ij,kjl->kil",U_2m_tl,tl)),0)/6.+ 
                 np.tensordot(np.dot(U_2m_tk,tk),
-                             np.einsum("ij,jkl",S_ig_je,np.einsum("ij,kjl",U_p_tl,tl)),0)/6.+
+                             np.einsum("ij,jkl->ikl",S_ig_je,np.einsum("ij,kjl->kil",U_p_tl,tl)),0)/6.+
                 np.tensordot(np.dot(U_m_tk,tk),
-                             np.einsum("ij,jkl",S_ig_je,np.einsum("ij,kjl",np.diag(U_2np1_tl),tl)),0)/6.+
-                np.tensordot(U_2np1_tk*tk,np.einsum("ij,jkl",S_ig_je,np.einsum("ij,kjl",U_m_tl,tl)),0)/6.+
+                             np.einsum("ij,jkl->ikl",S_ig_je,np.einsum("ij,kjl->kil",np.diag(U_2np1_tl),tl)),0)/6.+
+                np.tensordot(U_2np1_tk*tk,np.einsum("ij,jkl->ikl",S_ig_je,np.einsum("ij,kjl->kil",U_m_tl,tl)),0)/6.+
                 1j*dt*Om_TLS/3.*(np.tensordot(np.dot(U_m_tk,tk),
-                                              np.einsum("ij,jkl",S_ig_je,np.einsum("ij,kjl",U_p_tl,tl)),0)+
+                                              np.einsum("ij,jkl->ikl",S_ig_je,np.einsum("ij,kjl->kil",U_p_tl,tl)),0)+
                                  np.tensordot(np.dot(U_p_tk,tk),
-                                              np.einsum("ij,jkl",S_ig_je,np.einsum("ij,kjl",U_m_tl,tl)),0)-
+                                              np.einsum("ij,jkl->ikl",S_ig_je,np.einsum("ij,kjl->kil",U_m_tl,tl)),0)-
                                  np.tensordot(np.dot(U_m_tk,tk),
-                                              np.einsum("ij,jkl",S_ig_je,np.einsum("ij,kjl",U_m_tl,tl)),0)) )
+                                              np.einsum("ij,jkl->ikl",S_ig_je,np.einsum("ij,kjl->kil",U_m_tl,tl)),0)) )
                                  
     U_ig_je_0 = None
     U_ig_je_k = None
@@ -400,27 +403,27 @@ def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
                 np.tensordot(np.tensordot(tk,S_ie_jg,0),np.dot(U_ie_jg_l,tl),0) +                # only l-dependent
                 np.tensordot(np.tensordot(np.dot(U_m_tk,tk),S_ie_jg,0),np.dot(U_2p_tl,tl),0)/6.+ # 3rd order mixed terms
                 np.tensordot(np.tensordot(np.dot(U_2p_tk,tk),S_ie_jg,0),np.dot(U_m_tl,tl),0)/6.+
-                np.tensordot(np.tensordot(np.dot(U_p_tk,tk),S_ig_je,0),U_2np1_tl*tl,0)/6.+
-                np.tensordot(np.tensordot(U_2np1_tk*tk,S_ig_je,0),np.dot(U_p_tl,tl),0)/6.+
+                np.tensordot(np.tensordot(np.dot(U_p_tk,tk),S_ie_jg,0),U_2np1_tl*tl,0)/6.+
+                np.tensordot(np.tensordot(U_2np1_tk*tk,S_ie_jg,0),np.dot(U_p_tl,tl),0)/6.+
                 1j*dt*Om_TLS/3.*(np.tensordot(np.tensordot(np.dot(U_m_tk,tk),S_ie_jg,0),np.dot(U_p_tl,tl),0)+
                                  np.tensordot(np.tensordot(np.dot(U_p_tk,tk),S_ie_jg,0),np.dot(U_m_tl,tl),0)-
                                  np.tensordot(np.tensordot(np.dot(U_p_tk,tk),S_ie_jg,0),np.dot(U_p_tl,tl),0)) )
     else:
-        T_ie_jg = ( U_ie_jg_0*np.tensordot(tk,np.einsum("ij,jkl",S_ie_jg,tl),0) +                # constant
-                np.tensordot(np.dot(U_ie_jg_k,tk),np.einsum("ij,jkl",S_ie_jg,tl),0) +            # only k-dependent
-                np.tensordot(tk,np.einsum("ij,jkl",S_ie_jg,np.einsum("ij,kjl",U_ie_jg_l,tl)),0)+ # only l-dependent
+        T_ie_jg = ( U_ie_jg_0*np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ie_jg,tl),0) +                # constant
+                np.tensordot(np.dot(U_ie_jg_k,tk),np.einsum("ij,jkl->ikl",S_ie_jg,tl),0) +            # only k-dependent
+                np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ie_jg,np.einsum("ij,kjl->kil",U_ie_jg_l,tl)),0)+ # only l-dependent
                 np.tensordot(np.dot(U_m_tk,tk),                                                  # 3rd order mixed terms
-                             np.einsum("ij,jkl",S_ie_jg,np.einsum("ij,kjl",U_2p_tl,tl)),0)/6.+ 
-                np.tensordot(np.dot(U_2p_tk,tk),np.einsum("ij,jkl",S_ie_jg,np.einsum("ij,kjl",U_m_tl,tl)),0)/6.+
+                             np.einsum("ij,jkl->ikl",S_ie_jg,np.einsum("ij,kjl->kil",U_2p_tl,tl)),0)/6.+ 
+                np.tensordot(np.dot(U_2p_tk,tk),np.einsum("ij,jkl->ikl",S_ie_jg,np.einsum("ij,kjl->kil",U_m_tl,tl)),0)/6.+
                 np.tensordot(np.dot(U_p_tk,tk),
-                             np.einsum("ij,jkl",S_ig_je,np.einsum("ij,kjl",np.diag(U_2np1_tl),tl)),0)/6.+
-                np.tensordot(U_2np1_tk*tk,np.einsum("ij,jkl",S_ig_je,np.einsum("ij,kjl",U_p_tl,tl)),0)/6.+
+                             np.einsum("ij,jkl->ikl",S_ie_jg,np.einsum("ij,kjl->kil",np.diag(U_2np1_tl),tl)),0)/6.+
+                np.tensordot(U_2np1_tk*tk,np.einsum("ij,jkl->ikl",S_ie_jg,np.einsum("ij,kjl->kil",U_p_tl,tl)),0)/6.+
                 1j*dt*Om_TLS/3.*(np.tensordot(np.dot(U_m_tk,tk),
-                                              np.einsum("ij,jkl",S_ie_jg,np.einsum("ij,kjl",U_p_tl,tl)),0)+
+                                              np.einsum("ij,jkl->ikl",S_ie_jg,np.einsum("ij,kjl->kil",U_p_tl,tl)),0)+
                                  np.tensordot(np.dot(U_p_tk,tk),
-                                              np.einsum("ij,jkl",S_ie_jg,np.einsum("ij,kjl",U_m_tl,tl)),0)-
+                                              np.einsum("ij,jkl->ikl",S_ie_jg,np.einsum("ij,kjl->kil",U_m_tl,tl)),0)-
                                  -np.tensordot(np.dot(U_p_tk,tk),
-                                               np.einsum("ij,jkl",S_ie_jg,np.einsum("ij,kjl",U_p_tl,tl)),0)) )
+                                               np.einsum("ij,jkl->ikl",S_ie_jg,np.einsum("ij,kjl->kil",U_p_tl,tl)),0)) )
     U_ie_jg_0 = None
     U_ie_jg_k = None
     U_ie_jg_l = None
@@ -454,28 +457,28 @@ def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
                 np.tensordot(np.tensordot(np.dot(U_p_tk,tk),S_ie_je,0),
                              np.dot(np.dot(np.diag(U_2np1_tl),U_m_tl),tl),0)/12. )
     else:
-        T_ie_je = ( U_ie_je_0*np.tensordot(tk,np.einsum("ij,jkl",S_ie_je,tl),0) +                  # constant
-                np.tensordot(np.dot(U_ie_je_k,tk),np.einsum("ij,jkl",S_ie_je,tl),0) +              # only l-dependent
-                np.tensordot(tk,np.einsum("ij,jkl",S_ie_je,np.einsum("ij,kjl",U_ie_je_l,tl)),0) +  # only l-dependent
+        T_ie_je = ( U_ie_je_0*np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ie_je,tl),0) +                  # constant
+                np.tensordot(np.dot(U_ie_je_k,tk),np.einsum("ij,jkl->ikl",S_ie_je,tl),0) +              # only l-dependent
+                np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ie_je,np.einsum("ij,kjl->kil",U_ie_je_l,tl)),0) +  # only l-dependent
                 (-.5+1j*dt/3.*Delta_T)*np.tensordot(np.dot(U_p_tk,tk),                             # up to 3rd order mixed
-                                                    np.einsum("ij,jkl",S_ie_je,np.einsum("ij,kjl",U_m_tl,tl)),0)+
+                                                    np.einsum("ij,jkl->ikl",S_ie_je,np.einsum("ij,kjl->kil",U_m_tl,tl)),0)+
                 (-.5+1j*dt/3.*Delta_T)*np.tensordot(np.dot(U_m_tk,tk),
-                                                    np.einsum("ij,jkl",S_ie_je,np.einsum("ij,kjl",U_p_tl,tl)),0)+
+                                                    np.einsum("ij,jkl->ikl",S_ie_je,np.einsum("ij,kjl->kil",U_p_tl,tl)),0)+
                 np.tensordot(np.dot(np.dot(np.diag(U_2np1_tk),U_m_tk),tk),
-                             np.einsum("ij,jkl",S_ie_je,np.einsum("ij,kjl",U_p_tl,tl)),0)/12.+     # 4th order mixed
+                             np.einsum("ij,jkl->ikl",S_ie_je,np.einsum("ij,kjl->kil",U_p_tl,tl)),0)/12.+     # 4th order mixed
                 np.tensordot(np.dot(np.dot(np.diag(U_2np1_tk),U_p_tk),tk),
-                             np.einsum("ij,jkl",S_ie_je,np.einsum("ij,kjl",U_m_tl,tl)),0)/12.+
+                             np.einsum("ij,jkl->ikl",S_ie_je,np.einsum("ij,kjl->kil",U_m_tl,tl)),0)/12.+
                 np.tensordot(U_2np1_tk*tk,
-                             np.einsum("ij,jkl",S_ie_je,np.einsum("ij,kjl",np.diag(U_np_tl+1),tl)),0)/12.+
+                             np.einsum("ij,jkl->ikl",S_ie_je,np.einsum("ij,kjl->kil",np.diag(U_np_tl+1),tl)),0)/12.+
                 np.tensordot((U_np_tk+1)*tk,
-                             np.einsum("ij,jkl",S_ie_je,np.einsum("ij,kjl",np.diag(U_2np1_tl),tl)),0)/12.+
-                np.tensordot(np.dot(U_2m_tk,tk),np.einsum("ij,jkl",S_ie_je,np.einsum("ij,kjl",U_2p_tl,tl)),0)/12.+
-                np.tensordot(np.dot(U_2p_tk,tk),np.einsum("ij,jkl",S_ie_je,np.einsum("ij,kjl",U_2m_tl,tl)),0)/12.+
+                             np.einsum("ij,jkl->ikl",S_ie_je,np.einsum("ij,kjl->kil",np.diag(U_2np1_tl),tl)),0)/12.+
+                np.tensordot(np.dot(U_2m_tk,tk),np.einsum("ij,jkl->ikl",S_ie_je,np.einsum("ij,kjl->kil",U_2p_tl,tl)),0)/12.+
+                np.tensordot(np.dot(U_2p_tk,tk),np.einsum("ij,jkl->ikl",S_ie_je,np.einsum("ij,kjl->kil",U_2m_tl,tl)),0)/12.+
                 np.tensordot(np.dot(U_m_tk,tk),
-                             np.einsum("ij,jkl",S_ie_je,np.einsum("ij,kjl",np.dot(np.diag(U_2np1_tl),
+                             np.einsum("ij,jkl->ikl",S_ie_je,np.einsum("ij,kjl->kil",np.dot(np.diag(U_2np1_tl),
                                                                                   U_p_tl),tl)),0)/12.+
                 np.tensordot(np.dot(U_p_tk,tk),
-                             np.einsum("ij,jkl",S_ie_je,np.einsum("ij,kjl",np.dot(np.diag(U_2np1_tl),
+                             np.einsum("ij,jkl->ikl",S_ie_je,np.einsum("ij,kjl->kil",np.dot(np.diag(U_2np1_tl),
                                                                                   U_m_tl),tl)),0)/12. )
 
     U_ie_je_0 = None
@@ -511,26 +514,26 @@ def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
                 np.tensordot(np.tensordot(np.dot(U_p_tk,tk),S_ig_jg,0),
                              np.dot(np.dot(np.diag(U_2np1_tl),U_m_tl),tl),0)/12. )
     else:
-        T_ig_jg = ( U_ig_jg_0*np.tensordot(tk,np.einsum("ij,jkl",S_ig_jg,tl),0) +                # constant
-                np.tensordot(np.dot(U_ig_jg_k,tk),np.einsum("ij,jkl",S_ig_jg,tl),0) +            # only k-dependent
-                np.tensordot(tk,np.einsum("ij,jkl",S_ig_jg,np.einsum("ij,kjl",U_ig_jg_l,tl)),0)+ # only l-dependent
+        T_ig_jg = ( U_ig_jg_0*np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ig_jg,tl),0) +                # constant
+                np.tensordot(np.dot(U_ig_jg_k,tk),np.einsum("ij,jkl->ikl",S_ig_jg,tl),0) +            # only k-dependent
+                np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ig_jg,np.einsum("ij,kjl->kil",U_ig_jg_l,tl)),0)+ # only l-dependent
                 (-.5+1j*dt/6.*Delta_T)*                                                          # up to 3rd order mixed
-                np.tensordot(np.dot(U_p_tk,tk),np.einsum("ij,jkl",S_ig_jg,np.einsum("ij,kjl",U_m_tl,tl)),0)+
+                np.tensordot(np.dot(U_p_tk,tk),np.einsum("ij,jkl->ikl",S_ig_jg,np.einsum("ij,kjl->kil",U_m_tl,tl)),0)+
                 (-.5+1j*dt/6.*Delta_T)*
-                np.tensordot(np.dot(U_m_tk,tk),np.einsum("ij,jkl",S_ig_jg,np.einsum("ij,kjl",U_p_tl,tl)),0)+
+                np.tensordot(np.dot(U_m_tk,tk),np.einsum("ij,jkl->ikl",S_ig_jg,np.einsum("ij,kjl->kil",U_p_tl,tl)),0)+
                 np.tensordot(np.dot(np.dot(np.diag(U_2np1_tk),U_p_tk),tk),                       # 4th order mixed
-                             np.einsum("ij,jkl",S_ig_jg,np.einsum("ij,kjl",U_m_tl,tl)),0)/12.+
+                             np.einsum("ij,jkl->ikl",S_ig_jg,np.einsum("ij,kjl->kil",U_m_tl,tl)),0)/12.+
                 np.tensordot(np.dot(np.dot(np.diag(U_2np1_tk),U_m_tk),tk),
-                             np.einsum("ij,jkl",S_ie_je,np.einsum("ij,kjl",U_p_tl,tl)),0)/12.+
-                np.tensordot(U_2np1_tk*tk,np.einsum("ij,jkl",S_ig_jg,np.einsum("ij,kjl",np.diag(U_np_tl),tl)),0)/12.+
-                np.tensordot(U_np_tk*tk,np.einsum("ij,jkl",S_ig_jg,np.einsum("ij,kjl",np.diag(U_2np1_tl),tl)),0)/12.+
-                np.tensordot(np.dot(U_2m_tk,tk),np.einsum("ij,jkl",S_ig_jg,np.einsum("ij,kjl",U_2p_tl,tl)),0)/12.+
-                np.tensordot(np.dot(U_2p_tk,tk),np.einsum("ij,jkl",S_ig_jg,np.einsum("ij,kjl",U_2m_tl,tl)),0)/12.+
+                             np.einsum("ij,jkl->ikl",S_ig_jg,np.einsum("ij,kjl->kil",U_p_tl,tl)),0)/12.+
+                np.tensordot(U_2np1_tk*tk,np.einsum("ij,jkl->ikl",S_ig_jg,np.einsum("ij,kjl->kil",np.diag(U_np_tl),tl)),0)/12.+
+                np.tensordot(U_np_tk*tk,np.einsum("ij,jkl->ikl",S_ig_jg,np.einsum("ij,kjl->kil",np.diag(U_2np1_tl),tl)),0)/12.+
+                np.tensordot(np.dot(U_2m_tk,tk),np.einsum("ij,jkl->ikl",S_ig_jg,np.einsum("ij,kjl->kil",U_2p_tl,tl)),0)/12.+
+                np.tensordot(np.dot(U_2p_tk,tk),np.einsum("ij,jkl->ikl",S_ig_jg,np.einsum("ij,kjl->kil",U_2m_tl,tl)),0)/12.+
                 np.tensordot(np.dot(U_m_tk,tk),
-                             np.einsum("ij,jkl",S_ig_jg,np.einsum("ij,kjl",np.dot(np.diag(U_2np1_tl),
+                             np.einsum("ij,jkl->ikl",S_ig_jg,np.einsum("ij,kjl->kil",np.dot(np.diag(U_2np1_tl),
                                                                                   U_p_tl),tl)),0)/12.+
                 np.tensordot(np.dot(U_p_tk,tk),
-                             np.einsum("ij,jkl",S_ig_jg,np.einsum("ij,kjl",np.dot(np.diag(U_2np1_tl),
+                             np.einsum("ij,jkl->ikl",S_ig_jg,np.einsum("ij,kjl->kil",np.dot(np.diag(U_2np1_tl),
                                                                                   U_m_tl),tl)),0)/12. )
 
     U_ig_jg_0 = None
@@ -553,28 +556,35 @@ def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
 ############################
 ### Calculating the norm ###
 ############################
-def norm(M,L,state,norm_L):
+def normf(M,L,state,norm_L):
     """Performing the contractions for the norm using
     the calculated states in list "state" with a delay index-length L 
     and the stored values of norm_L (tensor with indices for state and dual) at timestep M"""
+    
+    # Indices of the timebins: 0->furthest past, L->system, L+1->first future timebin
     if M==0:
-        norm = np.dot(state[L],np.conjugate(state[L]))
+        print(state[L])
+        norm = np.einsum("i,i",state[L],np.conjugate(state[L]))
     else:
         # Contracting part of the MPS that won't change anymore with its dual and with previously stored tensors
         if M==1:
-            norm_L = np.einsum("ik,jk",state[0],np.conjugate(state[0]))
+            print("state[0]",state[0])
+            norm_L = np.einsum("ik,jk->ij",state[0],np.conjugate(state[0]))
         else:
-            norm_L = np.einsum("ijkl,kl",np.einsum("imk,jml->ijkl",state[M-1],np.conjugate(state[M-1])),norm_L)
+            norm_L = np.einsum("ijkl,kl->ij",np.einsum("imk,jml->ijkl",state[M-1],np.conjugate(state[M-1])),norm_L)
+        print("norm_L",norm_L)
         
         # Contracting the system part of the MPS
-        norm_S = np.einsum("ki,kj",state[L+M],np.conjugate(state[L+M]))
+        norm_S = np.einsum("ki,kj->ij",state[L+M],np.conjugate(state[L+M]))
+        print("norm_S",norm_S)
         norm = norm_L
         # Performing the rest of the reservoir contractions from right to left.
         for i in range(0,L):
             norm_past = np.einsum("imk,jml->ijkl",state[M+i],np.conjugate(state[M+i]))
-            norm = np.einsum("ijkl,kl",norm_past,norm)
+            norm = np.einsum("ijkl,kl->ij",norm_past,norm)
         # Contracting the environment part with the system part
         norm = np.einsum("ij,ij",norm,norm_S)
+    print("norm",norm)
     return norm,norm_L
 
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
@@ -687,7 +697,7 @@ def OC_reloc(state_left,state_right,where):
             # Merging the indices on the left to be able to perform svd
             Combo_merged,merge_dims = merge(Combo,"left")
             Combo_merged_svd = svd(Combo_merged,full_matrices=False)
-            # number of singular values
+            # number of singular values that matter
             bond_length = np.min(np.array(Combo_merged.shape))
             Combo_merged=None
             # Dimensions of the indices after the OC relocation and unmerge of indices
@@ -779,13 +789,13 @@ def cut(block,how,OC=None):
         # unmerging the link index
         new_left = unmerge(block_merged_svd[0],left_dims,"left")
         # position the orthogonality centre to the right
-        new_right = np.einsum("ij,jkl",np.diag(block_merged_svd[1]),block_merged_svd[2])
+        new_right = np.einsum("ij,jk->ik",np.diag(block_merged_svd[1]),block_merged_svd[2])
     elif how=="right":
         # specifying the final indices of the right block
-        right_dims = np.concatenate((np.array([link_dim]),right_dims),axis=0)
+        right_dims = np.concatenate((np.array([link_dim]),dims),axis=0)
         new_left = block_merged_svd[0]
         # position the orthogonality centre to the right and unmerging the link index
-        new_right = unmerge(np.einsum("ij,jkl",np.diag(block_merged_svd[1]),block_merged_svd[2]),u_dims,"right")
+        new_right = unmerge(np.einsum("ij,jk->ik",np.diag(block_merged_svd[1]),block_merged_svd[2]),right_dims,"right")
     elif how=="both":
         # specifying the final indices of the blocks
         left_dims = np.concatenate((dims[:2],np.array([link_dim])),axis=0)
@@ -793,10 +803,10 @@ def cut(block,how,OC=None):
         if OC=="left":
             # positioning the orthognality centre to the left
             new_right = unmerge(block_merged_svd[2],right_dims,"right")
-            new_left = unmerge(np.einsum("ijk,kl",block_merged_svd[0],np.diag(block_merged_svd[1])),left_dims,"left")
+            new_left = unmerge(np.einsum("jk,kl->jl",block_merged_svd[0],np.diag(block_merged_svd[1])),left_dims,"left")
         elif OC=="right":
             # positioning the orthognality centre to the right
-            new_right = unmerge(np.einsum("ij,jkl",np.diag(block_merged_svd[1]),block_merged_svd[2]),right_dims,"right")
+            new_right = unmerge(np.einsum("ij,jk->ik",np.diag(block_merged_svd[1]),block_merged_svd[2]),right_dims,"right")
             new_left = unmerge(block_merged_svd[0],left_dims,"left")
         elif OC== None:
             print("Please specify where is the orthogonality centre after operation with the keywords 'left' or 'right'")
@@ -807,40 +817,92 @@ def cut(block,how,OC=None):
         
 
 
-# In[8]:
+# In[139]:
 
 
-a1 = np.array([0,1,2,3,4],complex)
-a2 = np.array([0,1,2,3],complex)
-a3 = np.array([0,1,2],complex)
-a4 = np.array([0,1],complex)
-
-b = np.tensordot(np.tensordot(a1,a2,0),a3,0)
-c = np.tensordot(a3,a4,0)
-d = np.dot(b,c)
-print(b.shape,c.shape)
-e = np.tensordot(a3,np.tensordot(a4,a1,0),0)
-print(e.shape,b.shape)
-eins = np.einsum("ijk,klm",b,e)
-print(eins)
-
-print(a2[2:])
-#help(merge)
-
-
-# In[104]:
-
-
-newd,dims = merge(d,"right")
-print(d.shape)
-print(newd.shape)
+help(U)
+help(normf)
+help(merge)
+help(unmerge)
 help(OC_reloc)
+help(cut)
 
 
-# In[110]:
+# In[140]:
 
 
-new_left,new_right = OC_reloc(b,e,"right")
-print(new_left.shape,new_right.shape)
-np.einsum("ijk,klm",new_left,new_right)
+#**************#
+#***--------***#
+#***| CODE |***#
+#***--------***#
+#**************#
+
+############################
+### Evolution operator U ###
+############################
+
+start = time.time()
+
+gamma_L = 1.
+gamma_R = 1.
+Om_TLS  = 0.#1.5*np.pi
+Delta_T = 0.#1.0
+phi     = 0.
+
+endt = 12.
+dt   = .1
+L    = 3
+N    = int(endt/dt)+L
+
+initTLS    = np.array([0,1],complex) #starting at |e>
+initenv    = np.zeros(5,complex)
+initenv[0] = 1
+init       = [initenv]*N
+# Initial state of the system
+init[L]    = initTLS
+
+norm = np.zeros(N,complex)
+print(norm[0])
+normL = np.zeros((initenv.size,initenv.size),complex)
+
+for M in range(0,N):
+    
+    print("M =",M)
+    #print(normf(0,L,init,normL))
+    norm[M],normL = normf(M,L,init,normL)
+    print("norm done")
+    print("sys?",init[L+M])
+    U_block = U(init[L+1+M],init[L+M],init[L-1+M],M)
+    if M > 0:
+        U_block,U_right_dims = merge(U_block,"right")
+    U_block  = np.einsum("ijk->jik",U_block)
+    init[L+1+M],U_small_block = cut(U_block,"right")
+    init[L+M],init[L+M-1] = cut(U_small_block,"left")
+    print("init[3]",init[3].shape)
+
+    if M > 0:
+        U_dims = np.concatenate((np.array([init[L+M-1].shape[0]]),U_right_dims),axis = 0)
+        init[L+M-1] = unmerge(init[L+M-1],U_dims,"right")
+    print("U done")
+    
+    for s in range(0,L-1):
+        if M==0:
+            swap_block = np.tensordot(init[L-1-s],init[L-2-s],0)
+            init[L-1-s],init[L-2-s] = cut(np.einsum("ijk->ikj",swap_block),"left")
+        else:
+            swap_block = np.einsum("ijk,klm->ijlm",init[L+M-1-s],init[L+M-2-s])
+            init[L+M-s-1],init[L+M-2-s] = cut(swap_block,"both","right")
+    print("swaps done")
+    
+    init[M+1],init[M] = OC_reloc(init[M+1],init[M],"left")
+    print("OC relocation done")
+    
+    
+
+
+# In[ ]:
+
+
+a= np.array([[0,1,2,3],[4,5,6,7],[8,9,10,11]])
+svd(a,full_matrices=False)
 
