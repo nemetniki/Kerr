@@ -3,7 +3,7 @@
 
 # # MPS code
 
-# In[1]:
+# In[2]:
 
 
 get_ipython().run_line_magic('matplotlib', 'inline')
@@ -274,7 +274,7 @@ plt.grid(True)
 # Let us consider a TLS on a waveguide. We need up to 4 photons in the environment and a system vector with size 2. $\gamma_R=0$
 # <img src='2nd_order.png'>
 
-# In[18]:
+# In[104]:
 
 
 #************************************#
@@ -300,7 +300,7 @@ def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
     
     #####Dimensions of the physical indices#####
     dim_tk = tk.shape[0]
-    if M==0:
+    if len(tS.shape)==1 & len(tl.shape)==1:
         dim_tl = tl.shape[0]
         dim_tS = tS.shape[0]
     else:
@@ -335,7 +335,7 @@ def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
     ####----------------------####
     
     #####Identity#####
-    if M == 0:
+    if len(tS.shape)==1 & len(tl.shape)==1:
         T_0      = np.tensordot(np.tensordot(tk,tS,0),tl,0) #identity operation
     else:
         T_0      = np.tensordot(tk,np.einsum("ij,jkl->ikl",tS,tl),0) #identity operation
@@ -351,7 +351,7 @@ def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
                 1j*Om_TLS*dt/6.*np.diag(U_2np1_tl)-
                 1j*dt*Om_TLS/6.*U_2m_tl )
     S_ig_je = np.dot(sp,tS)                            # TLS-state
-    if M==0:
+    if len(tS.shape)==1 & len(tl.shape)==1:
         T_ig_je = ( U_ig_je_0*np.tensordot(np.tensordot(tk,S_ig_je,0),tl,0) +                     # constant
                 np.tensordot(np.tensordot(np.dot(U_ig_je_k,tk),S_ig_je,0),tl,0) +                 # only k-dependent
                 np.tensordot(np.tensordot(tk,S_ig_je,0),np.dot(U_ig_je_l,tl),0) +                 # only l-dependent
@@ -398,7 +398,7 @@ def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
                 1j*dt*Om_TLS/6.*np.diag(U_2np1_tl)-  
                 1j*dt*Om_TLS/6.*U_2p_tl )
     S_ie_jg = np.dot(sm,tS)                            # TLS-state
-    if M==0:
+    if len(tS.shape)==1 & len(tl.shape)==1:
         T_ie_jg = ( U_ie_jg_0*np.tensordot(np.tensordot(tk,S_ie_jg,0),tl,0) +                    # constant
                 np.tensordot(np.tensordot(np.dot(U_ie_jg_k,tk),S_ie_jg,0),tl,0) +                # only k-dependent
                 np.tensordot(np.tensordot(tk,S_ie_jg,0),np.dot(U_ie_jg_l,tl),0) +                # only l-dependent
@@ -438,7 +438,7 @@ def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
     U_ie_je_l = ( np.diag(( -.5 + 1j/3.*Delta_T*dt + 1/24.*(U_np_tl+gamma_R*dt) )      # only l-dependent
                           *(U_np_tl+gamma_R*dt))+ .5j*dt*Om_TLS*(U_m_tl-U_p_tl) )
     S_ie_je = np.dot(np.dot(sp,sm),tS)                                                  # TLS-state
-    if M==0:
+    if len(tS.shape)==1 & len(tl.shape)==1:
         T_ie_je = ( U_ie_je_0*np.tensordot(np.tensordot(tk,S_ie_je,0),tl,0) +           # constant
                 np.tensordot(np.tensordot(np.dot(U_ie_je_k,tk),S_ie_je,0),tl,0) +       # only k-dependent
                 np.tensordot(np.tensordot(tk,S_ie_je,0),np.dot(U_ie_je_l,tl),0) +       # only l-dependent
@@ -495,7 +495,7 @@ def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
     U_ig_jg_l = ( np.diag(( -.5 + 1j/6.*Delta_T*dt + 1/24.*U_np_tl )*U_np_tl)+ # only l-dependent
                 .5j*dt*Om_TLS*(U_m_tl-U_p_tl) )
     S_ig_jg = np.dot(np.dot(sm,sp),tS)                                         # TLS-state
-    if M==0:
+    if len(tS.shape)==1 & len(tl.shape)==1:
         T_ig_jg = ( U_ig_jg_0*np.tensordot(np.tensordot(tk,S_ig_jg,0),tl,0) +                # constant
                 np.tensordot(np.tensordot(np.dot(U_ig_jg_k,tk),S_ig_jg,0),tl,0) +            # only k-dependent
                 np.tensordot(np.tensordot(tk,S_ig_jg,0),np.dot(U_ig_jg_l,tl),0) +            # only l-dependent
@@ -574,13 +574,20 @@ def SVD_sig(block,tolerance):
     sing      = np.array(svd_init[1])
     # Storing only the significant singular values
     sign_sing = sing[sing>tolerance]
+    sing_num     = sign_sing.size
     
     # Determining the number of significant singular values and resizing the svd matrices accordingly
-    link_dim     = sign_sing.size
-    #print("link_dim",link_dim)
-    svd_final[0] = np.array(svd_init[0][:,:link_dim])
-    svd_final[1] = np.diag(sign_sing)
-    svd_final[2] = np.array(svd_init[2][:link_dim,:])
+    #print("link_dim",sing_num)
+    if sing_num==1:
+        link_dim     = 0
+        svd_final[0] = svd_init[0][:,0]
+        svd_final[1] = sign_sing
+        svd_final[2] = svd_init[2][0,:]
+    else:
+        link_dim = sing_num
+        svd_final[0] = svd_init[0][:,:link_dim]
+        svd_final[1] = np.diag(sign_sing)
+        svd_final[2] = svd_init[2][:link_dim,:]
     
     # Clear unnecessary variables
     svd_init  = None
@@ -608,23 +615,41 @@ def normf(M,L,state,norm_L):
         norm = np.einsum("i,i",state[L],np.conjugate(state[L]))
     else:
         # Contracting part of the MPS that won't change anymore with its dual and with previously stored tensors
-        if M==1:
+        if len(state[M-1].shape)==1:
 #            print("state[0]",state[0])
-            norm_L = np.einsum("ik,jk->ij",state[0],np.conjugate(state[0]))
+            norm_L = np.einsum("i,i",state[M-1],np.conjugate(state[M-1]))
+        elif len(state[M-1].shape)==2:
+#            print("state[0]",state[0])
+            norm_L = np.einsum("ik,jk->ij",state[M-1],np.conjugate(state[M-1]))
         else:
             norm_L = np.einsum("ijkl,kl->ij",np.einsum("imk,jml->ijkl",state[M-1],np.conjugate(state[M-1])),norm_L)
 #        print("norm_L",norm_L)
         
         # Contracting the system part of the MPS
-        norm_S = np.einsum("ki,kj->ij",state[L+M],np.conjugate(state[L+M]))
+        if len(state[L+M].shape)==1:
+            norm_S = np.dot(state[L+M],np.conjugate(state[L+M]))
+        else:
+            norm_S = np.einsum("ki,kj->ij",state[L+M],np.conjugate(state[L+M]))
+        #print(np.einsum("ii",norm_S))
 #        print("norm_S",norm_S)
         norm = norm_L
         # Performing the rest of the reservoir contractions from right to left.
         for i in range(0,L):
-            norm_past = np.einsum("imk,jml->ijkl",state[M+i],np.conjugate(state[M+i]))
-            norm = np.einsum("ijkl,kl->ij",norm_past,norm)
+            if len(state[M+i].shape)==1:
+                norm_past = np.einsum("i,i",state[M+i],np.conjugate(state[M+i]))
+                norm = norm_past*norm
+            elif len(state[M+i].shape)==2:
+                norm_past = np.einsum("ij,kj->ik",state[M+i],np.conjugate(state[M+i]))
+                norm = norm_past*norm
+            else:
+                norm_past = np.einsum("imk,jml->ijkl",state[M+i],np.conjugate(state[M+i]))
+                norm = np.einsum("ijkl,kl->ij",norm_past,norm)
+        #print(norm)
         # Contracting the environment part with the system part
-        norm = np.einsum("ij,ij",norm,norm_S)
+        if len(state[L+M].shape) ==1:
+            norm = norm*norm_S
+        else:
+            norm = np.einsum("ij,ij",norm,norm_S)
 #    print("norm",norm)
     return np.real(norm),norm_L
 
@@ -641,11 +666,11 @@ def exp_sys(observable,sys,M):
     OUTPUT: expectation value of the observable"""
     
     # Indices of the timebins: 0->furthest past, L->system, L+1->first future timebin
-    if M==0:
+    if len(sys.shape)==1:
 #        print(state[L])
         obs = np.einsum("i,i",np.einsum("i,ij",sys,observable),np.conjugate(sys))
     else:
-        obs = np.einsum("kj,kj",np.einsum("ij,ik->kj",sys,observable),np.conjugate(sys))
+        obs = np.einsum("jk,kj",np.einsum("ij,ik->jk",sys,observable),np.conjugate(sys))
         # Contracting part of the MPS that won't change anymore with its dual and with previously stored tensors
     return np.real(obs)
 
@@ -665,8 +690,11 @@ def merge(block,where):
     num_ind = len(block.shape)
     d1 = block.shape[0]
     d2 = block.shape[1]
-    d3 = block.shape[2]
-    if num_ind==3:
+    if num_ind == 2:
+        merged_block = block
+        dims=None
+    elif num_ind==3:
+        d3 = block.shape[2]
         if where=="left":
             merged_block = np.zeros((d1*d2,d3),dtype=np.complex128)
             for i in range(0,d1):
@@ -682,6 +710,7 @@ def merge(block,where):
             # passing on the merged dimensions
             dims = np.array([d2,d3])
     elif num_ind==4:
+        d3 = block.shape[2]
         d4 = block.shape[3]
         if where=="left":
             merged_block = np.zeros((d1*d2,d3,d4),dtype=np.complex128)
@@ -724,18 +753,28 @@ def unmerge(block,dims,where):
     INPUT: the block for which the index-merging should be undone, the dimensions of the final block indices
     and where the merged indices are
     OUTPUT: the obtained higher-rank tensor"""
-    
-    D1 = block.shape[0]
-    D2 = block.shape[1]
     unmerged_block = np.zeros(dims,dtype=np.complex128)
-    if where=="left":
+    if dims ==None:
+        unmerged_block = block
+    elif where=="left":
+        D = block.shape[0]
         d1 = dims[0]
-        for I in range(0,D1):
-            unmerged_block[I%d1,int((I-(I%d1))/d1),:]  = block[I,:]
+        for I in range(0,D):
+            if len(block.shape)==1:
+                unmerged_block[I%d1,int((I-(I%d1))/d1)]  = block[I]
+            elif len(block.shape)==2:
+                unmerged_block[I%d1,int((I-(I%d1))/d1),:]  = block[I,:]
     elif where=="right":
+        if len(block.shape)==1:
+            D = block.shape[0]
+        elif len(block.shape)==2:
+            D = block.shape[1]
         d2 = dims[1]
-        for I in range(0,D2):
-            unmerged_block[:,I%d2,int((I-(I%d2))/d2)]  = block[:,I]
+        for I in range(0,D):
+            if len(block.shape)==1:
+                unmerged_block[I%d2,int((I-(I%d2))/d2)]  = block[I]
+            elif len(block.shape)==2:
+                unmerged_block[:,I%d2,int((I-(I%d2))/d2)]  = block[:,I]
     return unmerged_block
 
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
@@ -758,7 +797,17 @@ def OC_reloc(state_left,state_right,where,tolerance):
     Combo = np.tensordot(state_left,state_right,1)
     # Number of indices left after contraction
     num_ind = left_ind+right_ind
-    if num_ind==3:
+    if num_ind==2:
+        Combo_svd,link_dim = SVD_sig(Combo,tolerance)
+        if where=="left":
+            new_left = np.dot(Combo_svd[0],Combo_svd[1])
+            new_right = Combo_svd[2]
+        elif where=="right":
+            new_right = np.dot(Combo_svd[1],Combo_svd[2])
+            new_left = Combo_svd[0]
+        Combo_svd = None
+        
+    elif num_ind==3:
         if left_ind ==2:
             # Merging the indices on the left to be able to perform svd
             Combo_merged,merge_dims = merge(Combo,"left")
@@ -799,6 +848,7 @@ def OC_reloc(state_left,state_right,where,tolerance):
                 new_right_merged=None
                 new_left = Combo_merged_svd[0]            
                 Combo_merged_svd=None
+                
     elif num_ind==4:
         # Merging the indices on both sides to be able to perform svd
         Combo_merged,merge_dims = merge(Combo,"both")
@@ -849,17 +899,35 @@ def cut(block,tolerance,how,OC=None):
     # specifying the link dimension
     if how=="left":
         # specifying the final indices of the left block
-        left_dims = np.concatenate((dims,np.array([link_dim])),axis=0)
-        # unmerging the link index
-        new_left = unmerge(block_merged_svd[0],left_dims,"left")
-        # position the orthogonality centre to the right
-        new_right = np.einsum("ij,jk->ik",block_merged_svd[1],block_merged_svd[2])
+        if link_dim >0:
+            left_dims = np.concatenate((dims,np.array([link_dim])),axis=0)
+        else:
+            left_dims = dims
+        if len(block_merged_svd[2].shape)>1:
+            # unmerging the link index
+            new_left = unmerge(block_merged_svd[0],left_dims,"left")
+            # position the orthogonality centre to the right
+            new_right = np.einsum("ij,jk->ik",block_merged_svd[1],block_merged_svd[2])
+        elif len(block_merged_svd[2].shape)==1 & len(block_merged_svd[0].shape)==1:
+            # unmerging the link index
+            new_left = unmerge(block_merged_svd[0],left_dims,"left")
+            # position the orthogonality centre to the right
+            new_right = block_merged_svd[1]*block_merged_svd[2]
     elif how=="right":
-        # specifying the final indices of the right block
-        right_dims = np.concatenate((np.array([link_dim]),dims),axis=0)
-        new_left = block_merged_svd[0]
-        # position the orthogonality centre to the right and unmerging the link index
-        new_right = unmerge(np.einsum("ij,jk->ik",block_merged_svd[1],block_merged_svd[2]),right_dims,"right")
+        if link_dim >0:
+            right_dims = np.concatenate((np.array([link_dim]),dims),axis=0)
+        else:
+            right_dims = dims
+        if len(block_merged_svd[2].shape)>1:
+            # specifying the final indices of the right block
+            new_left = block_merged_svd[0]
+            # position the orthogonality centre to the right and unmerging the link index
+            new_right = unmerge(np.einsum("ij,jk->ik",block_merged_svd[1],block_merged_svd[2]),right_dims,"right")
+        elif len(block_merged_svd[2].shape)==1 & len(block_merged_svd[0].shape)==1:
+            # specifying the final indices of the right block
+            new_left = block_merged_svd[0]
+            # position the orthogonality centre to the right and unmerging the link index
+            new_right = unmerge(block_merged_svd[1]*block_merged_svd[2],right_dims,"right")
     elif how=="both":
         # specifying the final indices of the blocks
         left_dims = np.concatenate((dims[:2],np.array([link_dim])),axis=0)
@@ -878,22 +946,49 @@ def cut(block,tolerance,how,OC=None):
     right_dims = None
     block_merged_svd = None
     return new_left,new_right
+
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+
+#########################
+### Swapping timebins ###
+#########################
+def SWAP(states,base_ind,direction,OC=None):
+    """Unmerging indices to provide a higher-rank tensor from block
+    INPUT: the block for which the index-merging should be undone, the dimensions of the final block indices
+    and where the merged indices are
+    OUTPUT: the obtained higher-rank tensor"""
+    
+    if direction=="future":
+        c = 1
+    elif direction=="past":
+        c=-1
         
+    for s in range(0,L-1):
+        if len(init[base_ind+c*s].shape)==1 :
+            if len(init[base_ind+c*s+1].shape)==1:
+                right = init[base_ind+1+c*s]
+                init[base_ind+c*s+1] = init[base_ind+c*s]
+                init[base_ind+c*s] = right
+                right=None
+            else:
+                swap_block = np.tensordot(init[base_ind+s+1],init[base_ind+c*s],0)
+                init[base_ind+c*s+1],init[base_ind+c*s] = cut(np.einsum("ijk->ikj",swap_block),tol,"left")
+        elif len(init[base_ind+c*s].shape)==2 :
+            swap_block = np.einsum("ijk,kl->ilj",init[base_ind+1+c*s],init[base_ind+c*s])
+            init[base_ind+1+c*s],init[base_ind+c*s] = cut(swap_block,tol,"left")     
+        else:
+            swap_block = np.einsum("ijk,klm->iljm",init[base_ind+1+c*s],init[base_ind+c*s])
+            if OC=="left":
+                init[base_ind+1+c*s],init[base_ind+c*s] = cut(swap_block,tol,"both","left")     
+            elif OC=="right":
+                init[base_ind+1+c*s],init[base_ind+c*s] = cut(swap_block,tol,"both","right")     
+    return init[base_ind:(base_ind+L)]
 
 
-# In[19]:
 
-
-help(U)
-help(normf)
-help(exp_sys)
-help(merge)
-help(unmerge)
-help(OC_reloc)
-help(cut)
-
-
-# In[31]:
+# In[106]:
 
 
 #**************#
@@ -908,7 +1003,7 @@ help(cut)
 
 start = time.time()
 
-tol     = 10**(-16)
+tol     = 10**(-8)
 gamma_L = 1.
 gamma_R = 0.
 Om_TLS  = 1.#1.5*np.pi
@@ -920,8 +1015,8 @@ dt   = .01
 L    = 3
 N    = int(endt/dt)+L+1
 
-initTLS    = np.array([1,0],complex) #starting at |e>
-initenv    = np.zeros(5,complex)
+initTLS    = np.array([0,1],complex) #starting at |e>
+initenv    = np.zeros(7,complex)
 initenv[0] = 1
 init       = [initenv]*N
 # Initial state of the system
@@ -936,52 +1031,47 @@ normL = np.zeros((initenv.size,initenv.size),complex)
 
 for M in range(0,N-L-1):
     
-    print("M =",M)
-    print(init[ind_sys])
-#    if M>0:
-#        init[M],init[M-1] = OC_reloc(init[M],init[M-1],"left",tol)
-#    norm[M],normL = normf(M,L,init,normL)
+#    print("M =",M)
+#    print(init[ind_sys])
+    norm[M],normL = normf(M,L,init,normL)
     #print("norm done")
     exc_pop[M] = exp_sys(np.array([[0,0],[0,1]]),init[ind_sys],M)
     gr_pop[M]  = exp_sys(np.array([[1,0],[0,0]]),init[ind_sys],M)
     
-#    if M>0:
-#        #print("OC relocation done")
-#        for s in range(0,L-1):
-#            swap_block = np.einsum("ijk,klm->iljm",init[M+1+s],init[M+s])
-#            init[M+1+s],init[M+s] = cut(swap_block,tol,"both","left")     
-#        init[ind_sys],init[ind_sys-1] = OC_reloc(init[ind_sys],init[ind_sys-1],"left",tol)
+    if len(init[M-1].shape)>1:
+        init[M],init[M-1] = OC_reloc(init[M],init[M-1],"left",tol)
+
+    if M>0:
+        #print("OC relocation done")
+        init[M:M+L] = SWAP(init,M,"future","left")
+                
+    if len(init[ind_sys].shape)>1:
+        init[ind_sys],init[ind_sys-1] = OC_reloc(init[ind_sys],init[ind_sys-1],"left",tol)
     
     U_block = U(init[ind_sys+1],init[ind_sys],init[ind_sys-1],M)
-    if M > 0:
+    if len(init[ind_sys].shape)>1:
         U_block,U_right_dims = merge(U_block,"right")
     U_block  = np.einsum("ijk->jik",U_block)
     init[ind_sys+1],U_small_block = cut(U_block,tol,"right")
     init[ind_sys],init[ind_sys-1] = cut(U_small_block,tol,"left")
 
-    if M > 0:
+    if len(init[ind_sys].shape)>2:
         U_dims = np.concatenate((np.array([init[ind_sys-1].shape[0]]),U_right_dims),axis = 0)
         init[ind_sys-1] = unmerge(init[ind_sys-1],U_dims,"right")
     #print("U done")
-#    for s in range(0,L-1):
-#        if M==0:
-#            swap_block = np.tensordot(init[ind_sys-1-s],init[ind_sys-2-s],0)
-#            init[ind_sys-1-s],init[ind_sys-2-s] = cut(np.einsum("ijk->ikj",swap_block),tol,"left")
-#        else:
-#            swap_block = np.einsum("ijk,klm->iljm",init[ind_sys-1-s],init[ind_sys-2-s])
-#            init[ind_sys-s-1],init[ind_sys-2-s] = cut(swap_block,tol,"both","right")
-            
+    init[(ind_sys-2):(ind_sys-2+L)] = SWAP(init,(ind_sys-2),"past","right")
+
     ind_sys =1+ind_sys
     #print("swaps done")
 
-#norm[-1],normL = normf(N-L-1,L,init,normL)
+norm[-1],normL = normf(N-L-1,L,init,normL)
 exc_pop[-1] = exp_sys(np.array([[0,0],[0,1]]),init[N-1],N-L-1)
 gr_pop[-1]  = exp_sys(np.array([[1,0],[0,0]]),init[N-1],N-L-1)
 t = np.linspace(0,endt,N-L)
 print(exc_pop[0],gr_pop[0])
     
 plt.figure(figsize = (12,7))
-plt.plot(t,norm,lw=2,label="norm",color=colors["red"])
+plt.plot(t,norm-1,lw=2,label="norm",color=colors["red"])
 plt.xlabel("$t$",fontsize=40)
 plt.ylabel("$\left<\psi(t)|\psi(t)\\right>-1$",fontsize=40)
 plt.grid(True)
@@ -995,6 +1085,18 @@ plt.ylabel("Population",fontsize=40)
 plt.ylim(-.1,1.1)
 plt.show()
     
+
+
+# In[39]:
+
+
+help(U)
+help(normf)
+help(exp_sys)
+help(merge)
+help(unmerge)
+help(OC_reloc)
+help(cut)
 
 
 # In[15]:
@@ -1023,4 +1125,18 @@ sm     = sc.eye(2,2,1) # sigma_-
 sp     = sc.eye(2,2,-1) # sigma_+
 
 np.dot(sm,sp)
+
+
+# In[99]:
+
+
+a = np.array([1,2,3,4,5,6,7,8])
+b = np.array([0,2,4,6,8,10,12,16])
+
+for j in range(b.size):
+    if b[j]>4 & a[j]==6:
+        print(j,"a and b")
+    elif a[j]==2 & b[j]==2:
+        print(j,"ab same")
+b[4:8]
 
