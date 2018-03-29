@@ -99,298 +99,346 @@ linestyle = ['solid','dashed','dashdot','dotted','solid']
 ### Evolution operator U ###
 ############################
 def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
-	"""Evolution operator up to dt^2
-	INPUT: states at the current time (t_k), the delayed time (t_l) and the system state (t_S) at timestep M
-	Remember, at M=0 the state is separable
-	OUTPUT: combined block of states at t_k, for the system and at t_l"""
+    """Evolution operator up to dt^2
+    INPUT: states at the current time (t_k), the delayed time (t_l) and the system state (t_S) at timestep M
+    Remember, at M=0 the state is separable
+    OUTPUT: combined block of states at t_k, for the system and at t_l"""
+    
+    #print(tk.shape,tS.shape,tl.shape,M)
+    
+    ####--------------------------####
+    #### Parameters and operators ####
+    ####--------------------------####
+    
+    #####Dimensions of the physical indices#####
+    dim_tk = tk.shape[0]
+    if len(tS.shape)==1 & len(tl.shape)==1:
+        dim_tl = tl.shape[0]
+        dim_tS = tS.shape[0]
+    else:
+        dim_tl = tl.shape[1]
+        dim_tS = tS.shape[1]
 
-	#print(tk.shape,tS.shape,tl.shape,M)
+    #####Frequently used operators#####
+    # decreasing the number of photons in the environment bin with 1
+    def U_m(state,const):
+        new_state = np.zeros(state.shape,dtype=complex)
+        if len(state.shape)==1:
+            dim = state.shape[0]
+            for i in range(dim-1):
+                new_state[i] = np.sqrt((i+1)*dt)*const*state[i+1]
+        elif len(state.shape)==2:
+            dim = state.shape[1]
+            for i in range(dim-1):
+                new_state[:,i] = np.sqrt((i+1)*dt)*const*state[:,i+1]
+        elif len(state.shape)==3:
+            dim = state.shape[1]
+            for i in range(dim-1):
+                new_state[:,i,:] = np.sqrt((i+1)*dt)*const*state[:,i+1,:]
+        return new_state
+    # increasing the number of photons in the environment bin with 1
+    def U_p(state,const):
+        new_state = np.zeros(state.shape,dtype=complex)
+        if len(state.shape)==1:
+            dim = state.shape[0]
+            for i in range(dim-2,-1,-1):
+                new_state[i+1] = np.sqrt((i+1)*dt)*const*state[i]
+        elif len(state.shape)==2:
+            dim = state.shape[1]
+            for i in range(dim-2,-1,-1):
+                new_state[:,i+1] = np.sqrt((i+1)*dt)*const*state[:,i]
+        elif len(state.shape)==3:
+            dim = state.shape[1]
+            for i in range(dim-2,-1,-1):
+                new_state[:,i+1,:] = np.sqrt((i+1)*dt)*const*state[:,i,:]
+        return new_state
+    def U_2m(state,const):
+        new_state = np.zeros(state.shape,dtype=complex)
+        if len(state.shape)==1:
+            dim = state.shape[0]
+            for i in range(dim-2):
+                new_state[i] = np.sqrt((i+1)*(i+2))*const*dt*state[i+2]
+        elif len(state.shape)==2:
+            dim = state.shape[1]
+            for i in range(dim-2):
+                new_state[:,i] = np.sqrt((i+1)*(i+2))*const*dt*state[:,i+2]
+        elif len(state.shape)==3:
+            dim = state.shape[1]
+            for i in range(dim-2):
+                new_state[:,i,:] = np.sqrt((i+1)*(i+2))*const*dt*state[:,i+2,:]
+        return new_state
+    def U_2p(state,const):
+        new_state = np.zeros(state.shape,dtype=complex)
+        if len(state.shape)==1:
+            dim = state.shape[0]
+            for i in range(dim-3,-1,-1):
+                new_state[i+2] = np.sqrt((i+1)*(i+2))*const*dt*state[i]
+        elif len(state.shape)==2:
+            dim = state.shape[1]
+            for i in range(dim-3,-1,-1):
+                new_state[:,i+2] = np.sqrt((i+1)*(i+2))*const*dt*state[:,i]
+        elif len(state.shape)==3:
+            dim = state.shape[1]
+            for i in range(dim-3,-1,-1):
+                new_state[:,i+2,:] = np.sqrt((i+1)*(i+2))*const*dt*state[:,i,:]
+        return new_state
 
-	####--------------------------####
-	#### Parameters and operators ####
-	####--------------------------####
+    def U_2np1(state,const):
+        new_state = np.zeros(state.shape,dtype=complex)
+        if len(state.shape)==1:
+            dim = state.shape[0]
+            for i in range(dim):
+                new_state[i] = (2*i+1)*const*dt*state[i]
+        elif len(state.shape)==2:
+            dim = state.shape[1]
+            for i in range(dim):
+                new_state[:,i] = (2*i+1)*const*dt*state[:,i]
+        elif len(state.shape)==3:
+            dim = state.shape[1]
+            for i in range(dim):
+                new_state[:,i,:] = (2*i+1)*const*dt*state[:,i,:]
+        return new_state
+    def U_n(state,const):
+        new_state = np.zeros(state.shape,dtype=complex)
+        if len(state.shape)==1:
+            dim = state.shape[0]
+            for i in range(dim):
+                new_state[i] = i*const*dt*state[i]
+        elif len(state.shape)==2:
+            dim = state.shape[1]
+            for i in range(dim):
+                new_state[:,i] = i*const*dt*state[:,i]
+        elif len(state.shape)==3:
+            dim = state.shape[1]
+            for i in range(dim):
+                new_state[:,i,:] = i*const*dt*state[:,i,:]
+        return new_state
+    def U_n1(state,const):
+        new_state = np.zeros(state.shape,dtype=complex)
+        if len(state.shape)==1:
+            dim = state.shape[0]
+            for i in range(dim):
+                new_state[i] = (i+1)*const*dt*state[i]
+        elif len(state.shape)==2:
+            dim = state.shape[1]
+            for i in range(dim):
+                new_state[:,i] = (i+1)*const*dt*state[:,i]
+        elif len(state.shape)==3:
+            dim = state.shape[1]
+            for i in range(dim):
+                new_state[:,i,:] = (i+1)*const*dt*state[:,i,:]
+        return new_state
+    c_m_tl = np.sqrt(gamma_R)*np.exp(-1j*phi)
+    c_p_tl = np.sqrt(gamma_R)*np.exp(1j*phi)
+    
+    c_tk = np.sqrt(gamma_L)
+    sm     = sc.eye(2,2,1) # sigma_-
+    sp     = sc.eye(2,2,-1) # sigma_+
+    
+    ####----------------------####
+    #### Different terms in U ####
+    ####----------------------####
+    
+    #####Identity#####
+    if len(tS.shape)==1 & len(tl.shape)==1:
+        T_0      = np.tensordot(np.tensordot(tk,tS,0),tl,0) #identity operation
+    else:
+        T_0      = np.tensordot(tk,np.einsum("ij,jkl->ikl",tS,tl),0) #identity operation
+    
+    #####Terms with \delta_{i_Tg}\Delta_{j_Te} (proportionate to sigma_+)#####
+    U_ig_je_0 = - 1j*dt*Om_TLS*( 1. -1j*.5*dt*Delta_T) # constant
+    U_ig_je_k = ( (-1 + .5j*Delta_T*dt )*U_m(tk,c_tk) +      # only k-dependent
+                U_n1(U_m(tk,c_tk),c_tk**2)/6.+ 1j*Om_TLS*dt/6.*U_2np1(tk,gamma_L)-
+                1j*dt*Om_TLS/6.*U_2m(tk,gamma_L) )
+    U_ig_je_l = ( (-1 + .5j*Delta_T*dt)*U_m(tl,c_m_tl) +       # only l-dependent
+                U_n1(U_m(tl,c_m_tl),gamma_R)/6.+ 1j*Om_TLS*dt/6.*U_2np1(tl,gamma_R)-
+                1j*dt*Om_TLS/6.*U_2m(tl,c_m_tl**2) )
+    S_ig_je = np.dot(sp,tS)                            # TLS-state
+    
+    # The actual timestep
+    if len(tS.shape)==1 & len(tl.shape)==1: # for independent bins
+        T_ig_je = ( U_ig_je_0*np.tensordot(np.tensordot(tk,S_ig_je,0),tl,0) +                     # constant
+                np.tensordot(np.tensordot(U_ig_je_k,S_ig_je,0),tl,0) +                 # only k-dependent
+                np.tensordot(np.tensordot(tk,S_ig_je,0),U_ig_je_l,0) +                 # only l-dependent
+                np.tensordot(np.tensordot(U_p(tk,c_tk),S_ig_je,0),U_2m(tl,c_m_tl**2),0)/6. + # 3rd order mixed terms
+                np.tensordot(np.tensordot(U_2m(tk,gamma_L),S_ig_je,0),U_p(tl,c_p_tl),0)/6.+            
+                np.tensordot(np.tensordot(U_m(tk,c_tk),S_ig_je,0),U_2np1(tl,gamma_R),0)/6.+
+                np.tensordot(np.tensordot(U_2np1(tk,gamma_L),S_ig_je,0),U_m(tl,c_m_tl),0)/6.+
+                1j*dt*Om_TLS/3.*(np.tensordot(np.tensordot(U_m(tk,c_tk),S_ig_je,0),U_p(tl,c_p_tl),0)+  
+                                 np.tensordot(np.tensordot(U_p(tk,c_tk),S_ig_je,0),U_m(tl,c_m_tl),0)-
+                                 np.tensordot(np.tensordot(U_m(tk,c_tk),S_ig_je,0),U_m(tl,c_m_tl),0)) )
+                                 
+    else:
+        T_ig_je = ( U_ig_je_0*np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ig_je,tl),0) +                # constant
+                np.tensordot(U_ig_je_k,np.einsum("ij,jkl->ikl",S_ig_je,tl),0) +            # only k-dependent
+                np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ig_je,U_ig_je_l),0)+ # only l-dependent
+                np.tensordot(U_p(tk,c_tk),                                                  # 3rd order mixed terms
+                             np.einsum("ij,jkl->ikl",S_ig_je,U_2m(tl,c_m_tl**2)),0)/6.+ 
+                np.tensordot(U_2m(tk,gamma_L),
+                             np.einsum("ij,jkl->ikl",S_ig_je,U_p(tl,c_p_tl)),0)/6.+
+                np.tensordot(U_m(tk,c_tk),
+                             np.einsum("ij,jkl->ikl",S_ig_je,U_2np1(tl,gamma_R)),0)/6.+
+                np.tensordot(U_2np1(tk,gamma_L),
+                             np.einsum("ij,jkl->ikl",S_ig_je,U_m(tl,c_m_tl)),0)/6.+
+                1j*dt*Om_TLS/3.*(np.tensordot(U_m(tk,c_tk),np.einsum("ij,jkl->ikl",S_ig_je,U_p(tl,c_p_tl)),0)+
+                                 np.tensordot(U_p(tk,c_tk),np.einsum("ij,jkl->ikl",S_ig_je,U_m(tl,c_m_tl)),0)-
+                                 np.tensordot(U_m(tk,c_tk),np.einsum("ij,jkl->ikl",S_ig_je,U_m(tl,c_m_tl)),0)) )
+                                 
+    U_ig_je_0 = None
+    U_ig_je_k = None
+    U_ig_je_l = None
+    S_ig_je = None
+    
+    #####Terms with \delta_{i_Te}\Delta_{j_Tg} (proportionate to sigma_-)#####
+    U_ie_jg_0 = - 1j*dt*Om_TLS*( 1. -1j*.5*dt*Delta_T) # constant 
+    U_ie_jg_k = ( (1. - .5j*Delta_T*dt) * U_p(tk,c_tk) -     # only k-dependent
+                U_n(U_p(tk,c_tk),gamma_L)/6.+ 1j*dt*Om_TLS/6.*U_2np1(tk,gamma_L)- 
+                1j*dt*Om_TLS/6.*U_2p(tk,gamma_L) )
+    U_ie_jg_l = ( (1. - .5j*Delta_T*dt)*U_p(tl,c_p_tl) -       # only l-dependent
+                U_n(U_p(tl,c_p_tl),gamma_R)/6.+ 1j*dt*Om_TLS/6.*U_2np1(tl,gamma_R)-  
+                1j*dt*Om_TLS/6.*U_2p(tl,c_p_tl**2) )
+    S_ie_jg = np.dot(sm,tS)                            # TLS-state
+    
+    # The actual timestep
+    if len(tS.shape)==1 & len(tl.shape)==1: #for independent bins
+        T_ie_jg = ( U_ie_jg_0*np.tensordot(np.tensordot(tk,S_ie_jg,0),tl,0) +                    # constant
+                np.tensordot(np.tensordot(U_ie_jg_k,S_ie_jg,0),tl,0) +                # only k-dependent
+                np.tensordot(np.tensordot(tk,S_ie_jg,0),U_ie_jg_l,0) -                # only l-dependent
+                np.tensordot(np.tensordot(U_m(tk,c_tk),S_ie_jg,0),U_2p(tl,c_p_tl**2),0)/6.- # 3rd order mixed terms
+                np.tensordot(np.tensordot(U_2p(tk,gamma_L),S_ie_jg,0),U_m(tl,c_m_tl),0)/6.-
+                np.tensordot(np.tensordot(U_p(tk,c_tk),S_ie_jg,0),U_2np1(tl,gamma_R),0)/6.-
+                np.tensordot(np.tensordot(U_2np1(tk,gamma_L),S_ie_jg,0),U_p(tl,c_p_tl),0)/6.+
+                1j*dt*Om_TLS/3.*(np.tensordot(np.tensordot(U_m(tk,c_tk),S_ie_jg,0),U_p(tl,c_p_tl),0)+
+                                 np.tensordot(np.tensordot(U_p(tk,c_tk),S_ie_jg,0),U_m(tl,c_m_tl),0)-
+                                 np.tensordot(np.tensordot(U_p(tk,c_tk),S_ie_jg,0),U_p(tl,c_p_tl),0)) )
+    else:
+        T_ie_jg = ( U_ie_jg_0*np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ie_jg,tl),0) +                # constant
+                np.tensordot(U_ie_jg_k,np.einsum("ij,jkl->ikl",S_ie_jg,tl),0) +            # only k-dependent
+                np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ie_jg,U_ie_jg_l),0)- # only l-dependent
+                np.tensordot(U_m(tk,c_tk),                                                  # 3rd order mixed terms
+                             np.einsum("ij,jkl->ikl",S_ie_jg,U_2p(tl,c_p_tl**2)),0)/6.- 
+                np.tensordot(U_2p(tk,gamma_L),
+                             np.einsum("ij,jkl->ikl",S_ie_jg,U_m(tl,c_m_tl)),0)/6.-
+                np.tensordot(U_p(tk,c_tk),
+                             np.einsum("ij,jkl->ikl",S_ie_jg,U_2np1(tl,gamma_R)),0)/6.-
+                np.tensordot(U_2np1(tk,gamma_L),np.einsum("ij,jkl->ikl",S_ie_jg,U_p(tl,c_p_tl)),0)/6.+
+                1j*dt*Om_TLS/3.*(np.tensordot(U_m(tk,c_tk),
+                                              np.einsum("ij,jkl->ikl",S_ie_jg,U_p(tl,c_p_tl)),0)+
+                                 np.tensordot(U_p(tk,c_tk),
+                                              np.einsum("ij,jkl->ikl",S_ie_jg,U_m(tl,c_m_tl)),0)-
+                                 -np.tensordot(U_p(tk,c_tk),
+                                               np.einsum("ij,jkl->ikl",S_ie_jg,U_p(tl,c_p_tl)),0)) )
+    U_ie_jg_0 = None
+    U_ie_jg_k = None
+    U_ie_jg_l = None
+    S_ie_jg = None
+    
+    #####Terms with \delta_{i_Te}\Delta_{j_Te}#####
+    U_ie_je_0 = -1j*dt*Delta_T-.5*dt**2*(Delta_T**2+Om_TLS**2)                         # constant
+    U_ie_je_k = ( ( -.5 + 1j/3.*Delta_T*dt )*U_n1(tk,gamma_L) + 1/24.*U_n1(U_n1(tk,gamma_L),gamma_L) # only k-dependent
+                          + .5j*dt*Om_TLS*(U_m(tk,c_tk)-U_p(tk,c_tk)) )
+    U_ie_je_l = ( ( -.5 + 1j/3.*Delta_T*dt )*U_n1(tl,gamma_R) + 1/24.*U_n1(U_n1(tl,gamma_R),gamma_R) # only l-dependent
+                 + .5j*dt*Om_TLS*(U_m(tl,c_m_tl)-U_p(tl,c_p_tl)) )
+    S_ie_je = np.dot(np.dot(sp,sm),tS)                                                  # TLS-state
 
-	#####Dimensions of the physical indices#####
-	dim_tk = tk.shape[0]
-	if len(tS.shape)==1 & len(tl.shape)==1:
-		dim_tl = tl.shape[0]
-		dim_tS = tS.shape[0]
-	else:
-		dim_tl = tl.shape[1]
-		dim_tS = tS.shape[1]
+    # The actual timestep
+    if len(tS.shape)==1 & len(tl.shape)==1: # for independent bins
+        T_ie_je = ( U_ie_je_0*np.tensordot(np.tensordot(tk,S_ie_je,0),tl,0) +           # constant
+                np.tensordot(np.tensordot(U_ie_je_k,S_ie_je,0),tl,0) +       # only k-dependent
+                np.tensordot(np.tensordot(tk,S_ie_je,0),U_ie_je_l,0) +       # only l-dependent
+                (-.5+1j*dt/3.*Delta_T)*                                                 # up to 3rd order mixed terms
+                np.tensordot(np.tensordot(U_p(tk,c_tk),S_ie_je,0),U_m(tl,c_m_tl),0) +
+                (-.5+1j*dt/3.*Delta_T)*
+                np.tensordot(np.tensordot(U_m(tk,c_tk),S_ie_je,0),U_p(tl,c_p_tl),0) +
+                np.tensordot(np.tensordot(U_m(U_2np1(tk,gamma_L),c_tk), # 4th order mixed terms
+                                          S_ie_je,0),U_p(tl,c_p_tl),0)/24.+
+                np.tensordot(np.tensordot(U_2np1(U_p(tk,c_tk),gamma_L),S_ie_je,0),U_m(tl,c_m_tl),0)/24.+
+                np.tensordot(np.tensordot(U_2np1(tk,gamma_L),S_ie_je,0),U_n1(tl,gamma_R),0)/24.+
+                np.tensordot(np.tensordot(U_n1(tk,gamma_L),S_ie_je,0),U_2np1(tl,gamma_R),0)/24.+
+                np.tensordot(np.tensordot(U_2m(tk,gamma_L),S_ie_je,0),U_2p(tl,c_p_tl**2),0)/24.+
+                np.tensordot(np.tensordot(U_2p(tk,gamma_L),S_ie_je,0),U_2m(tl,c_m_tl**2),0)/24.+
+                np.tensordot(np.tensordot(U_m(tk,c_tk),S_ie_je,0),U_2np1(U_p(tl,c_p_tl),gamma_R),0)/24.+
+                np.tensordot(np.tensordot(U_p(tk,c_tk),S_ie_je,0),U_m(U_2np1(tl,gamma_R),c_m_tl),0)/24. )
+    else:
+        T_ie_je = ( U_ie_je_0*np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ie_je,tl),0) +                  # constant
+                np.tensordot(U_ie_je_k,np.einsum("ij,jkl->ikl",S_ie_je,tl),0) +              # only l-dependent
+                np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ie_je,U_ie_je_l),0) +  # only l-dependent
+                (-.5+1j*dt/3.*Delta_T)*np.tensordot(U_p(tk,c_tk),                             # up to 3rd order mixed
+                                                    np.einsum("ij,jkl->ikl",S_ie_je,U_m(tl,c_m_tl)),0)+
+                (-.5+1j*dt/3.*Delta_T)*np.tensordot(U_m(tk,c_tk),
+                                                    np.einsum("ij,jkl->ikl",S_ie_je,U_p(tl,c_p_tl)),0)+
+                np.tensordot(U_m(U_2np1(tk,gamma_L),c_tk),np.einsum("ij,jkl->ikl",S_ie_je,U_p(tl,c_p_tl)),0)/24.+     # 4th order mixed
+                np.tensordot(U_2np1(U_p(tk,c_tk),gamma_L),np.einsum("ij,jkl->ikl",S_ie_je,U_m(tl,c_m_tl)),0)/24.+
+                np.tensordot(U_2np1(tk,gamma_L),np.einsum("ij,jkl->ikl",S_ie_je,U_n1(tl,gamma_R)),0)/24.+
+                np.tensordot(U_n1(tk,gamma_L),np.einsum("ij,jkl->ikl",S_ie_je,U_2np1(tl,gamma_R)),0)/24.+
+                np.tensordot(U_2m(tk,gamma_L),np.einsum("ij,jkl->ikl",S_ie_je,U_2p(tl,c_p_tl**2)),0)/24.+
+                np.tensordot(U_2p(tk,gamma_L),np.einsum("ij,jkl->ikl",S_ie_je,U_2m(tl,c_m_tl**2)),0)/24.+
+                np.tensordot(U_m(tk,c_tk),np.einsum("ij,jkl->ikl",S_ie_je,U_2np1(U_p(tl,c_p_tl),gamma_R)),0)/24.+
+                np.tensordot(U_p(tk,c_tk),np.einsum("ij,jkl->ikl",S_ie_je,U_m(U_2np1(tl,gamma_R),c_m_tl)),0)/24. )
 
-	#####Frequently used operators#####
-	# decreasing the number of photons in the environment bin with 1
-	U_m_tk = sc.eye(dim_tk,dim_tk,1)*np.sqrt(dt*gamma_L*np.arange(0,dim_tk)) 
-	# increasing the number of photons in the environment bin with 1
-	U_p_tk = sc.eye(dim_tk,dim_tk,-1)*np.sqrt(dt*gamma_L*np.arange(1,dim_tk+1)) 
-	# decreasing the number of photons in the delayed environment bin with 1
-	U_m_tl = np.exp(-1j*phi)*sc.eye(dim_tl,dim_tl,1)*np.sqrt(dt*gamma_R*np.arange(0,dim_tl)) 
-	# increasing the number of photons in the delayed environment bin with 1
-	U_p_tl = np.exp(1j*phi)*sc.eye(dim_tl,dim_tl,-1)*np.sqrt(dt*gamma_R*np.arange(1,dim_tl+1)) 
+    U_ie_je_0 = None
+    U_ie_je_k = None
+    U_ie_je_l = None
+    S_ie_je = None
 
-	U_2m_tk = np.dot(U_m_tk,U_m_tk)
-	U_2m_tl = np.dot(U_m_tl,U_m_tl)
-	U_2p_tk = np.dot(U_p_tk,U_p_tk)
-	U_2p_tl = np.dot(U_p_tl,U_p_tl)
+    #####Terms with \delta_{i_Tg}\Delta_{j_Tg}#####
+    U_ig_jg_0 = -.5*dt**2*Om_TLS**2                                            # constant
+    U_ig_jg_k = ( (-.5 + 1j/6.*Delta_T*dt)*U_n(tk,gamma_L) + 1/24.*U_n(U_n(tk,gamma_L),gamma_L)+ # only k-dependent
+                .5j*dt*Om_TLS*(U_m(tk,c_tk)-U_p(tk,c_tk)) )
+    U_ig_jg_l = ( (-.5 + 1j/6.*Delta_T*dt)*U_n(tl,gamma_R) + 1/24.*U_n(U_n(tl,gamma_R),gamma_R)+ # only l-dependent
+                .5j*dt*Om_TLS*(U_m(tl,c_m_tl)-U_p(tl,c_p_tl)) )
+    S_ig_jg = np.dot(np.dot(sm,sp),tS)                                         # TLS-state
 
-	U_2np1_tk = (2*np.arange(0,dim_tk)+1)*gamma_L*dt
-	U_2np1_tl = (2*np.arange(0,dim_tl)+1)*gamma_R*dt
-	U_np_tk = np.arange(0,dim_tk)*gamma_L*dt
-	U_np_tl = np.arange(0,dim_tl)*gamma_R*dt
+    # The actual timestep   
+    if len(tS.shape)==1 & len(tl.shape)==1: # for independent bins
+        T_ig_jg = ( U_ig_jg_0*np.tensordot(np.tensordot(tk,S_ig_jg,0),tl,0) +                # constant
+                np.tensordot(np.tensordot(U_ig_jg_k,S_ig_jg,0),tl,0) +            # only k-dependent
+                np.tensordot(np.tensordot(tk,S_ig_jg,0),U_ig_jg_l,0) +            # only l-dependent
+                (-.5+1j*dt/6.*Delta_T)*                                                      # up to 3rd order mixed
+                np.tensordot(np.tensordot(U_p(tk,c_tk),S_ig_jg,0),U_m(tl,c_m_tl),0)+
+                (-.5+1j*dt/6.*Delta_T)*
+                np.tensordot(np.tensordot(U_m(tk,c_tk),S_ig_jg,0),U_p(tl,c_p_tl),0)+
+                np.tensordot(np.tensordot(U_p(U_2np1(tk,gamma_L),c_tk),S_ig_jg,0),U_m(tl,c_m_tl),0)/24.+  # 4th order mixed
+                np.tensordot(np.tensordot(U_2np1(U_m(tk,c_tk),gamma_L),S_ig_jg,0),U_p(tl,c_p_tl),0)/24.+
+                np.tensordot(np.tensordot(U_2np1(tk,gamma_L),S_ig_jg,0),U_n(tl,gamma_R),0)/24.+
+                np.tensordot(np.tensordot(U_n(tk,gamma_L),S_ig_jg,0),U_2np1(tl,gamma_R),0)/24.+
+                np.tensordot(np.tensordot(U_2m(tk,gamma_L),S_ig_jg,0),U_2p(tl,c_p_tl**2),0)/24.+
+                np.tensordot(np.tensordot(U_2p(tk,gamma_L),S_ig_jg,0),U_2m(tl,c_m_tl**2),0)/24.+
+                np.tensordot(np.tensordot(U_m(tk,c_tk),S_ig_jg,0),U_p(U_2np1(tl,gamma_R),c_p_tl),0)/24.+
+                np.tensordot(np.tensordot(U_p(tk,c_tk),S_ig_jg,0),U_2np1(U_m(tl,c_m_tl),gamma_R),0)/24. )
+    else:
+        T_ig_jg = ( U_ig_jg_0*np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ig_jg,tl),0) +                # constant
+                np.tensordot(U_ig_jg_k,np.einsum("ij,jkl->ikl",S_ig_jg,tl),0) +            # only k-dependent
+                np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ig_jg,U_ig_jg_l),0)+ # only l-dependent
+                (-.5+1j*dt/6.*Delta_T)*                                                          # up to 3rd order mixed
+                np.tensordot(U_p(tk,c_tk),np.einsum("ij,jkl->ikl",S_ig_jg,U_m(tl,c_m_tl)),0)+
+                (-.5+1j*dt/6.*Delta_T)*
+                np.tensordot(U_m(tk,c_tk),np.einsum("ij,jkl->ikl",S_ig_jg,U_p(tl,c_p_tl)),0)+
+                np.tensordot(U_p(U_2np1(tk,gamma_L),c_tk),                       # 4th order mixed
+                             np.einsum("ij,jkl->ikl",S_ig_jg,U_m(tl,c_m_tl)),0)/24.+
+                np.tensordot(U_2np1(U_m(tk,c_tk),gamma_L),
+                             np.einsum("ij,jkl->ikl",S_ig_jg,U_p(tl,c_p_tl)),0)/24.+
+                np.tensordot(U_2np1(tk,gamma_L),np.einsum("ij,jkl->ikl",S_ig_jg,U_n(tl,gamma_R)),0)/24.+
+                np.tensordot(U_n(tk,gamma_L),np.einsum("ij,jkl->ikl",S_ig_jg,U_2np1(tl,gamma_R)),0)/24.+
+                np.tensordot(U_2m(tk,gamma_L),np.einsum("ij,jkl->ikl",S_ig_jg,U_2p(tl,c_p_tl**2)),0)/24.+
+                np.tensordot(U_2p(tk,gamma_L),np.einsum("ij,jkl->ikl",S_ig_jg,U_2m(tl,c_m_tl**2)),0)/24.+
+                np.tensordot(U_m(tk,c_tk),
+                             np.einsum("ij,jkl->ikl",S_ig_jg,U_p(U_2np1(tl,gamma_R),c_p_tl)),0)/24.+
+                np.tensordot(U_p(tk,c_tk),
+                             np.einsum("ij,jkl->ikl",S_ig_jg,U_2np1(U_m(tl,c_m_tl),gamma_R)),0)/24. )
 
-	sm     = sc.eye(2,2,1) # sigma_-
-	sp     = sc.eye(2,2,-1) # sigma_+
-
-	####----------------------####
-	#### Different terms in U ####
-	####----------------------####
-
-	#####Identity#####
-	if len(tS.shape)==1 & len(tl.shape)==1:
-		T_0      = np.tensordot(np.tensordot(tk,tS,0),tl,0) #identity operation
-	else:
-		T_0      = np.tensordot(tk,np.einsum("ij,jkl->ikl",tS,tl),0) #identity operation
-
-	#####Terms with \delta_{i_Tg}\Delta_{j_Te} (proportionate to sigma_+)#####
-	U_ig_je_0 = - 1j*dt*Om_TLS*( 1. -1j*.5*dt*Delta_T) # constant
-	U_ig_je_k = ( (-1 + .5j*Delta_T*dt )*U_m_tk +      # only k-dependent
-		np.dot(np.diag(U_np_tk+gamma_L*dt),U_m_tk)/6.+
-		1j*Om_TLS*dt/6.*np.diag(U_2np1_tk)-
-		1j*dt*Om_TLS/6.*U_2m_tk )
-	U_ig_je_l = ( (-1 + .5j*Delta_T*dt)*U_m_tl +       # only l-dependent
-		np.dot(np.diag(U_np_tl+gamma_R*dt),U_m_tl)/6.+
-		1j*Om_TLS*dt/6.*np.diag(U_2np1_tl)-
-		1j*dt*Om_TLS/6.*U_2m_tl )
-	S_ig_je = np.dot(sp,tS)                            # TLS-state
-
-	# The actual timestep
-	if len(tS.shape)==1 & len(tl.shape)==1: # for independent bins
-		T_ig_je = ( U_ig_je_0*np.tensordot(np.tensordot(tk,S_ig_je,0),tl,0) +                     # constant
-			np.tensordot(np.tensordot(np.dot(U_ig_je_k,tk),S_ig_je,0),tl,0) +                 # only k-dependent
-			np.tensordot(np.tensordot(tk,S_ig_je,0),np.dot(U_ig_je_l,tl),0) +                 # only l-dependent
-			np.tensordot(np.tensordot(np.dot(U_p_tk,tk),S_ig_je,0),np.dot(U_2m_tl,tl),0)/6. + # 3rd order mixed terms
-			np.tensordot(np.tensordot(np.dot(U_2m_tk,tk),S_ig_je,0),np.dot(U_p_tl,tl),0)/6.+            
-			np.tensordot(np.tensordot(np.dot(U_m_tk,tk),S_ig_je,0),U_2np1_tl*tl,0)/6.+
-			np.tensordot(np.tensordot(U_2np1_tk*tk,S_ig_je,0),np.dot(U_m_tl,tl),0)/6.+
-			1j*dt*Om_TLS/3.*(np.tensordot(np.tensordot(np.dot(U_m_tk,tk),S_ig_je,0),np.dot(U_p_tl,tl),0)+  
-					 np.tensordot(np.tensordot(np.dot(U_p_tk,tk),S_ig_je,0),np.dot(U_m_tl,tl),0)-
-					 np.tensordot(np.tensordot(np.dot(U_m_tk,tk),S_ig_je,0),np.dot(U_m_tl,tl),0)) )
-		                 
-	else:
-		T_ig_je = ( U_ig_je_0*np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ig_je,tl),0) +                # constant
-			np.tensordot(np.dot(U_ig_je_k,tk),np.einsum("ij,jkl->ikl",S_ig_je,tl),0) +            # only k-dependent
-			np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ig_je,np.einsum("ij,kjl->kil",U_ig_je_l,tl)),0)+ # only l-dependent
-			np.tensordot(np.dot(U_p_tk,tk),                                                  # 3rd order mixed terms
-				     np.einsum("ij,jkl->ikl",S_ig_je,np.einsum("ij,kjl->kil",U_2m_tl,tl)),0)/6.+ 
-			np.tensordot(np.dot(U_2m_tk,tk),
-				     np.einsum("ij,jkl->ikl",S_ig_je,np.einsum("ij,kjl->kil",U_p_tl,tl)),0)/6.+
-			np.tensordot(np.dot(U_m_tk,tk),
-				     np.einsum("ij,jkl->ikl",S_ig_je,np.einsum("ij,kjl->kil",np.diag(U_2np1_tl),tl)),0)/6.+
-			np.tensordot(U_2np1_tk*tk,
-				     np.einsum("ij,jkl->ikl",S_ig_je,np.einsum("ij,kjl->kil",U_m_tl,tl)),0)/6.+
-			1j*dt*Om_TLS/3.*(np.tensordot(np.dot(U_m_tk,tk),
-					              np.einsum("ij,jkl->ikl",S_ig_je,np.einsum("ij,kjl->kil",U_p_tl,tl)),0)+
-					 np.tensordot(np.dot(U_p_tk,tk),
-					              np.einsum("ij,jkl->ikl",S_ig_je,np.einsum("ij,kjl->kil",U_m_tl,tl)),0)-
-					 np.tensordot(np.dot(U_m_tk,tk),
-					              np.einsum("ij,jkl->ikl",S_ig_je,np.einsum("ij,kjl->kil",U_m_tl,tl)),0)) )
-		                 
-	U_ig_je_0 = None
-	U_ig_je_k = None
-	U_ig_je_l = None
-	S_ig_je = None
-
-	#####Terms with \delta_{i_Te}\Delta_{j_Tg} (proportionate to sigma_-)#####
-	U_ie_jg_0 = - 1j*dt*Om_TLS*( 1. -1j*.5*dt*Delta_T) # constant 
-	U_ie_jg_k = ( (1. - .5j*Delta_T*dt) * U_p_tk -     # only k-dependent
-		np.dot(np.diag(U_np_tk),U_p_tk)/6.+
-		1j*dt*Om_TLS/6.*np.diag(U_2np1_tk)- 
-		1j*dt*Om_TLS/6.*U_2p_tk )
-	U_ie_jg_l = ( (1. - .5j*Delta_T*dt)*U_p_tl -       # only l-dependent
-		np.dot(np.diag(U_np_tl),U_p_tl)/6.+
-		1j*dt*Om_TLS/6.*np.diag(U_2np1_tl)-  
-		1j*dt*Om_TLS/6.*U_2p_tl )
-	S_ie_jg = np.dot(sm,tS)                            # TLS-state
-
-	# The actual timestep
-	if len(tS.shape)==1 & len(tl.shape)==1: #for independent bins
-		T_ie_jg = ( U_ie_jg_0*np.tensordot(np.tensordot(tk,S_ie_jg,0),tl,0) +                    # constant
-			np.tensordot(np.tensordot(np.dot(U_ie_jg_k,tk),S_ie_jg,0),tl,0) +                # only k-dependent
-			np.tensordot(np.tensordot(tk,S_ie_jg,0),np.dot(U_ie_jg_l,tl),0) -                # only l-dependent
-			np.tensordot(np.tensordot(np.dot(U_m_tk,tk),S_ie_jg,0),np.dot(U_2p_tl,tl),0)/6.- # 3rd order mixed terms
-			np.tensordot(np.tensordot(np.dot(U_2p_tk,tk),S_ie_jg,0),np.dot(U_m_tl,tl),0)/6.-
-			np.tensordot(np.tensordot(np.dot(U_p_tk,tk),S_ie_jg,0),U_2np1_tl*tl,0)/6.-
-			np.tensordot(np.tensordot(U_2np1_tk*tk,S_ie_jg,0),np.dot(U_p_tl,tl),0)/6.+
-			1j*dt*Om_TLS/3.*(np.tensordot(np.tensordot(np.dot(U_m_tk,tk),S_ie_jg,0),np.dot(U_p_tl,tl),0)+
-					 np.tensordot(np.tensordot(np.dot(U_p_tk,tk),S_ie_jg,0),np.dot(U_m_tl,tl),0)-
-					 np.tensordot(np.tensordot(np.dot(U_p_tk,tk),S_ie_jg,0),np.dot(U_p_tl,tl),0)) )
-	else:
-		T_ie_jg = ( U_ie_jg_0*np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ie_jg,tl),0) +                # constant
-			np.tensordot(np.dot(U_ie_jg_k,tk),np.einsum("ij,jkl->ikl",S_ie_jg,tl),0) +            # only k-dependent
-			np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ie_jg,np.einsum("ij,kjl->kil",U_ie_jg_l,tl)),0)- # only l-dependent
-			np.tensordot(np.dot(U_m_tk,tk),                                                  # 3rd order mixed terms
-				     np.einsum("ij,jkl->ikl",S_ie_jg,np.einsum("ij,kjl->kil",U_2p_tl,tl)),0)/6.- 
-			np.tensordot(np.dot(U_2p_tk,tk),
-				     np.einsum("ij,jkl->ikl",S_ie_jg,np.einsum("ij,kjl->kil",U_m_tl,tl)),0)/6.-
-			np.tensordot(np.dot(U_p_tk,tk),
-				     np.einsum("ij,jkl->ikl",S_ie_jg,np.einsum("ij,kjl->kil",np.diag(U_2np1_tl),tl)),0)/6.-
-			np.tensordot(U_2np1_tk*tk,np.einsum("ij,jkl->ikl",S_ie_jg,np.einsum("ij,kjl->kil",U_p_tl,tl)),0)/6.+
-			1j*dt*Om_TLS/3.*(np.tensordot(np.dot(U_m_tk,tk),
-					              np.einsum("ij,jkl->ikl",S_ie_jg,np.einsum("ij,kjl->kil",U_p_tl,tl)),0)+
-					 np.tensordot(np.dot(U_p_tk,tk),
-					              np.einsum("ij,jkl->ikl",S_ie_jg,np.einsum("ij,kjl->kil",U_m_tl,tl)),0)-
-					 -np.tensordot(np.dot(U_p_tk,tk),
-					               np.einsum("ij,jkl->ikl",S_ie_jg,np.einsum("ij,kjl->kil",U_p_tl,tl)),0)) )
-	U_ie_jg_0 = None
-	U_ie_jg_k = None
-	U_ie_jg_l = None
-	S_ie_jg = None
-
-	#####Terms with \delta_{i_Te}\Delta_{j_Te}#####
-	U_ie_je_0 = -1j*dt*Delta_T-.5*dt**2*(Delta_T**2+Om_TLS**2)                         # constant
-	U_ie_je_k = ( np.diag(( -.5 + 1j/3.*Delta_T*dt + 1/24.*(U_np_tk+gamma_L*dt) )      # only k-dependent
-		          *(U_np_tk+gamma_L*dt))+ .5j*dt*Om_TLS*(U_m_tk-U_p_tk) )
-	U_ie_je_l = ( np.diag(( -.5 + 1j/3.*Delta_T*dt + 1/24.*(U_np_tl+gamma_R*dt) )      # only l-dependent
-		          *(U_np_tl+gamma_R*dt))+ .5j*dt*Om_TLS*(U_m_tl-U_p_tl) )
-	S_ie_je = np.dot(np.dot(sp,sm),tS)                                                  # TLS-state
-
-	# The actual timestep
-	if len(tS.shape)==1 & len(tl.shape)==1: # for independent bins
-		T_ie_je = ( U_ie_je_0*np.tensordot(np.tensordot(tk,S_ie_je,0),tl,0) +           # constant
-			np.tensordot(np.tensordot(np.dot(U_ie_je_k,tk),S_ie_je,0),tl,0) +       # only k-dependent
-			np.tensordot(np.tensordot(tk,S_ie_je,0),np.dot(U_ie_je_l,tl),0) +       # only l-dependent
-			(-.5+1j*dt/3.*Delta_T)*                                                 # up to 3rd order mixed terms
-			np.tensordot(np.tensordot(np.dot(U_p_tk,tk),S_ie_je,0),np.dot(U_m_tl,tl),0) +
-			(-.5+1j*dt/3.*Delta_T)*
-			np.tensordot(np.tensordot(np.dot(U_m_tk,tk),S_ie_je,0),np.dot(U_p_tl,tl),0) +
-			np.tensordot(np.tensordot(np.dot(np.dot(U_m_tk,np.diag(U_2np1_tk)),tk), # 4th order mixed terms
-					          S_ie_je,0),np.dot(U_p_tl,tl),0)/24.+
-			np.tensordot(np.tensordot(np.dot(np.dot(np.diag(U_2np1_tk),U_p_tk),tk),S_ie_je,0),
-				     np.dot(U_m_tl,tl),0)/24.+
-			np.tensordot(np.tensordot(U_2np1_tk*tk,S_ie_je,0),(U_np_tl+gamma_R*dt)*tl,0)/24.+
-			np.tensordot(np.tensordot((U_np_tk+gamma_L*dt)*tk,S_ie_je,0),U_2np1_tl*tl,0)/24.+
-			np.tensordot(np.tensordot(np.dot(U_2m_tk,tk),S_ie_je,0),np.dot(U_2p_tl,tl),0)/24.+
-			np.tensordot(np.tensordot(np.dot(U_2p_tk,tk),S_ie_je,0),np.dot(U_2m_tl,tl),0)/24.+
-			np.tensordot(np.tensordot(np.dot(U_m_tk,tk),S_ie_je,0),
-				     np.dot(np.dot(np.diag(U_2np1_tl),U_p_tl),tl),0)/24.+
-			np.tensordot(np.tensordot(np.dot(U_p_tk,tk),S_ie_je,0),
-				     np.dot(np.dot(U_m_tl,np.diag(U_2np1_tl)),tl),0)/24. )
-	else:
-		T_ie_je = ( U_ie_je_0*np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ie_je,tl),0) +                  # constant
-			np.tensordot(np.dot(U_ie_je_k,tk),np.einsum("ij,jkl->ikl",S_ie_je,tl),0) +              # only l-dependent
-			np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ie_je,np.einsum("ij,kjl->kil",U_ie_je_l,tl)),0) +  # only l-dependent
-			(-.5+1j*dt/3.*Delta_T)*np.tensordot(np.dot(U_p_tk,tk),                             # up to 3rd order mixed
-					                    np.einsum("ij,jkl->ikl",S_ie_je,np.einsum("ij,kjl->kil",U_m_tl,tl)),0)+
-			(-.5+1j*dt/3.*Delta_T)*np.tensordot(np.dot(U_m_tk,tk),
-					                    np.einsum("ij,jkl->ikl",S_ie_je,np.einsum("ij,kjl->kil",U_p_tl,tl)),0)+
-			np.tensordot(np.dot(np.dot(U_m_tk,np.diag(U_2np1_tk)),tk),
-				     np.einsum("ij,jkl->ikl",S_ie_je,np.einsum("ij,kjl->kil",U_p_tl,tl)),0)/24.+     # 4th order mixed
-			np.tensordot(np.dot(np.dot(np.diag(U_2np1_tk),U_p_tk),tk),
-				     np.einsum("ij,jkl->ikl",S_ie_je,np.einsum("ij,kjl->kil",U_m_tl,tl)),0)/24.+
-			np.tensordot(U_2np1_tk*tk,
-				     np.einsum("ij,jkl->ikl",S_ie_je,np.einsum("ij,kjl->kil",np.diag(U_np_tl+gamma_R*dt),tl)),0)/24.+
-			np.tensordot((U_np_tk+gamma_L*dt)*tk,
-				     np.einsum("ij,jkl->ikl",S_ie_je,np.einsum("ij,kjl->kil",np.diag(U_2np1_tl),tl)),0)/24.+
-			np.tensordot(np.dot(U_2m_tk,tk),np.einsum("ij,jkl->ikl",S_ie_je,np.einsum("ij,kjl->kil",U_2p_tl,tl)),0)/24.+
-			np.tensordot(np.dot(U_2p_tk,tk),np.einsum("ij,jkl->ikl",S_ie_je,np.einsum("ij,kjl->kil",U_2m_tl,tl)),0)/24.+
-			np.tensordot(np.dot(U_m_tk,tk),
-				     np.einsum("ij,jkl->ikl",S_ie_je,np.einsum("ij,kjl->kil",np.dot(np.diag(U_2np1_tl),
-					                                                  U_p_tl),tl)),0)/24.+
-			np.tensordot(np.dot(U_p_tk,tk),
-				     np.einsum("ij,jkl->ikl",S_ie_je,np.einsum("ij,kjl->kil",np.dot(U_m_tl,np.diag(U_2np1_tl)),
-					                                       tl)),0)/24. )
-
-	U_ie_je_0 = None
-	U_ie_je_k = None
-	U_ie_je_l = None
-	S_ie_je = None
-
-	#####Terms with \delta_{i_Tg}\Delta_{j_Tg}#####
-	U_ig_jg_0 = -.5*dt**2*Om_TLS**2                                            # constant
-	U_ig_jg_k = ( np.diag(( -.5 + 1j/6.*Delta_T*dt + 1/24.*U_np_tk )*U_np_tk)+ # only k-dependent
-		.5j*dt*Om_TLS*(U_m_tk-U_p_tk) )
-	U_ig_jg_l = ( np.diag(( -.5 + 1j/6.*Delta_T*dt + 1/24.*U_np_tl )*U_np_tl)+ # only l-dependent
-		.5j*dt*Om_TLS*(U_m_tl-U_p_tl) )
-	S_ig_jg = np.dot(np.dot(sm,sp),tS)                                         # TLS-state
-
-	# The actual timestep   
-	if len(tS.shape)==1 & len(tl.shape)==1: # for independent bins
-		T_ig_jg = ( U_ig_jg_0*np.tensordot(np.tensordot(tk,S_ig_jg,0),tl,0) +                # constant
-			np.tensordot(np.tensordot(np.dot(U_ig_jg_k,tk),S_ig_jg,0),tl,0) +            # only k-dependent
-			np.tensordot(np.tensordot(tk,S_ig_jg,0),np.dot(U_ig_jg_l,tl),0) +            # only l-dependent
-			(-.5+1j*dt/6.*Delta_T)*                                                      # up to 3rd order mixed
-			np.tensordot(np.tensordot(np.dot(U_p_tk,tk),S_ig_jg,0),np.dot(U_m_tl,tl),0)+
-			(-.5+1j*dt/6.*Delta_T)*
-			np.tensordot(np.tensordot(np.dot(U_m_tk,tk),S_ig_jg,0),np.dot(U_p_tl,tl),0)+
-			np.tensordot(np.tensordot(np.dot(np.dot(U_p_tk,np.diag(U_2np1_tk)),tk),      # 4th order mixed
-					          S_ig_jg,0),np.dot(U_m_tl,tl),0)/24.+
-			np.tensordot(np.tensordot(np.dot(np.dot(np.diag(U_2np1_tk),U_m_tk),tk),
-					          S_ig_jg,0),np.dot(U_p_tl,tl),0)/24.+
-			np.tensordot(np.tensordot(U_2np1_tk*tk,S_ig_jg,0),U_np_tl*tl,0)/24.+
-			np.tensordot(np.tensordot(U_np_tk*tk,S_ig_jg,0),U_2np1_tl*tl,0)/24.+
-			np.tensordot(np.tensordot(np.dot(U_2m_tk,tk),S_ig_jg,0),np.dot(U_2p_tl,tl),0)/24.+
-			np.tensordot(np.tensordot(np.dot(U_2p_tk,tk),S_ig_jg,0),np.dot(U_2m_tl,tl),0)/24.+
-			np.tensordot(np.tensordot(np.dot(U_m_tk,tk),S_ig_jg,0),
-				     np.dot(np.dot(U_p_tl,np.diag(U_2np1_tl)),tl),0)/24.+
-			np.tensordot(np.tensordot(np.dot(U_p_tk,tk),S_ig_jg,0),
-				     np.dot(np.dot(np.diag(U_2np1_tl),U_m_tl),tl),0)/24. )
-	else:
-		T_ig_jg = ( U_ig_jg_0*np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ig_jg,tl),0) +                # constant
-			np.tensordot(np.dot(U_ig_jg_k,tk),np.einsum("ij,jkl->ikl",S_ig_jg,tl),0) +            # only k-dependent
-			np.tensordot(tk,np.einsum("ij,jkl->ikl",S_ig_jg,np.einsum("ij,kjl->kil",U_ig_jg_l,tl)),0)+ # only l-dependent
-			(-.5+1j*dt/6.*Delta_T)*                                                          # up to 3rd order mixed
-			np.tensordot(np.dot(U_p_tk,tk),np.einsum("ij,jkl->ikl",S_ig_jg,np.einsum("ij,kjl->kil",U_m_tl,tl)),0)+
-			(-.5+1j*dt/6.*Delta_T)*
-			np.tensordot(np.dot(U_m_tk,tk),np.einsum("ij,jkl->ikl",S_ig_jg,np.einsum("ij,kjl->kil",U_p_tl,tl)),0)+
-			np.tensordot(np.dot(np.dot(U_p_tk,np.diag(U_2np1_tk)),tk),                       # 4th order mixed
-				     np.einsum("ij,jkl->ikl",S_ig_jg,np.einsum("ij,kjl->kil",U_m_tl,tl)),0)/24.+
-			np.tensordot(np.dot(np.dot(np.diag(U_2np1_tk),U_m_tk),tk),
-				     np.einsum("ij,jkl->ikl",S_ig_jg,np.einsum("ij,kjl->kil",U_p_tl,tl)),0)/24.+
-			np.tensordot(U_2np1_tk*tk,np.einsum("ij,jkl->ikl",S_ig_jg,
-					                    np.einsum("ij,kjl->kil",np.diag(U_np_tl),tl)),0)/24.+
-			np.tensordot(U_np_tk*tk,np.einsum("ij,jkl->ikl",S_ig_jg,
-					                  np.einsum("ij,kjl->kil",np.diag(U_2np1_tl),tl)),0)/24.+
-			np.tensordot(np.dot(U_2m_tk,tk),np.einsum("ij,jkl->ikl",S_ig_jg,np.einsum("ij,kjl->kil",U_2p_tl,tl)),0)/24.+
-			np.tensordot(np.dot(U_2p_tk,tk),np.einsum("ij,jkl->ikl",S_ig_jg,np.einsum("ij,kjl->kil",U_2m_tl,tl)),0)/24.+
-			np.tensordot(np.dot(U_m_tk,tk),
-				     np.einsum("ij,jkl->ikl",S_ig_jg,np.einsum("ij,kjl->kil",
-					                                       np.dot(U_p_tl,np.diag(U_2np1_tl)),tl)),0)/24.+
-			np.tensordot(np.dot(U_p_tk,tk),
-				     np.einsum("ij,jkl->ikl",S_ig_jg,np.einsum("ij,kjl->kil",np.dot(np.diag(U_2np1_tl),
-					                                                  U_m_tl),tl)),0)/24. )
-
-	U_ig_jg_0 = None
-	U_ig_jg_k = None
-	U_ig_jg_l = None
-	S_ig_jg = None
-
-	#####Erasing the frequently used operators#####
-	U_m_tk = None
-	U_p_tk = None
-	U_m_tl = None
-	U_p_tl = None
-
-	U_2m_tk = None
-	U_2m_tl = None
-	U_2p_tk = None
-	U_2p_tl = None
-
-	U_2np1_tk = None
-	U_2np1_tl = None
-	U_np_tk = None
-	U_np_tl = None
-
-	sm     = None
-	sp     = None
-
-	####--------------####
-	#### Obtained MPS ####
-	####--------------####
-
-	nextstep = T_0  + T_ie_je + T_ig_jg+ T_ig_je+T_ie_jg#
-
-	return nextstep
+    U_ig_jg_0 = None
+    U_ig_jg_k = None
+    U_ig_jg_l = None
+    S_ig_jg = None
+    
+    ####--------------####
+    #### Obtained MPS ####
+    ####--------------####
+    
+    nextstep = T_0  + T_ie_je + T_ig_jg+ T_ig_je+T_ie_jg#
+    
+    return nextstep
 
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
@@ -399,7 +447,7 @@ def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
 #################################################
 ### SVD with only significant singular values ###
 #################################################
-def SVD_sig(block,tolerance):
+def SVD_sig(block,cutoff):
 	"""Performing SVD with singular values above a certain threshold
 	INPUT: the block to perform SVD on, threshold for singular values
 	OUTPUT: SVD elements and the number of significant singular values"""
@@ -412,20 +460,26 @@ def SVD_sig(block,tolerance):
 	# Storing the singular values in an array
 	sing      = np.array(svd_init[1])
 	# Storing only the significant singular values
-	sign_sing = sing[sing>tolerance]
-	sing_num     = sign_sing.size
+#	print(sing)
 
-	# Determining the number of significant singular values and resizing the svd matrices accordingly
-	#print("link_dim",sing_num)
-	if sing_num==1:
+	# Using the epsilon error estimate based on the Frobenius norm to 
+	# determine the number of significant singular values d
+	d   = 0
+	eps = 100.
+	while eps>cutoff:
+		d = d+1
+		eps = np.sqrt(np.sum(sing**2)-np.sum(sing[:d]**2))
+
+	# Resizing the svd matrices accordingly
+	if d==1:
 		link_dim     = 0
 		svd_final[0] = svd_init[0][:,0]
-		svd_final[1] = sign_sing
+		svd_final[1] = sing[0]
 		svd_final[2] = svd_init[2][0,:]
 	else:
-		link_dim = sing_num
+		link_dim = d
 		svd_final[0] = svd_init[0][:,:link_dim]
-		svd_final[1] = np.diag(sign_sing)
+		svd_final[1] = np.diag(sing[:d])
 		svd_final[2] = svd_init[2][:link_dim,:]
 
 	# Clear unnecessary variables
@@ -614,12 +668,13 @@ def unmerge(block,dims,where):
 			D = block.shape[0]
 		elif len(block.shape)==2:
 			D = block.shape[1]
-		d2 = dims[1]
 		for I in range(0,D):
 			# Care should be taken about the rank of the unmerged tensor
 			if len(block.shape)==1:
+				d2 = dims[0]
 				unmerged_block[I%d2,int((I-(I%d2))/d2)]  = block[I]
 			elif len(block.shape)==2:
+				d2 = dims[1]
 				unmerged_block[:,I%d2,int((I-(I%d2))/d2)]  = block[:,I]
 	block = None
 	return unmerged_block
@@ -862,7 +917,6 @@ def SWAP(states,base_ind,direction,OC=None):
 		return states[(base_ind-L+2):(base_ind+2)]
 
 
-
 #**************#
 #***--------***#
 #***| CODE |***#
@@ -893,7 +947,7 @@ parser.add_argument("gamma_L",type=float,help='gamma_L')
 parser.add_argument("gamma_R",type=float,help='gamma_R')
 parser.add_argument("Om_TLS",type=float,help='Om_TLS')
 parser.add_argument("phi",type=float,help='phi/pi')
-parser.add_argument("-tol",type=float,default = -14,help='tolerance')
+parser.add_argument("-tol",type=float,default = -3,help='tolerance')
 parser.add_argument("-L",type=int,default = 100,help='delay as number of dt')
 parser.add_argument("-endt",type=float, default = 5, help ='end of time evolution')
 parser.add_argument("-dt",type=float,default = 0.01, help ='dt')
@@ -903,7 +957,7 @@ args = parser.parse_args()
 ##################
 ### Parameters ###
 ##################
-tol     = 10**(args.tol)#10**(-14)
+tol     = 10**(args.tol)#10**(-4)
 gamma_L = args.gamma_L#7.5
 gamma_R = args.gamma_R#7.5
 Om_TLS  = args.Om_TLS#0.#1.5*np.pi
@@ -928,7 +982,6 @@ initTLS    = np.array([0,1],complex) #starting at |e>
 initenv    = np.zeros(5,complex)
 initenv[0] = 1
 states     = [initenv]*L+(N-L)*[0.]
-print(states[0])
 ind_sys       = L
 states[ind_sys] = initTLS
 
