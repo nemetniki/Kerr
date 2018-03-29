@@ -946,7 +946,7 @@ parser.add_argument("plot",type=str2bool,help='direct plotting (if False: only o
 parser.add_argument("gamma_L",type=float,help='gamma_L')
 parser.add_argument("gamma_R",type=float,help='gamma_R')
 parser.add_argument("Om_TLS",type=float,help='Om_TLS')
-parser.add_argument("phi",type=float,help='phi/pi')
+parser.add_argument("phi",type=float,help='phi/pi (note that constructive interference is pi, destructive is 0)')
 parser.add_argument("-tol",type=float,default = -3,help='tolerance')
 parser.add_argument("-L",type=int,default = 100,help='delay as number of dt')
 parser.add_argument("-endt",type=float, default = 5, help ='end of time evolution')
