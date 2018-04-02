@@ -112,9 +112,12 @@ def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
     
     #####Dimensions of the physical indices#####
     dim_tk = tk.shape[0]
-    if len(tS.shape)==1 & len(tl.shape)==1:
-        dim_tl = tl.shape[0]
+    if len(tS.shape)==1:
         dim_tS = tS.shape[0]
+        if len(tl.shape)==1:
+            dim_tl = tl.shape[0]
+        else:
+            dim_tl = tl.shape[1]
     else:
         dim_tl = tl.shape[1]
         dim_tS = tS.shape[1]
@@ -240,7 +243,7 @@ def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
     ####----------------------####
     
     #####Identity#####
-    if len(tS.shape)==1 & len(tl.shape)==1:
+    if len(tS.shape)==1:
         T_0      = np.tensordot(np.tensordot(tk,tS,0),tl,0) #identity operation
     else:
         T_0      = np.tensordot(tk,np.einsum("ij,jkl->ikl",tS,tl),0) #identity operation
@@ -256,7 +259,7 @@ def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
     S_ig_je = np.dot(sp,tS)                            # TLS-state
     
     # The actual timestep
-    if len(tS.shape)==1 & len(tl.shape)==1: # for independent bins
+    if len(tS.shape)==1: # for independent bins
         T_ig_je = ( U_ig_je_0*np.tensordot(np.tensordot(tk,S_ig_je,0),tl,0) +                     # constant
                 np.tensordot(np.tensordot(U_ig_je_k,S_ig_je,0),tl,0) +                 # only k-dependent
                 np.tensordot(np.tensordot(tk,S_ig_je,0),U_ig_je_l,0) +                 # only l-dependent
@@ -300,7 +303,7 @@ def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
     S_ie_jg = np.dot(sm,tS)                            # TLS-state
     
     # The actual timestep
-    if len(tS.shape)==1 & len(tl.shape)==1: #for independent bins
+    if len(tS.shape)==1: #for independent bins
         T_ie_jg = ( U_ie_jg_0*np.tensordot(np.tensordot(tk,S_ie_jg,0),tl,0) +                    # constant
                 np.tensordot(np.tensordot(U_ie_jg_k,S_ie_jg,0),tl,0) +                # only k-dependent
                 np.tensordot(np.tensordot(tk,S_ie_jg,0),U_ie_jg_l,0) -                # only l-dependent
@@ -342,7 +345,7 @@ def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
     S_ie_je = np.dot(np.dot(sp,sm),tS)                                                  # TLS-state
 
     # The actual timestep
-    if len(tS.shape)==1 & len(tl.shape)==1: # for independent bins
+    if len(tS.shape)==1: # for independent bins
         T_ie_je = ( U_ie_je_0*np.tensordot(np.tensordot(tk,S_ie_je,0),tl,0) +           # constant
                 np.tensordot(np.tensordot(U_ie_je_k,S_ie_je,0),tl,0) +       # only k-dependent
                 np.tensordot(np.tensordot(tk,S_ie_je,0),U_ie_je_l,0) +       # only l-dependent
@@ -390,7 +393,7 @@ def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
     S_ig_jg = np.dot(np.dot(sm,sp),tS)                                         # TLS-state
 
     # The actual timestep   
-    if len(tS.shape)==1 & len(tl.shape)==1: # for independent bins
+    if len(tS.shape)==1: # for independent bins
         T_ig_jg = ( U_ig_jg_0*np.tensordot(np.tensordot(tk,S_ig_jg,0),tl,0) +                # constant
                 np.tensordot(np.tensordot(U_ig_jg_k,S_ig_jg,0),tl,0) +            # only k-dependent
                 np.tensordot(np.tensordot(tk,S_ig_jg,0),U_ig_jg_l,0) +            # only l-dependent
@@ -462,15 +465,14 @@ def SVD_sig(block,cutoff):
 	# Storing only the significant singular values
 #	print(sing)
 
-	# Using the epsilon error estimate based on the Frobenius norm to 
-	# determine the number of significant singular values d
 	d   = 0
 	eps = 100.
 	while eps>cutoff:
 		d = d+1
 		eps = np.sqrt(np.sum(sing**2)-np.sum(sing[:d]**2))
 
-	# Resizing the svd matrices accordingly
+	# Determining the number of significant singular values and resizing the svd matrices accordingly
+	#print("link_dim",sing_num)
 	if d==1:
 		link_dim     = 0
 		svd_final[0] = svd_init[0][:,0]
@@ -528,13 +530,18 @@ def normf(M,L,state,norm_L):
 				norm = norm_past*norm
 			elif len(state[M+i].shape)==2:
 				norm_past = np.einsum("ij,kj->ik",state[M+i],np.conjugate(state[M+i]))
+				if norm_past.shape[0]!=norm.shape[0]:
+					norm_past = np.einsum("ii", norm_past)
 				norm = norm_past*norm
 			else:
 				norm_past = np.einsum("imk,jml->ijkl",state[M+i],np.conjugate(state[M+i]))
 				norm = np.einsum("ijkl,kl->ij",norm_past,norm)
 	        # Contracting the environment part with the system part
 		if len(state[L+M].shape) ==1:
-			norm = norm*norm_S
+			if len(norm) ==1:
+				norm = norm*norm_S
+			else:
+				norm = np.einsum("ii",norm)*norm_S
 		else:
 			norm = np.einsum("ij,ij",norm,norm_S)
 		norm_S = None
@@ -798,6 +805,7 @@ def cut(block,tolerance,how,OC=None):
 	block_merged, dims = merge(block,how)
 	# separate the block
 	block_merged_svd,link_dim = SVD_sig(block_merged,tolerance)
+	#print(block.shape, block_merged.shape)
 	block_merged=None
 	# specifying the link dimension
 	if how=="left":
@@ -893,29 +901,37 @@ def SWAP(states,base_ind,direction,OC=None):
 			else:
 				print("problem with tensor rank in swap")
                 
-		elif len(states[base_ind+c*s].shape)==2 :
+		elif len(states[base_ind+c*s].shape)==2 :            
+			if len(states[base_ind+c*s+1].shape)==1:
+				swap_block = np.tensordot(states[base_ind+1+c*s],states[base_ind+c*s],0)
+				states[base_ind+1+c*s],states[base_ind+c*s] = cut(np.einsum("ijk->jik",swap_block),tol,"right")     
+			elif len(states[base_ind+c*s+1].shape)==3:
 			# the physical indices should be swapped while contracting the link indices
-			swap_block = np.einsum("ijk,kl->ilj",states[base_ind+1+c*s],states[base_ind+c*s])
-			states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"left")     
+				swap_block = np.einsum("ijk,kl->ilj",states[base_ind+1+c*s],states[base_ind+c*s])
+				states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"left")     
 			# the cut function puts the OC to the right by default. In order to move the interacting past
 			# bin next to the system bin, the orthogonality centre should also shift towards the left (future).
 			if direction =="future":
 				states[base_ind+c*s+1],states[base_ind+c*s] = OC_reloc(states[base_ind+c*s+1],states[base_ind+c*s],
                                                                    "left",tol)
-		else:
+		else:            
 			# the physical indices should be swapped while contracting the link indices
-			swap_block = np.einsum("ijk,klm->iljm",states[base_ind+1+c*s],states[base_ind+c*s])
-			if OC=="left":
-				states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"both","left")     
-			elif OC=="right":
-				states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"both","right")     
+			if len(states[base_ind+c*s+1].shape)==2:
+				swap_block = np.einsum("ij,jlk->lik",states[base_ind+1+c*s],states[base_ind+c*s])
+				states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"right")     
+			# the physical indices should be swapped while contracting the link indices
+			else:
+				swap_block = np.einsum("ijk,klm->iljm",states[base_ind+1+c*s],states[base_ind+c*s])
+				if OC=="left":
+					states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"both","left")     
+				elif OC=="right":
+					states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"both","right")     
 	# because of the different directions of operations the position of the output states are either to the left
 	# or to the right from the index of start
 	if direction =="future":
 		return states[base_ind:(base_ind+L)]
 	elif direction =="past":
 		return states[(base_ind-L+2):(base_ind+2)]
-
 
 #**************#
 #***--------***#
@@ -1009,14 +1025,16 @@ for M in range(0,N-L-1):
 	if M>0:
 		# Relocating the orthogonality centre to the next interacting past bin if applicable
 		if len(states[M-1].shape)>1:
-			states[M],states[M-1] = OC_reloc(states[M],states[M-1],"left",tol)
-		states[M:M+L] = SWAP(states,M,"future","left")
+			if len(states[M].shape)>1:
+				states[M],states[M-1] = OC_reloc(states[M],states[M-1],"left",tol)
+			states[M:M+L] = SWAP(states,M,"future","left")
                 
 	# Relocating the orthogonality centre from the past bin to the system bin before the evolution
 	# operator's action if applicable
 	if len(states[ind_sys-1].shape)>1:
-		states[ind_sys],states[ind_sys-1] = OC_reloc(states[ind_sys],states[ind_sys-1],"left",tol)
-    
+		if len(states[ind_sys].shape)>1:
+			states[ind_sys],states[ind_sys-1] = OC_reloc(states[ind_sys],states[ind_sys-1],"left",tol)
+
 	# Calculating the state norm and the population of the excited and ground states
 	if args.plot:
 		norm[M],normL = normf(M,L,states,normL)
@@ -1046,19 +1064,21 @@ for M in range(0,N-L-1):
 	# Exchanging the position of the system and the present bin in the MPS state list
 	U_block  = np.einsum("ijk->jik",U_block)
 
-	# Separating the system state from the environment bins
+    	# Separating the system state from the environment bins
 	states[ind_sys+1],U_small_block = cut(U_block,tol,"right")
 	U_block = None
 	# Separating the present time bin from the interacting past bin
 	states[ind_sys],states[ind_sys-1] = cut(U_small_block,tol,"left")
 	U_small_block=None
 
-	# Unmerging of the previously merged link index on the right if applicable
+     # Unmerging of the previously merged link index on the right if applicable
 	if U_right_merge:
-		U_dims = np.concatenate((np.array([states[ind_sys-1].shape[0]]),U_right_dims),axis = 0)
-		states[ind_sys-1] = unmerge(states[ind_sys-1],U_dims,"right")
-		U_dims = None
-		U_right_dims=None
+         if len(states[ind_sys-1].shape)==1:
+             U_dims = U_right_dims
+         else:
+             U_dims = np.concatenate((np.array([states[ind_sys-1].shape[0]]),U_right_dims),axis = 0)
+         states[ind_sys-1] = unmerge(states[ind_sys-1],U_dims,"right")
+         U_dims = None
 
 	# Moving the interacting past bin's state back to its original position in the MPS
 	states[(ind_sys-L):(ind_sys)] = SWAP(states,(ind_sys-2),"past","right")
