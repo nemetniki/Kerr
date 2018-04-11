@@ -508,13 +508,13 @@ def normf(M,L,state,norm_L):
 	if M==0:
 		norm = np.einsum("i,i",state[L],np.conjugate(state[L]))
 	else:
-	        # Contracting part of the MPS that won't change anymore with its dual and with previously stored tensors
+	# Contracting part of the MPS that won't change anymore with its dual and with previously stored tensors
 		if len(state[M-1].shape)==1:
 			norm_L = np.einsum("i,i",state[M-1],np.conjugate(state[M-1]))
 		elif len(state[M-1].shape)==2:
 			norm_L = np.einsum("ik,jk->ij",state[M-1],np.conjugate(state[M-1]))
 		else:
-			norm_L = np.einsum("ijkl,kl->ij",np.einsum("imk,jml->ijkl",state[M-1],np.conjugate(state[M-1])),norm_L)
+			norm_L = np.einsum("kmj,lmj->kl",np.einsum("kmi,ij->kmj",state[M-1],norm_L),np.conjugate(state[M-1]))
         
 		# Contracting the system part of the MPS
 		if len(state[L+M].shape)==1:
@@ -523,22 +523,22 @@ def normf(M,L,state,norm_L):
 			norm_S = np.einsum("ki,kj->ij",state[L+M],np.conjugate(state[L+M]))
 		norm = norm_L
 
-        	# Performing the rest of the reservoir contractions from right to left.
+	# Performing the rest of the reservoir contractions from right to left.
 		for i in range(0,L):
 			if len(state[M+i].shape)==1:
 				norm_past = np.einsum("i,i",state[M+i],np.conjugate(state[M+i]))
 				norm = norm_past*norm
 			elif len(state[M+i].shape)==2:
 				norm_past = np.einsum("ij,kj->ik",state[M+i],np.conjugate(state[M+i]))
-				if norm_past.shape[0]!=norm.shape[0]:
-					norm_past = np.einsum("ii", norm_past)
+				if len(norm.shape)>0:
+					if norm_past.shape[0]!=norm.shape[0]:
+						norm_past = np.einsum("ii", norm_past)
 				norm = norm_past*norm
 			else:
-				norm_past = np.einsum("imk,jml->ijkl",state[M+i],np.conjugate(state[M+i]))
-				norm = np.einsum("ijkl,kl->ij",norm_past,norm)
-	        # Contracting the environment part with the system part
+				norm = np.einsum("kmj,lmj->kl",np.einsum("kmi,ij->kmj",state[M+i],norm),np.conjugate(state[M+i]))
+	# Contracting the environment part with the system part
 		if len(state[L+M].shape) ==1:
-			if len(norm) ==1:
+			if len(norm.shape) <=1:
 				norm = norm*norm_S
 			else:
 				norm = np.einsum("ii",norm)*norm_S
