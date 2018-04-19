@@ -988,8 +988,8 @@ see = np.identity(2*N_env+1)-sgg
 ncdiag = np.linspace(0,N_env+.1,2*N_env+1).astype(np.int64)
 nc = np.diag(ncdiag)
 
-filename = "./Data/JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind)
-outname = "./Data/OUT_TLS+feedback_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind)
+filename = "./Data/JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10)
+outname = "./Data/OUT_TLS+feedback_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10)
 file_out = open(outname,"a")
 file_out.write("Direct plotting: "+str(args.plot)+ """\ngamma_L = %.1f, gamma_R = %.1f, Om_e = %.1f, Om_c = %.1f, phi = %.1fpi,
 Delta_e = %.1f, Delta_c = %.1f, g = %.2f, Nphot_max = %d,
@@ -1093,7 +1093,7 @@ om = np.linspace(-20,20,5000)
 spec = spectrum(states,om,N-L-1,N_env+1)
 if args.plot==False:
 	time_out = np.transpose(np.vstack((om,spec)))
-	np.savetxt("./Data/spec_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind),time_out)
+	np.savetxt("./Data/spec_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10),time_out)
 	time_out=None
 
 states[M+1:M+L+1] = SWAP(states,M+1,"future","left")
