@@ -1108,8 +1108,8 @@ see = np.identity(2*N_env+1)-sgg
 ncdiag = np.linspace(0,N_env+.1,2*N_env+1).astype(np.int64)
 nc = np.diag(ncdiag)
 
-filename = "./Data/JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10)
-outname = "./Data/OUT_TLS+feedback_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10)
+filename = "./Data/JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
+outname = "./Data/OUT_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
 file_out = open(outname,"a")
 file_out.write("Direct plotting: "+str(args.plot)+ """\ngamma_L = %.1f, gamma_R = %.1f, Om_e = %.1f, Om_c = %.1f, phi = %.1fpi,
 Delta_e = %.1f, Delta_c = %.1f, g = %.2f, Nphot_max = %d,
@@ -1219,7 +1219,7 @@ spec = spectrum(states,om,N-L-1,N_env+1)
 #tau,g2_outa = g2_out(states,N-L-1,N_env+1)
 if args.plot==False:
 	time_out = np.transpose(np.vstack((om,spec)))
-	np.savetxt("./Data/spec_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10),time_out)
+	np.savetxt("./Data/spec_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L),time_out)
 #	time_out = np.transpose(np.vstack((tau,g2_outa)))
 #	np.savetxt("./Data/g2out_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10),time_out)
 	time_out=None
@@ -1241,7 +1241,7 @@ else:
 	gr_pop  = exp_sys(sgg,states[N-1],N-L-1)
 #	file_evol = open("./Data/TLS+feedback_gL=%dp10_gR=%dp10_Om=%dp10_phi=%dp10pi.txt" % \
 #			(gamma_L*10, gamma_R*10, Om_TLS*10, args.phi*10),"a")
-	file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp))
+	file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta))
 
 end = time.time()-start
 h = int(end/3600)
