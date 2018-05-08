@@ -1,4 +1,4 @@
-
+#!/usr/bin/python3.5
 # coding: utf-8
 
 # # MPS code
@@ -16,6 +16,7 @@ import time
 import sys
 import argparse
 from decimal import Decimal
+from math import factorial
 
 mpl.rcParams['mathtext.fontset'] = 'cm'
 mpl.rcParams['mathtext.rm'] = 'serif'
@@ -120,7 +121,7 @@ def SVD_sig(block,cutoff):
 	eps = 100.
 	while eps>cutoff:
 		d = d+1
-		eps = np.sqrt(np.sum(sing**2)-np.sum(sing[:d]**2))
+		eps = np.sqrt(np.sum(sing[d:]**2))
 
 	# Determining the number of significant singular values and resizing the svd matrices accordingly
 	#print("link_dim",sing_num)
@@ -385,7 +386,7 @@ def cut(block,tolerance,how,OC=None):
 	# specifying the link dimension
 	if how=="left":
 		# specifying the final indices of the left block
-		if link_dim ==None or link_dim==0: # for separate bins
+		if link_dim==0: # for separate bins
 			left_dims = dims
 		else:
 			left_dims = np.concatenate((dims,np.array([link_dim])),axis=0)
@@ -402,7 +403,7 @@ def cut(block,tolerance,how,OC=None):
             
 	elif how=="right":
 		# specifying the final indices of the right block
-		if link_dim ==None or link_dim==0: # for separate bins
+		if link_dim==0: # for separate bins
 			right_dims = dims
 		else:
 			right_dims = np.concatenate((np.array([link_dim]),dims),axis=0)
@@ -417,19 +418,25 @@ def cut(block,tolerance,how,OC=None):
 			print("something's wrong with the ranks of the tensors after svd in cut right")
 
 	elif how=="both":
-		# specifying the final indices of the blocks
-		left_dims = np.concatenate((dims[:2],np.array([link_dim])),axis=0)
-		right_dims = np.concatenate((np.array([link_dim]),dims[2:]),axis=0)
-		if OC=="left":
-			# positioning the orthognality centre to the left
+		if link_dim==0: # for separate bins
+			left_dims = dims[:2]
+			right_dims = dims[2:]
 			new_right = unmerge(block_merged_svd[2],right_dims,"right")
-			new_left = unmerge(np.einsum("jk,kl->jl",block_merged_svd[0],block_merged_svd[1]),left_dims,"left")
-		elif OC=="right":
-			# positioning the orthognality centre to the right
-			new_right = unmerge(np.einsum("ij,jk->ik",block_merged_svd[1],block_merged_svd[2]),right_dims,"right")
 			new_left = unmerge(block_merged_svd[0],left_dims,"left")
-		elif OC== None:
-			print("Please specify where is the orthogonality centre after operation with the keywords 'left' or 'right'")
+		# specifying the final indices of the blocks
+		else: # for separate bins
+			left_dims = np.concatenate((dims[:2],np.array([link_dim])),axis=0)
+			right_dims = np.concatenate((np.array([link_dim]),dims[2:]),axis=0)
+			if OC=="left":
+				# positioning the orthognality centre to the left
+				new_right = unmerge(block_merged_svd[2],right_dims,"right")
+				new_left = unmerge(np.einsum("jk,kl->jl",block_merged_svd[0],block_merged_svd[1]),left_dims,"left")
+			elif OC=="right":
+				# positioning the orthognality centre to the right
+				new_right = unmerge(np.einsum("ij,jk->ik",block_merged_svd[1],block_merged_svd[2]),right_dims,"right")
+				new_left = unmerge(block_merged_svd[0],left_dims,"left")
+			elif OC== None:
+				print("Please specify where is the orthogonality centre after operation with the keywords 'left' or 'right'")
 	left_dims = None
 	right_dims = None
 	block_merged_svd = None
@@ -487,8 +494,7 @@ def SWAP(states,base_ind,direction,OC=None):
 				states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"left")     
 			# the cut function puts the OC to the right by default. In order to move the interacting past
 			# bin next to the system bin, the orthogonality centre should also shift towards the left (future).
-			if direction =="future":
-				if len(states[base_ind+c*s+1].shape)==3:
+				if direction =="future":
 					states[base_ind+c*s+1],states[base_ind+c*s] = OC_reloc(states[base_ind+c*s+1],states[base_ind+c*s],
                                                                    "left",tol)
 		else:            
@@ -663,11 +669,11 @@ def U(tk,tS,tl,M): #tk: time bin state at k, tS: state of S
         if len(state.shape)==3:
             for i in range(dim_tS):
                 if i%2==0:
-                    new_tS[:,i,:] = np.zeros((dim_tk,dim_tl))
+                    new_tS[:,i,:] = np.zeros((dim_tk,dim_tl),complex)
         elif len(state.shape)==4:
             for i in range(dim_tS):
                 if i%2==0:
-                    new_tS[:,i,:,:] = np.zeros((dim_tk,dim_tl,tl.shape[-1]))
+                    new_tS[:,i,:,:] = np.zeros((dim_tk,dim_tl,tl.shape[-1]),complex)
         else:
             print("Unusual shape for tS")
         return -1j*dt*(C(state)+JC(state)+Dele*new_tS)
@@ -747,13 +753,23 @@ def normf(M,L,state,norm_L):
 	# Indices of the timebins initially: 0->furthest past, L->system, L+1->first future timebin
 	if M==0:
 		norm = np.einsum("i,i",state[L],np.conjugate(state[L]))
+		norm_L = 1.
 	else:
 		#print(state[M-1].shape,norm_L.shape)
 	# Contracting part of the MPS that won't change anymore with its dual and with previously stored tensors
 		if len(state[M-1].shape)==1:
 			norm_L = np.einsum("i,i",state[M-1],np.conjugate(state[M-1]))
 		elif len(state[M-1].shape)==2:
-			norm_L = np.einsum("ik,jk->ij",state[M-1],np.conjugate(state[M-1]))
+			if state[M-1].shape[1]>state[M-1].shape[0]:
+				if np.isscalar(norm_L):
+					norm_L = np.einsum("ik,jk->ij",state[M-1],np.conjugate(state[M-1]))*norm_L
+				else:
+					norm_L = np.einsum("ik,jk->ij",state[M-1],np.conjugate(state[M-1]))*np.einsum("ii",norm_L)
+			else:
+				if np.isscalar(norm_L):
+					norm_L = np.einsum("ik,ik",state[M-1],np.conjugate(state[M-1]))*norm_L
+				else:
+					norm_L = np.einsum("ij,ij",np.einsum("ik,ij->kj",state[M-1],np.conjugate(state[M-1])),norm_L)
 		else:
 			norm_L = np.einsum("kmj,lmj->kl",np.einsum("kmi,ij->kmj",state[M-1],norm_L),np.conjugate(state[M-1]))
         
@@ -769,28 +785,41 @@ def normf(M,L,state,norm_L):
 			#print("state",state[M+i].shape)
 			if len(state[M+i].shape)==1:
 				norm_past = np.einsum("i,i",state[M+i],np.conjugate(state[M+i]))
-				norm = norm_past*norm
+				if np.isscalar(norm):
+					norm = norm_past*norm
+				else:
+					norm = norm_past*np.einsum("ii",norm)
 				#print("norm",norm.shape)
 			elif len(state[M+i].shape)==2:
-				norm_past = np.einsum("ij,kj->ik",state[M+i],np.conjugate(state[M+i]))
-				if len(norm.shape)>0:
-					if norm_past.shape[0]!=norm.shape[0]:
-						norm_past = np.einsum("ii", norm_past)
-				norm = norm_past*norm
+				if state[M+i].shape[0]>state[M+i].shape[1]:
+					norm_past = np.einsum("ji,jk->ik",state[M+i],np.conjugate(state[M+i]))
+					if np.isscalar(norm):
+						norm = np.einsum("ii",norm_past)*norm
+					else:
+						norm = np.einsum("ij,ij",norm_past,norm)
+				elif state[M+i].shape[0]<state[M+i].shape[1]:
+					norm_past = np.einsum("ij,kj->ik",state[M+i],np.conjugate(state[M+i]))
+					if np.isscalar(norm):
+						norm = norm_past*norm
+					else:
+						norm = norm_past*np.einsum("ii",norm)
 #				print("norm",norm.shape)
 			else:
-				norm = np.einsum("kmj,lmj->kl",np.einsum("kmi,ij->kmj",state[M+i],norm),np.conjugate(state[M+i]))
 				#print("norm",norm.shape)
+				if np.isscalar(norm):
+					norm = np.einsum("kmi,lmi->kl",state[M+i],np.conjugate(state[M+i]))*norm
+				else:
+					norm = np.einsum("kmj,lmj->kl",np.einsum("kmi,ij->kmj",state[M+i],norm),np.conjugate(state[M+i]))
 	# Contracting the environment part with the system part
 		if len(state[L+M].shape) ==1:
-			if len(norm.shape) <=1:
+			if np.isscalar(norm):
 				norm = norm*norm_S
 			else:
 				norm = np.einsum("ii",norm)*norm_S
 		else:
 			norm = np.einsum("ij,ij",norm,norm_S)
 		norm_S = None
-	return np.real(norm),norm_L
+	return np.real(norm),np.real(norm_L)
 
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
@@ -806,9 +835,9 @@ def exp_sys(observable,sys,M):
 
 	# Indices of the timebins initially: 0->furthest past, L->system, L+1->first future timebin
 	if len(sys.shape)==1:
-		obs = np.einsum("i,i",np.einsum("i,ij",sys,observable),np.conjugate(sys))
+		obs = np.einsum("i,i",np.einsum("i,ji",sys,observable),np.conjugate(sys))
 	else:
-		obs = np.einsum("jk,kj",np.einsum("ij,ik->jk",sys,observable),np.conjugate(sys))
+		obs = np.einsum("kj,kj",np.einsum("ij,ki->kj",sys,observable),np.conjugate(sys))
 	return np.real(obs)
 
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
@@ -897,6 +926,9 @@ def spectrum(states,freqs,pmax,N_env):
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 
+######################
+### g2 correlation ###
+######################
 def g2_t(state,N_env):
     """Calculating the expectation value of a given system observable
     INPUT: observable of interest, the state of the system and timestep M
@@ -906,7 +938,8 @@ def g2_t(state,N_env):
     if len(state.shape)==1:       
         temp = np.einsum("ik,k",np.einsum("ij,jk",dB,dB),state)
         temp2 = np.einsum("ik,k",dB,state)
-        g2_t = np.einsum("i,i",temp,np.conjugate(temp))/np.einsum("i,i",temp2,np.conjugate(temp2))**2
+        NB = np.einsum("i,i",temp2,np.conjugate(temp2))
+        g2_t = np.einsum("i,i",temp,np.conjugate(temp))/(NB**2)
         temp = None
     elif len(state.shape)==2:       
         indp = state.shape.index(np.max(state.shape))
@@ -914,19 +947,22 @@ def g2_t(state,N_env):
         if indp == 0:
             temp = np.einsum("ik,kl->il",np.einsum("ij,jk",dB,dB),state)
             temp2 = np.einsum("ik,kl->il",dB,state)
-            g2_t = np.einsum("il,il",temp,np.conjugate(temp))/np.einsum("il,il",temp2,np.conjugate(temp2))**2
+            NB = np.einsum("il,il",temp2,np.conjugate(temp2))
+            g2_t = np.einsum("il,il",temp,np.conjugate(temp))/(NB**2)
             temp = None        
         elif indp == 1:
             temp = np.einsum("ik,lk->li",np.einsum("ij,jk",dB,dB),state)
             temp2 = np.einsum("ik,lk->li",dB,state)
-            g2_t = np.einsum("li,li",temp,np.conjugate(temp))/np.einsum("li,li",temp2,np.conjugate(temp2))**2
+            NB = np.einsum("li,li",temp2,np.conjugate(temp2))
+            g2_t = np.einsum("li,li",temp,np.conjugate(temp))/(NB**2)
             temp = None        
     elif len(state.shape)==3:
         temp = np.einsum("ik,jkl->jil",np.einsum("ij,jk",dB,dB),state)
         temp2 = np.einsum("ik,jkl->jil",dB,state)
-        g2_t = np.einsum("jil,jil",temp,np.conjugate(temp))/np.einsum("jil,jil",temp2,np.conjugate(temp2))**2
+        NB = np.einsum("jil,jil",temp2,np.conjugate(temp2))
+        g2_t = np.einsum("jil,jil",temp,np.conjugate(temp))/(NB**2)
         temp = None
-    return g2_t
+    return np.real(g2_t),np.real(NB)
 
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
@@ -1008,7 +1044,46 @@ def g2_out(states,taumax,N_env):
                 g2_out[it] = np.einsum("mn,mn",next_step,np.einsum("mjk,njk->mn",temp, np.conjugate(temp)))
                 next_step = np.einsum("mjk,mjl->kl",np.einsum("ijk,im->mjk",states[index-it],next_step),
                                       np.conjugate(states[index-it]))
-    return tau,g2_out
+    return np.real(tau),np.real(g2_out)
+
+################################
+### Number of output photons ###
+################################
+def NB_out(state,N_env,NB_past):
+    """Calculating the expectation value of a given system observable
+    INPUT: observable of interest, the state of the system and timestep M
+    OUTPUT: expectation value of the observable"""
+    dB  = sc.eye(N_env,N_env,1)*np.sqrt(dt*np.arange(0,N_env)) 
+#    dBd = sc.eye(N_env,N_env,-1)*np.sqrt(dt*np.arange(1,N_env+1))
+    if len(state.shape)==1:       
+        temp = np.einsum("ik,k",dB,state)
+        NB_now = np.einsum("i,i",temp,np.conjugate(temp))
+    elif len(state.shape)==2:       
+        indp = state.shape.index(np.max(state.shape))
+        if indp == 0:
+            temp = np.einsum("ik,kl->il",dB,state)
+            NB_now = np.einsum("il,il",temp,np.conjugate(temp))
+        elif indp == 1:
+            temp = np.einsum("ik,lk->li",dB,state)
+            NB_now = np.einsum("li,li",temp,np.conjugate(temp))
+    elif len(state.shape)==3:
+        temp = np.einsum("ik,jkl->jil",dB,state)
+        NB_now = np.einsum("jil,jil",temp,np.conjugate(temp))
+    NB = NB_now+NB_past
+    temp = None
+    NB_now = None
+    return np.real(NB)
+
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+
+def coherent(n,phi,array):
+    for i in range(len(array)):
+        array[i] = np.exp(-n/2)*(np.sqrt(n)*np.exp(phi))**i/np.sqrt(float(factorial(i)))
+    return array
+
+
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
@@ -1055,6 +1130,8 @@ parser.add_argument("-Nphot",type=int,default = 10,help='maximal boson number')
 parser.add_argument("-L",type=int,default = 50,help='delay as number of dt')
 parser.add_argument("-endt",type=float, default = 5, help ='end of time evolution')
 parser.add_argument("-dt",type=float,default = 0.02, help ='dt')
+parser.add_argument("-cohC",type=float, default = 0.,help='coherent initial state for the cavity')
+parser.add_argument("-cohE",type=float, default = 0.,help='coherent initial state for the environment')
 
 args = parser.parse_args()
 
@@ -1082,39 +1159,64 @@ phi     = args.phi*np.pi#pi
 ### MPS state initialization ###
 ################################
 initJC     = np.zeros(2*N_env+1,complex)
-initJC[args.init_ind]  = 1 #starting at |e>
+if args.cohC>0.:
+	preinitJC = coherent(args.cohC,0,np.zeros(N_env+1,complex))
+	initJC[0::2] = preinitJC
+	preinitJC = None
+else:
+	initJC[args.init_ind]  = 1. #starting at |e>
 initenv    = np.zeros(N_env+1,complex)
-initenv[0] = 1.
+if args.cohE>0.:
+	initenv = coherent(args.cohE,0,initenv)
+else:
+	initenv[0] = 1.
 states     = [initenv]*L+(N-L)*[0.]
 ind_sys       = L
-states[ind_sys] = initJC
+states[ind_sys] = initJC/np.sqrt(np.sum(initJC**2))
 
 if args.plot:
 	nc_exp = np.zeros(N-L)
 	exc_pop = np.zeros(N-L)
 	gr_pop  = np.zeros(N-L)
 	g2_ta = np.zeros(N-L,complex)
-	g2_ta[0] = g2_t(states[ind_sys-1],N_env+1)
+	NB = np.zeros(N-L,complex)
+	g2_ta[0],NB[0] = g2_t(states[ind_sys-1],N_env+1)
+	NB_outa = np.zeros(N-L,complex)
 
 	norm = np.zeros(N-L)
 else:
-	g2_ta = g2_t(states[ind_sys-1],N_env+1)
+	g2_ta,NB = g2_t(states[ind_sys-1],N_env+1)
+	NB_outa = 0.
 normL = np.zeros((initenv.size,initenv.size),complex)
 
-z = np.zeros(2*N_env+1)
+z = np.zeros(2*N_env+1,complex)
 z[np.arange(0,2*N_env+1,2)]=np.ones(N_env+1)
 sgg = np.diag(z)
 see = np.identity(2*N_env+1)-sgg
 ncdiag = np.linspace(0,N_env+.1,2*N_env+1).astype(np.int64)
 nc = np.diag(ncdiag)
 
-filename = "./Data/JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
-outname = "./Data/OUT_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
+if args.cohC>0:
+	filename = "./Data/JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohC*10,Ome*10,Omc*10,L)
+	outname = "./Data/OUT_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohC*10,Ome*10,Omc*10,L)
+	specname = "./Data/spec_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohC*10,Ome*10,Omc*10,L)
+	g2tau = "./Data/g2tau_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohC*10,Ome*10,Omc*10,L)
+elif args.cohE>0:
+	filename = "./Data/JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohe=%dp10_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohE*10,args.init_ind,Ome*10,Omc*10,L)
+	outname = "./Data/OUT_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohe=%dp10_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohE*10,args.init_ind,Ome*10,Omc*10,L)
+	specname = "./Data/spec_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohe=%dp10_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohE*10,args.init_ind,Ome*10,Omc*10,L)
+	g2tau = "./Data/g2tau_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohe=%dp10_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohE*10,args.init_ind,Ome*10,Omc*10,L)
+else:
+	filename = "./Data/JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
+	outname = "./Data/OUT_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
+	specname = "./Data/spec_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
+	g2tau = "./Data/g2tau_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
 file_out = open(outname,"a")
 file_out.write("Direct plotting: "+str(args.plot)+ """\ngamma_L = %.1f, gamma_R = %.1f, Om_e = %.1f, Om_c = %.1f, phi = %.1fpi,
 Delta_e = %.1f, Delta_c = %.1f, g = %.2f, Nphot_max = %d,
 tolerance = %.0E, delay_L = %d, endt = %.0f, dt = %f\n
-Data file: M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta\n""" % (gamma_L, gamma_R, Ome, Omc, args.phi, Dele, Delc, g, N_env, Decimal(tol), L, endt, dt))
+coherent initial state amplitude for cavity: %.1f and the environment %.1f
+Data file: M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,NB,NB_outa\n""" % (gamma_L, gamma_R, Ome, Omc, args.phi, Dele, Delc, g, N_env, Decimal(tol), L, endt, dt,args.cohC,args.cohE))
 file_out.close()
 
 ######################
@@ -1156,7 +1258,7 @@ for M in range(0,N-L-1):
         exc_pop = exp_sys(see,states[ind_sys],M)
         gr_pop  = exp_sys(sgg,states[ind_sys],M)
         file_evol = open(filename,"a")
-        file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta))
+        file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,NB,NB_outa))
         file_evol.flush()
         file_out.close()
 
@@ -1196,15 +1298,17 @@ for M in range(0,N-L-1):
             U_dims = np.concatenate((np.array([states[ind_sys-1].shape[0]]),U_right_dims),axis = 0)
         states[ind_sys-1] = unmerge(states[ind_sys-1],U_dims,"right")
         U_dims = None
-    if args.plot:
-        g2_ta[M+1] = g2_t(states[ind_sys-1],N_env+1)
-    else:
-        g2_ta = g2_t(states[ind_sys-1],N_env+1)
 #    print("tl final",states[ind_sys-1].shape)
 #    print("U done, states done", states[ind_sys+1].shape, states[ind_sys].shape, states[ind_sys-1].shape)
         
     # Moving the interacting past bin's state back to its original position in the MPS
     states[(ind_sys-L):(ind_sys)] = SWAP(states,(ind_sys-2),"past","right")
+    if args.plot:
+        g2_ta[M+1],NB[M+1] = g2_t(states[M],N_env+1)
+        NB_outa[M+1] = NB_out(states[M],N_env+1,NB_outa[M])
+    else:
+        g2_ta,NB = g2_t(states[M],N_env+1)
+        NB_outa = NB_out(states[M],N_env+1,NB_outa)
     # Preparing for the next step with the system index
     ind_sys =1+ind_sys
 
@@ -1216,12 +1320,12 @@ if len(states[M].shape)>1:
 #Calculating the output spectra over a range of frequencies
 om = np.linspace(-20,20,5000)
 spec = spectrum(states,om,N-L-1,N_env+1)
-#tau,g2_outa = g2_out(states,N-L-1,N_env+1)
+tau,g2_outa = g2_out(states,N-L-1,N_env+1)
 if args.plot==False:
 	time_out = np.transpose(np.vstack((om,spec)))
-	np.savetxt("./Data/spec_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L),time_out)
-#	time_out = np.transpose(np.vstack((tau,g2_outa)))
-#	np.savetxt("./Data/g2out_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10),time_out)
+	np.savetxt(specname,time_out)
+	time_out = np.transpose(np.vstack((tau,g2_outa)))
+	np.savetxt(g2tau,time_out)
 	time_out=None
 
 states[M+1:M+L+1] = SWAP(states,M+1,"future","left")
@@ -1241,11 +1345,11 @@ else:
 	gr_pop  = exp_sys(sgg,states[N-1],N-L-1)
 #	file_evol = open("./Data/TLS+feedback_gL=%dp10_gR=%dp10_Om=%dp10_phi=%dp10pi.txt" % \
 #			(gamma_L*10, gamma_R*10, Om_TLS*10, args.phi*10),"a")
-	file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta))
+	file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,NB,NB_outa))
 
 end = time.time()-start
 h = int(end/3600)
-m = int((end-60*h)/60)
+m = int((end-3600*h)/60)
 s = int(end-3600*h-60*m)
 #print(#"final excited state population:",exc_pop[-1],
 #      "\nfinal ground state population:",gr_pop[-1],
@@ -1286,11 +1390,21 @@ if args.plot:
 	plt.xlabel("$t$",fontsize=40)
 	plt.grid(True)
 	plt.ylabel(r"$g^{(2)}(0,t)$",fontsize=40)
-#	plt.figure(figsize = (12,7))
-#	plt.plot(tau,g2_outa,lw=3,color=colors["black"],ls="-")
-#	plt.xlabel(r"$\tau$",fontsize=40)
-#	plt.grid(True)
-#	plt.ylabel(r"$g^{(2)}(\tau,t_{end})$",fontsize=40)
+	plt.figure(figsize = (12,7))
+	plt.plot(t,np.real(NB_outa),lw=3,color=colors["orange"],ls="-")
+	plt.xlabel("$t$",fontsize=40)
+	plt.grid(True)
+	plt.ylabel("Environment photon number",fontsize=40)
+	plt.figure(figsize = (12,7))
+	plt.plot(t,np.real(NB),lw=3,color=colors["pink"],ls="-")
+	plt.xlabel("$t$",fontsize=40)
+	plt.grid(True)
+	plt.ylabel("Photon number in the current output timebin",fontsize=40)
+	plt.figure(figsize = (12,7))
+	plt.plot(tau,g2_outa,lw=3,color=colors["black"],ls="-")
+	plt.xlabel(r"$\tau$",fontsize=40)
+	plt.grid(True)
+	plt.ylabel(r"$g^{(2)}(\tau,t_{end})$",fontsize=40)
 
 #	plt.ylim(-.05,2.)
 	plt.show()

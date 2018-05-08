@@ -1,7 +1,0 @@
-Direct plotting: False
-gamma_L = 0.5, gamma_R = 0.5, Om_e = 3.0, Om_c = 0.0, phi = 1.0pi,
-Delta_e = 0.0, Delta_c = 0.0, g = 10.00, Nphot_max = 10,
-tolerance = 1E-03, delay_L = 10, endt = 100, dt = 0.010000
-
-
-finished in: 00:07:59
