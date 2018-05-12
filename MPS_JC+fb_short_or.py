@@ -17,8 +17,8 @@ import sys
 import argparse
 from decimal import Decimal
 from math import factorial
-from MPS_fund import *
-from U_JC import *
+from MPS_fund_or import *
+from U_JC_or import *
 from MPS_analysis import *
 
 mpl.rcParams['mathtext.fontset'] = 'cm'
@@ -144,10 +144,10 @@ if args.cohC>0:
 	specname = "./Data/spec_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohC*10,Ome*10,Omc*10,L)
 	g2tau = "./Data/g2tau_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohC*10,Ome*10,Omc*10,L)
 elif args.cohE>0:
-	filename = "./Data/JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
-	outname = "./Data/OUT_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
-	specname = "./Data/spec_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
-	g2tau = "./Data/g2tau_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
+	filename = "./Data/JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d_or.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
+	outname = "./Data/OUT_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d_or.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
+	specname = "./Data/spec_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d_or.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
+	g2tau = "./Data/g2tau_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d_or.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
 else:
 	filename = "./Data/JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
 	outname = "./Data/OUT_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)

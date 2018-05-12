@@ -85,11 +85,18 @@ def merge(block,where):
 		d3 = block.shape[2]
 		if where=="left":
 			# predefinition of the merged tensor
-			merged_block = block.reshape(d1*d2,d3)
+			merged_block = np.zeros((d1*d2,d3),dtype=np.complex128)
+			for i in range(0,d1):
+				for j in range(0,d2):
+					merged_block[i+d1*j,:]=block[i,j,:]
+			# passing on the merged dimensions
 			dims = np.array([d1,d2])
 		elif where=="right":
 			# predefinition of the merged tensor
-			merged_block = block.reshape(d1,d2*d3)
+			merged_block = np.zeros((d1,d2*d3),dtype=np.complex128)
+			for i in range(0,d2):
+				for j in range(0,d3):
+					merged_block[:,i+d2*j]=block[:,i,j]
 			# passing on the merged dimensions
 			dims = np.array([d2,d3])
 	elif num_ind==4:
@@ -97,17 +104,34 @@ def merge(block,where):
 		d4 = block.shape[3]
 		if where=="left":
 			# predefinition of the merged tensor
-			merged_block = block.reshape(d1*d2,d3,d4)
+			merged_block = np.zeros((d1*d2,d3,d4),dtype=np.complex128)
+			for i in range(0,d1):
+				for j in range(0,d2):
+					merged_block[i+d1*j,:,:]=block[i,j,:,:]
 			# passing on the merged dimensions
 			dims = np.array([d1,d2])
 		elif where=="right":
 			# predefinition of the merged tensor
-			merged_block = block.reshape(d1,d2,d3*d4)
+			merged_block = np.zeros((d1,d2,d3*d4),dtype=np.complex128)
+			for i in range(0,d3):
+				for j in range(0,d4):
+					merged_block[:,:,i+d3*j]=block[:,:,i,j]
 			# passing on the merged dimensions
 			dims = np.array([d3,d4])
 		elif where=="both":
 			# 2 consequent merges are needed           
-			merged_block = block.reshape(d1*d2,d3*d4)
+			# predefinition of the first merged tensor
+			merged_block_1 = np.zeros((d1,d2,d3*d4),dtype=np.complex128)
+			for i1 in range(0,d3):
+				for j1 in range(0,d4):
+					merged_block_1[:,:,i1+d3*j1]=block[:,:,i1,j1]
+			# predefinition of the second merged tensor
+			merged_block = np.zeros((d1*d2,d3*d4),dtype=np.complex128)
+			for i2 in range(0,d1):
+				for j2 in range(0,d2):
+					merged_block[i2+d1*j2,:]=merged_block_1[i2,j2,:]
+			merged_block_1=None
+			# passing on the merged dimensions
 			dims = np.array([d1,d2,d3,d4])
 	return merged_block, dims
 
@@ -124,14 +148,36 @@ def unmerge(block,dims,where):
 	and where the merged indices are
 	OUTPUT: the obtained higher-rank tensor"""
 
-	legs = len(block.shape)
+	# predefinition of the unmerged tensor
+	unmerged_block = np.zeros(dims,dtype=np.complex128)
+	# In case no merge has been done, no unmerge is needed -> return the original
 	if dims is None:
 		unmerged_block = block
-	else:
-		unmerged_block = block.reshape(dims)
+    
+	elif where=="left":
+		D = block.shape[0]
+		d1 = dims[0]
+		for I in range(0,D):
+			# Care should be taken about the rank of the unmerged tensor
+			if len(block.shape)==1:
+				unmerged_block[I%d1,int((I-(I%d1))/d1)]  = block[I]
+			elif len(block.shape)==2:
+				unmerged_block[I%d1,int((I-(I%d1))/d1),:]  = block[I,:]
+	elif where=="right":
+		if len(block.shape)==1:
+			D = block.shape[0]
+		elif len(block.shape)==2:
+			D = block.shape[1]
+		for I in range(0,D):
+			# Care should be taken about the rank of the unmerged tensor
+			if len(block.shape)==1:
+				d2 = dims[0]
+				unmerged_block[I%d2,int((I-(I%d2))/d2)]  = block[I]
+			elif len(block.shape)==2:
+				d2 = dims[1]
+				unmerged_block[:,I%d2,int((I-(I%d2))/d2)]  = block[:,I]
 	block = None
 	return unmerged_block
-
 
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#

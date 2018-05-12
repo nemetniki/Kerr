@@ -31,64 +31,6 @@ linewidth = [2,2,3,3,4]
 linestyle = ['solid','dashed','dashdot','dotted','solid']
 
 
-# ## 1. Hamiltonian in the rotating frame
-# 
-# The system Hamiltonian:
-# 
-# \begin{align}
-# \hat{H}_S=\hbar\Delta_c\hat{c}^\dagger\hat{c} + \hbar\Delta_e\hat{\sigma}_+\hat{\sigma}_-
-#             +\hbar g\left(\hat{c}^\dagger\hat{\sigma}_-+\hat{\sigma}_+\hat{c}\right)
-#             +\hbar\Omega_c\left(\hat{c}+\hat{c}^\dagger\right)
-#             +\hbar\Omega_e\left(\hat{\sigma}_-+\hat{\sigma}_+\right)
-# \end{align}
-# 
-# The interaction with the environment with feedback:
-# 
-# \begin{align}
-# \hat{H}_{fb}(t)=-i\hbar\left\{\left[\sqrt{\gamma_R}\hat{b}(t-\tau)e^{-i\phi}+\sqrt{\gamma_L}\hat{b}(t)\right]\hat{c}^\dagger-\left[\sqrt{\gamma_R}\hat{b}^\dagger(t-\tau)e^{i\phi}+\sqrt{\gamma_L}\hat{b}^\dagger(t)\right]\hat{c}\right\}
-# \end{align}
-# 
-# where the feedback phase is
-# \begin{align}
-# \phi=\pi-\omega_L\tau
-# \end{align}
-# 
-# The bath is originally Markovain with
-# \begin{align}
-# \left[\hat{b}(t),\hat{b}^\dagger(t^\prime)\right]=\delta(t-t^\prime)
-# \end{align}
-# 
-
-# ## 2. Time-evolution
-# 
-# \begin{align}
-# |\Psi(t_{k+1})\rangle=U(t_{k+1},t_k)|\Psi(t_k)\rangle
-# \end{align}
-# 
-# with $\Psi$ written as a Matrix Product State. The time-evolution operator can be expanded as
-# \begin{align}
-# U(t_{k+1},t_k) &= \exp{\left[-\frac{i}{\hbar}\left(H_S\Delta t+\int_{t_k}^{t_{k+1}}H_{fb}(t)dt\right)\right]}\\
-# {\bf U}&=\exp{\left({\bf M}_S+{\bf M}_B\right)} = \sum_{n=0}^\infty\frac{1}{n!}\left({\bf M}_S+{\bf M}_B\right)^n
-# \end{align}
-# where $t_k=k\Delta t$ and $\Delta B(t_k) = \int_{t_k}^{t_{k+1}}b(t)dt$. This means that
-# \begin{align}
-# \left[\Delta B(t_k),\Delta B^\dagger(t_j)\right] = \Delta t \delta_{k,j}
-# \end{align}
-# 
-# Therefore the different orders of the expansion above are:
-# \begin{align}
-# {\bf U} &=\mathbb{1}+\color{red}{{\bf M}_B}+\color{orange}{{\bf M}_S+\frac{1}{2}{\bf M}_B^2}+
-#             \color{green}{\frac{1}{2}\left({\bf M}_S{\bf M}_B+{\bf M}_B{\bf M}_S\right)+\frac{1}{6}{\bf M}_B^3}+
-#             \color{blue}{\frac{1}{2}{\bf M}_S^2+\frac{1}{6}\left({\bf M}_S{\bf M}_B^2+{\bf M}_B{\bf M}_S{\bf M}_B+{\bf M}_B^2{\bf M}_S\right)+\frac{1}{24}{\bf M}_B^4}+\mathcal{O}(\Delta t^{5/2})
-# \end{align}
-# 
-
-# 
-# Let us consider a TLS on a waveguide. We need up to 4 photons in the environment and a system vector with size 2. $\gamma_R=0$
-
-# In[8]:
-
-
 #************************************#
 #***------------------------------***#
 #***| USEFUL BLOCKS AS FUNCTIONS |***#
@@ -1215,7 +1157,7 @@ file_out = open(outname,"a")
 file_out.write("Direct plotting: "+str(args.plot)+ """\ngamma_L = %.1f, gamma_R = %.1f, Om_e = %.1f, Om_c = %.1f, phi = %.1fpi,
 Delta_e = %.1f, Delta_c = %.1f, g = %.2f, Nphot_max = %d,
 tolerance = %.0E, delay_L = %d, endt = %.0f, dt = %f\n
-coherent initial state amplitude for cavity: %.1f and the environment %.1f
+coherent initial state amplitude for cavity: %.1f and the environment %.2f
 Data file: M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,NB,NB_outa\n""" % (gamma_L, gamma_R, Ome, Omc, args.phi, Dele, Delc, g, N_env, Decimal(tol), L, endt, dt,args.cohC,args.cohE))
 file_out.close()
 

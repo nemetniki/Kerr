@@ -35,79 +35,115 @@ def U(tk,tS,tl,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele): #tk: time bin stat
     def B(state):
         new_state_tk = np.zeros(state.shape,complex)
         new_state_tl = np.zeros(state.shape,complex)
-        n = np.arange(1,state.shape[0])
-        if legs==3:
-            new_state_tk[0:-1,:,:] = np.einsum("i,ijk->ijk",np.sqrt(n*gamma_L*dt),state[1:,:,:])
-            new_state_tl[:,:,0:-1] = np.einsum("k,ijk->ijk",np.sqrt(n*gamma_R*dt)*np.exp(-1j*phi),state[:,:,1:])
-        elif legs==4:
-            new_state_tk[0:-1,:,:,:] = np.einsum("i,ijkl->ijkl",np.sqrt(n*gamma_L*dt),state[1:,:,:,:])
-            new_state_tl[:,:,0:-1,:] = np.einsum("k,ijkl->ijkl",np.sqrt(n*gamma_R*dt)*np.exp(-1j*phi),state[:,:,1:,:])
+        if len(state.shape)==3:
+            for i in range(dim_tk-1):
+                new_state_tk[i,:,:] = np.sqrt((i+1)*gamma_L*dt)*state[i+1,:,:]
+                new_state_tl[:,:,i] = np.sqrt((i+1)*gamma_R*dt)*np.exp(-1j*phi)*state[:,:,i+1]
+        elif len(state.shape)==4:
+            for i in range(dim_tk-1):
+                new_state_tk[i,:,:,:] = np.sqrt((i+1)*gamma_L*dt)*state[i+1,:,:,:]
+                new_state_tl[:,:,i,:] = np.sqrt((i+1)*gamma_R*dt)*np.exp(-1j*phi)*state[:,:,i+1,:]
+        else:
+            print("Unusual shape for tS")
         return new_state_tk+new_state_tl
     def Bd(state):
         new_state_tk = np.zeros(state.shape,complex)
         new_state_tl = np.zeros(state.shape,complex)
-        n = np.arange(1,state.shape[0])
-        if legs==3:
-            new_state_tk[1:,:,:] = np.einsum("i,ijk->ijk",np.sqrt(n*gamma_L*dt),state[0:-1,:,:])
-            new_state_tl[:,:,1:] = np.einsum("k,ijk->ijk",np.sqrt(n*gamma_R*dt)*np.exp(-1j*phi),state[:,:,0:-1])
-        elif legs==4:
-            new_state_tk[1:,:,:,:] = np.einsum("i,ijkl->ijkl",np.sqrt(n*gamma_L*dt),state[0:-1,:,:,:])
-            new_state_tl[:,:,1:,:] = np.einsum("k,ijkl->ijkl",np.sqrt(n*gamma_R*dt)*np.exp(-1j*phi),state[:,:,0:-1,:])
+        if len(state.shape)==3:
+            for i in range(dim_tk-1):
+                new_state_tk[i+1,:,:] = np.sqrt((i+1)*gamma_L*dt)*state[i,:,:]
+                new_state_tl[:,:,i+1] = np.sqrt((i+1)*gamma_R*dt)*np.exp(1j*phi)*state[:,:,i]
+        elif len(state.shape)==4:
+            for i in range(dim_tk-1):
+                new_state_tk[i+1,:,:,:] = np.sqrt((i+1)*gamma_L*dt)*state[i,:,:,:]
+                new_state_tl[:,:,i+1,:] = np.sqrt((i+1)*gamma_R*dt)*np.exp(1j*phi)*state[:,:,i,:]
+        else:
+            print("Unusual shape for tS")
         return new_state_tk+new_state_tl
     def c(state):
-    #        print("c",state[0,2,0], state.shape, len(state.shape))
+#        print("c",state[0,2,0], state.shape, len(state.shape))
         new_state = np.zeros(state.shape,complex)
-        n=np.linspace(1,int((dim_tS)/2),dim_tS-2).astype(np.int64)
-        if legs==3:
-            new_state[:,0:-2,:] = np.einsum("j,ijk->ijk",np.sqrt(n),state[:,2:,:])
-        elif legs==4:
-            new_state[:,0:-2,:,:] = np.einsum("j,ijkl->ijkl",np.sqrt(n),state[:,2:,:,:])
+        if len(state.shape)==3:
+            for i in range(dim_tS-2):
+                new_state[:,i,:] = np.sqrt(int((i+2)/2))*state[:,i+2,:]
+        elif len(state.shape)==4:
+            for i in range(dim_tS-2):
+                new_state[:,i,:,:] = np.sqrt(int((i+2)/2))*state[:,i+2,:,:]
+        else:
+            print("Unusual shape for tS")
+#        print("c",new_state[0,0,0])
         return new_state
     def cd(state):
-    #        print("c",state[0,2,0], state.shape, len(state.shape))
+#        print("cd",state[0,2,0])
         new_state = np.zeros(state.shape,complex)
-        n=np.linspace(1,int((dim_tS)/2),dim_tS-2).astype(np.int64)
-        if legs==3:
-            new_state[:,2:,:] = np.einsum("j,ijk->ijk",np.sqrt(n),state[:,0:-2,:])
-        elif legs==4:
-            new_state[:,2:,:,:] = np.einsum("j,ijkl->ijkl",np.sqrt(n),state[:,0:-2,:,:])
+        if len(state.shape)==3:
+            for i in range(dim_tS-2):
+                new_state[:,i+2,:] = np.sqrt(int((i+2)/2))*state[:,i,:]
+        elif len(state.shape)==4:
+            for i in range(dim_tS-2):
+                new_state[:,i+2,:,:] = np.sqrt(int((i+2)/2))*state[:,i,:,:]
+        else:
+            print("Unusual shape for tS")
+#        print("cd",new_state[0,4,0])
         return new_state
     def sm(state):
         new_state = np.zeros(state.shape,complex)
-        if legs==3:
-            new_state[:,0:dim_tS-1:2,:] = state[:,1:dim_tS:2,:]
-        elif legs==4:
-            new_state[:,0:dim_tS-1:2,:,:] = state[:,1:dim_tS:2,:,:]
+        if len(state.shape)==3:
+            for i in range(dim_tS-1):
+                if i%2==0:
+                    new_state[:,i,:] = state[:,i+1,:]
+        elif len(state.shape)==4:
+            for i in range(dim_tS-1):
+                if i%2==0:
+                    new_state[:,i,:,:] = state[:,i+1,:,:]
+        else:
+            print("Unusual shape for tS")
         return new_state
     def sp(state):
         new_state = np.zeros(state.shape,complex)
-        if legs==3:
-            new_state[:,1:dim_tS:2,:] = state[:,0:dim_tS-1:2,:]
-        elif legs==4:
-            new_state[:,1:dim_tS:2,:,:] = state[:,0:dim_tS-1:2,:,:]
+        if len(state.shape)==3:
+            for i in range(dim_tS-1):
+                if i%2==0:
+                    new_state[:,i+1,:] = state[:,i,:]
+        elif len(state.shape)==4:
+            for i in range(dim_tS-1):
+                if i%2==0:
+                    new_state[:,i+1,:,:] = state[:,i,:,:]
+        else:
+            print("Unusual shape for tS")
         return new_state
     def JC(state):
         new_tS_g = np.zeros(state.shape,complex)
         new_tS_Ome = np.zeros(state.shape,complex)
-        n=np.linspace(1,int((dim_tS)/2),dim_tS-2).astype(np.int64)
         if len(state.shape)==3:
-            new_tS_g[:,1:dim_tS-1:2,:]   = np.einsum("j,ijk->ijk",np.sqrt(n[0:dim_tS-1:2])*g,state[:,2:dim_tS:2,:])
-            new_tS_Ome[:,0:dim_tS-2:2,:] = Ome*state[:,1:dim_tS-1:2,:]
-            new_tS_g[:,2:dim_tS:2,:]   = np.einsum("j,ijk->ijk",np.sqrt(n[0:dim_tS-1:2])*g,state[:,1:dim_tS-1:2,:])
-            new_tS_Ome[:,1:dim_tS-1:2,:] = Ome*state[:,0:dim_tS-2:2,:]
+            for i in range(dim_tS-2):
+                if i%2==0:
+                    new_tS_g[:,i+1,:]   = np.sqrt(np.int((i+2)/2))*g*state[:,i+2,:]
+                    new_tS_Ome[:,i,:] = Ome*state[:,i+1,:]
+    #                elif i%2==1:
+                    new_tS_g[:,i+2,:]   = np.sqrt(np.int((i+2)/2))*g*state[:,i+1,:]
+                    new_tS_Ome[:,i+1,:] = Ome*state[:,i,:]
         elif len(state.shape)==4:
-            new_tS_g[:,1:dim_tS-1:2,:,:]   = np.einsum("j,ijkl->ijkl",np.sqrt(n[0:dim_tS-1:2])*g,state[:,2:dim_tS:2,:,:])
-            new_tS_Ome[:,0:dim_tS-2:2,:,:] = Ome*state[:,1:dim_tS-1:2,:,:]
-            new_tS_g[:,2:dim_tS:2,:,:]   = np.einsum("j,ijkl->ijkl",np.sqrt(n[0:dim_tS-1:2])*g,state[:,1:dim_tS-1:2,:,:])
-            new_tS_Ome[:,1:dim_tS-1:2,:,:] = Ome*state[:,0:dim_tS-2:2,:,:]
+            for i in range(dim_tS-2):
+                if i%2==0:
+                    new_tS_g[:,i+1,:,:]   = np.sqrt(np.int((i+2)/2))*g*state[:,i+2,:,:]
+                    new_tS_Ome[:,i,:,:] = Ome*state[:,i+1,:,:]
+    #                elif i%2==0:
+                    new_tS_g[:,i+2,:,:]   = np.sqrt(np.int((i+2)/2))*g*state[:,i+1,:,:]
+                    new_tS_Ome[:,i+1,:,:] = Ome*state[:,i,:,:]
+        else:
+            print("Unusual shape for tS")
         return new_tS_g+new_tS_Ome
     def nc(state):
-        n=np.linspace(0,int((dim_tS)/2),dim_tS).astype(np.int64)
         new_state = np.zeros(state.shape,complex)
         if len(state.shape)==3:
-            new_state = np.einsum("j,ijk->ijk",n,state)
+            for i in range(dim_tS):
+                new_state[:,i,:] = np.int(i/2)*state[:,i,:]
         elif len(state.shape)==4:
-            new_state = np.einsum("j,ijkl->ijkl",n,state)
+            for i in range(dim_tS):
+                new_state[:,i,:,:] = np.int(i/2)*state[:,i,:,:]
+        else:
+            print("Unusual shape for tS")
         return new_state
     def C(state):
         return Delc*nc(state)+Omc*(c(state)+cd(state))
@@ -116,10 +152,16 @@ def U(tk,tS,tl,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele): #tk: time bin stat
     def MS(state):
         new_tS = np.zeros(state.shape,complex)
         new_tS += state
-        if legs==3:
-            new_tS[:,0:dim_tS:2,:] = 0
-        elif legs==4:
-            new_tS[:,0:dim_tS:2,:,:] = 0
+        if len(state.shape)==3:
+            for i in range(dim_tS):
+                if i%2==0:
+                    new_tS[:,i,:] = np.zeros((dim_tk,dim_tl),complex)
+        elif len(state.shape)==4:
+            for i in range(dim_tS):
+                if i%2==0:
+                    new_tS[:,i,:,:] = np.zeros((dim_tk,dim_tl,tl.shape[-1]),complex)
+        else:
+            print("Unusual shape for tS")
         return -1j*dt*(C(state)+JC(state)+Dele*new_tS)
     def Nn(tk,tS,tl,NBmin,NBmax):
         B_tk,B_tl = B(tk,tl)
@@ -128,12 +170,14 @@ def U(tk,tS,tl,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele): #tk: time bin stat
         B_tl = None
         nc = np.linspace(0,(dim_tS-1)/2+.1,dim_tS).astype(np.int64)
         state = 0
-        if legs==3:
+        if len(state.shape)==3:
             for i in range(NBmin,NBmax+1):
                 state = np.tensordot(BdB_tk+(gamma_L+gamma_R)*dt*tk*i, np.tensordot((nc+1-i)*tS,BdB_tl,0),0)+state
-        elif legs==4:
+        elif len(state.shape)==4:
             for i in range(NBmin,NBmax+1):
                 state = np.tensordot(BdB_tk+(gamma_L+gamma_R)*dt*tk*i, np.einsum("ij,jkl",(nc+1-i)*tS,BdB_tl))+state
+        else:
+            print("Unusual shape for tS")
         return state
         
     ####----------------------####
@@ -151,8 +195,7 @@ def U(tk,tS,tl,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele): #tk: time bin stat
     else:
         print("Unusual shape for tS")
 #    print("init",initial[0,2,0],initial[1,0,0],initial[0,0,1],initial[0,0,0], initial.shape)
-    legs = len(initial.shape)
-	
+    
     #####Environment#####
     MBi = np.zeros(initial.shape, complex)
     MBi += initial
