@@ -59,19 +59,18 @@ parser = argparse.ArgumentParser(prog='MPS Jaynes-Cummings+feedback',
 						the photon number inside the cavity and the norm 
 						for different driving and feedback conditions''',
 				formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument("plot",type=str2bool,help='direct plotting (if False: only output file)')
 parser.add_argument("gamma_L",type=float,help='gamma_L')
 parser.add_argument("gamma_R",type=float,help='gamma_R')
 parser.add_argument("g",type=float,help='g: cavity atom coupling')
 parser.add_argument("phi",type=float,help='phi/pi (note that constructive interference is pi, destructive is 0)')
-parser.add_argument("-init_ind",type=int,default = 1,help='initial index of system vector')
+parser.add_argument("-init_ind",type=int,default = 0,help='initial index of system vector')
 parser.add_argument("-Om_e",type=float,default = 0,help='Om_e: direct driving strength of the TLS')
 parser.add_argument("-Om_c",type=float,default = 0,help='Om_c: driving strength for the cavity')
 parser.add_argument("-tol",type=float,default = -3,help='tolerance')
-parser.add_argument("-Nphot",type=int,default = 10,help='maximal boson number')
-parser.add_argument("-L",type=int,default = 50,help='delay as number of dt')
-parser.add_argument("-endt",type=float, default = 5, help ='end of time evolution')
-parser.add_argument("-dt",type=float,default = 0.02, help ='dt')
+parser.add_argument("-Nphot",type=int,default = 50,help='maximal boson number')
+parser.add_argument("-L",type=int,default = 10,help='delay as number of dt')
+parser.add_argument("-endt",type=float, default = 10, help ='end of time evolution')
+parser.add_argument("-dt",type=float,default = 0.005, help ='dt')
 parser.add_argument("-cohC",type=float, default = 0.,help='coherent initial state for the cavity')
 parser.add_argument("-cohE",type=float, default = 0.,help='coherent initial state for the environment')
 
@@ -116,19 +115,8 @@ states     = [initenv]*L+(N-L)*[0.]
 ind_sys       = L
 states[ind_sys] = initJC/np.sqrt(np.sum(initJC**2))
 
-if args.plot:
-	nc_exp = np.zeros(N-L)
-	exc_pop = np.zeros(N-L)
-	gr_pop  = np.zeros(N-L)
-	g2_ta = np.zeros(N-L,complex)
-	NB = np.zeros(N-L,complex)
-	g2_ta[0],NB[0] = g2_t(states[ind_sys-1],N_env+1,dt)
-	NB_outa = np.zeros(N-L,complex)
-
-	norm = np.zeros(N-L)
-else:
-	g2_ta,NB = g2_t(states[ind_sys-1],N_env+1,dt)
-	NB_outa = 0.
+g2_ta,NB = g2_t(states[ind_sys-1],N_env+1,dt)
+NB_outa = 0.
 normL = 1.
 
 z = np.zeros(2*N_env+1,complex)
@@ -153,18 +141,21 @@ else:
 	outname = "./Data/OUT_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
 	specname = "./Data/spec_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
 	g2tau = "./Data/g2tau_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
+	
 file_out = open(outname,"a")
 file_out.close()
 file_out = open(outname,"r+")
 file_out.truncate()
 file_out.close()
 file_out = open(outname,"a")
-file_out.write("Direct plotting: "+str(args.plot)+ """\ngamma_L = %.1f, gamma_R = %.1f, Om_e = %.1f, Om_c = %.1f, phi = %.1fpi,
-Delta_e = %.1f, Delta_c = %.1f, g = %.2f, Nphot_max = %d,
+
+file_out.write("""\ngamma_L = %f, gamma_R = %f, Om_e = %f, Om_c = %f, phi = %fpi,
+Delta_e = %f, Delta_c = %f, g = %f, Nphot_max = %d, initind = %d,
 tolerance = %.0E, delay_L = %d, endt = %.0f, dt = %f\n
-coherent initial state amplitude for cavity: %.1f and the environment %.2f
-Data file: M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,NB,NB_outa\n""" % (gamma_L, gamma_R, Ome, Omc, args.phi, Dele, Delc, g, N_env, Decimal(tol), L, endt, dt,args.cohC,args.cohE))
+coherent initial state amplitude for cavity: %f and the environment %f
+Data file: M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,NB,NB_outa\n""" % (gamma_L, gamma_R, Ome, Omc, args.phi, Dele, Delc, g, N_env, args.init_ind, Decimal(tol), L, endt, dt,args.cohC,args.cohE))
 file_out.close()
+
 file_evol = open(filename,"a")
 file_evol.close()
 file_evol = open(filename,"r+")
@@ -191,7 +182,7 @@ for M in range(0,N-L-1):
         if len(states[M-1].shape)>1:
             if len(states[M].shape)>1:
                 states[M],states[M-1] = OC_reloc(states[M],states[M-1],"left",tol)
-        states[M:M+L] = SWAP(states,M,"future","left",L,tol)
+        states[M:M+L] = SWAP(states,M,"future",L,tol)
                 
     # Relocating the orthogonality centre from the past bin to the system bin before the evolution
     # operator's action if applicable
@@ -199,20 +190,13 @@ for M in range(0,N-L-1):
         if len(states[ind_sys].shape)>1:
             states[ind_sys],states[ind_sys-1] = OC_reloc(states[ind_sys],states[ind_sys-1],"left",tol)
         
-    if args.plot:
-        # Calculating the state norm and the population of the excited and ground states
-        norm[M],normL = normf(M,L,states,normL)
-        nc_exp[M] = exp_sys(nc,states[ind_sys],M)
-        exc_pop[M] = exp_sys(see,states[ind_sys],M)
-        gr_pop[M]  = exp_sys(sgg,states[ind_sys],M)
-    else:
-        norm,normL = normf(M,L,states,normL)
-        nc_exp = exp_sys(nc,states[ind_sys],M)
-        exc_pop = exp_sys(see,states[ind_sys],M)
-        gr_pop  = exp_sys(sgg,states[ind_sys],M)
-        file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,NB,NB_outa))
-        file_evol.flush()
-        file_out.close()
+    norm,normL = normf(M,L,states,normL)
+    nc_exp = exp_sys(nc,states[ind_sys],M)
+    exc_pop = exp_sys(see,states[ind_sys],M)
+    gr_pop  = exp_sys(sgg,states[ind_sys],M)
+    file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,NB,NB_outa))
+    file_evol.flush()
+    file_out.close()
 
 
 #    # Erase the remnants of the states that will not influence the dynamics anymore:
@@ -254,13 +238,9 @@ for M in range(0,N-L-1):
 #    print("U done, states done", states[ind_sys+1].shape, states[ind_sys].shape, states[ind_sys-1].shape)
         
     # Moving the interacting past bin's state back to its original position in the MPS
-    states[(ind_sys-L):(ind_sys)] = SWAP(states,(ind_sys-2),"past","right",L,tol)
-    if args.plot:
-        g2_ta[M+1],NB[M+1] = g2_t(states[M],N_env+1,dt)
-        NB_outa[M+1] = NB_out(states[M],N_env+1,NB_outa[M],dt)
-    else:
-        g2_ta,NB = g2_t(states[M],N_env+1,dt)
-        NB_outa = NB_out(states[M],N_env+1,NB_outa,dt)
+    states[(ind_sys-L):(ind_sys)] = SWAP(states,(ind_sys-2),"past",L,tol)
+    g2_ta,NB = g2_t(states[M],N_env+1,dt)
+    NB_outa = NB_out(states[M],N_env+1,NB_outa,dt)
     # Preparing for the next step with the system index
     ind_sys =1+ind_sys
 
@@ -273,39 +253,32 @@ if len(states[M].shape)>1:
 om = np.linspace(-20,20,5000)
 spec = spectrum(states,om,N-L-1,N_env+1,dt,N-L-1)
 tau,g2_outa = g2_out(states,N-L-1,N_env+1,dt,N-L-1)
-if args.plot==False:
-	time_out = np.transpose(np.vstack((om,spec)))
-	f = open(specname, 'a')
-	f.close()
-	f = open(specname, 'r+')
-	f.truncate()
-	np.savetxt(specname,time_out)
-	time_out = np.transpose(np.vstack((tau,g2_outa)))
-	f = open(g2tau, 'a')
-	f.close()
-	f = open(g2tau, 'r+')
-	f.truncate()
-	np.savetxt(g2tau,time_out)
-	time_out=None
+time_out = np.transpose(np.vstack((om,spec)))
+f = open(specname, 'a')
+f.close()
+f = open(specname, 'r+')
+f.truncate()
+np.savetxt(specname,time_out)
+time_out = np.transpose(np.vstack((tau,g2_outa)))
+f = open(g2tau, 'a')
+f.close()
+f = open(g2tau, 'r+')
+f.truncate()
+np.savetxt(g2tau,time_out)
+time_out=None
 
-states[M+1:M+L+1] = SWAP(states,M+1,"future","left",L,tol)
+states[M+1:M+L+1] = SWAP(states,M+1,"future",L,tol)
 if len(states[ind_sys-1].shape)>1:
     states[ind_sys],states[ind_sys-1] = OC_reloc(states[ind_sys],states[ind_sys-1],"left",tol)
 
 # Calculating the last value of the norm and the excited and ground population in time
-if args.plot: 
-	norm[-1],normL = normf(N-L-1,L,states,normL)
-	nc_exp[-1] = exp_sys(nc,states[N-1],N-L-1)
-	exc_pop[-1] = exp_sys(see,states[N-1],N-L-1)
-	gr_pop[-1]  = exp_sys(sgg,states[N-1],N-L-1)
-else: 
-	norm,normL = normf(N-L-1,L,states,normL)
-	nc_exp = exp_sys(nc,states[N-1],N-L-1)
-	exc_pop = exp_sys(see,states[N-1],N-L-1)
-	gr_pop  = exp_sys(sgg,states[N-1],N-L-1)
+norm,normL = normf(N-L-1,L,states,normL)
+nc_exp = exp_sys(nc,states[N-1],N-L-1)
+exc_pop = exp_sys(see,states[N-1],N-L-1)
+gr_pop  = exp_sys(sgg,states[N-1],N-L-1)
 #	file_evol = open("./Data/TLS+feedback_gL=%dp10_gR=%dp10_Om=%dp10_phi=%dp10pi.txt" % \
 #			(gamma_L*10, gamma_R*10, Om_TLS*10, args.phi*10),"a")
-	file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,NB,NB_outa))
+file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,NB,NB_outa))
 
 end = time.time()-start
 h = int(end/3600)
@@ -316,56 +289,3 @@ s = int(end-3600*h-60*m)
 file_out = open(outname,"a")
 file_out.write("\nfinished in: %02d:%02d:%02d" %(h,m,s))
 file_out.close()
-    
-if args.plot:
-	#####################################
-	### Plotting the obtained results ###
-	#####################################
-	t = np.linspace(0,endt,N-L)
-	plt.figure(figsize = (12,7))
-	plt.plot(t,norm-1,lw=3,label="norm",color=colors["red"])
-	plt.xlabel("$t$",fontsize=40)
-	plt.ylabel("$\left<\psi(t)|\psi(t)\\right>-1$",fontsize=40)
-	plt.grid(True)
-	plt.figure(figsize = (12,7))
-	plt.plot(t,gr_pop,lw=3,label="ground",color=colors["orange"],ls="--")
-	plt.plot(t,exc_pop,lw=3,label="excited",color=colors["green"])
-	plt.xlabel("$t$",fontsize=40)
-	plt.grid(True)
-	plt.legend(loc="best",fontsize = 25)
-	plt.ylabel("Population",fontsize=40)
-	plt.ylim(-.1,1.1)
-	plt.figure(figsize = (12,7))
-	plt.plot(t,nc_exp,lw=3,color=colors["purple"],ls="-")
-	plt.xlabel("$t$",fontsize=40)
-	plt.grid(True)
-	plt.ylabel("Cavity photon number",fontsize=40)
-	plt.figure(figsize = (12,7))
-	plt.plot(om,spec,lw=3,color=colors["blue"],ls="-")
-	plt.xlabel("$\omega$",fontsize=40)
-	plt.grid(True)
-	plt.ylabel("Spectrum",fontsize=40)
-	plt.figure(figsize = (12,7))
-	plt.plot(t,np.real(g2_ta),lw=3,color=colors["pink"],ls="-")
-	plt.xlabel("$t$",fontsize=40)
-	plt.grid(True)
-	plt.ylabel(r"$g^{(2)}(0,t)$",fontsize=40)
-	plt.figure(figsize = (12,7))
-	plt.plot(t,np.real(NB_outa),lw=3,color=colors["orange"],ls="-")
-	plt.xlabel("$t$",fontsize=40)
-	plt.grid(True)
-	plt.ylabel("Environment photon number",fontsize=40)
-	plt.figure(figsize = (12,7))
-	plt.plot(t,np.real(NB),lw=3,color=colors["pink"],ls="-")
-	plt.xlabel("$t$",fontsize=40)
-	plt.grid(True)
-	plt.ylabel("Photon number in the current output timebin",fontsize=40)
-	plt.figure(figsize = (12,7))
-	plt.plot(tau,g2_outa,lw=3,color=colors["black"],ls="-")
-	plt.xlabel(r"$\tau$",fontsize=40)
-	plt.grid(True)
-	plt.ylabel(r"$g^{(2)}(\tau,t_{end})$",fontsize=40)
-
-#	plt.ylim(-.05,2.)
-	plt.show()
-

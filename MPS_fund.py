@@ -85,11 +85,18 @@ def merge(block,where):
 		d3 = block.shape[2]
 		if where=="left":
 			# predefinition of the merged tensor
-			merged_block = block.reshape(d1*d2,d3)
+			merged_block = np.zeros((d1*d2,d3),dtype=np.complex128)
+			for i in range(0,d1):
+				for j in range(0,d2):
+					merged_block[i+d1*j,:]=block[i,j,:]
+			# passing on the merged dimensions
 			dims = np.array([d1,d2])
 		elif where=="right":
 			# predefinition of the merged tensor
-			merged_block = block.reshape(d1,d2*d3)
+			merged_block = np.zeros((d1,d2*d3),dtype=np.complex128)
+			for i in range(0,d2):
+				for j in range(0,d3):
+					merged_block[:,i+d2*j]=block[:,i,j]
 			# passing on the merged dimensions
 			dims = np.array([d2,d3])
 	elif num_ind==4:
@@ -97,17 +104,34 @@ def merge(block,where):
 		d4 = block.shape[3]
 		if where=="left":
 			# predefinition of the merged tensor
-			merged_block = block.reshape(d1*d2,d3,d4)
+			merged_block = np.zeros((d1*d2,d3,d4),dtype=np.complex128)
+			for i in range(0,d1):
+				for j in range(0,d2):
+					merged_block[i+d1*j,:,:]=block[i,j,:,:]
 			# passing on the merged dimensions
 			dims = np.array([d1,d2])
 		elif where=="right":
 			# predefinition of the merged tensor
-			merged_block = block.reshape(d1,d2,d3*d4)
+			merged_block = np.zeros((d1,d2,d3*d4),dtype=np.complex128)
+			for i in range(0,d3):
+				for j in range(0,d4):
+					merged_block[:,:,i+d3*j]=block[:,:,i,j]
 			# passing on the merged dimensions
 			dims = np.array([d3,d4])
 		elif where=="both":
 			# 2 consequent merges are needed           
-			merged_block = block.reshape(d1*d2,d3*d4)
+			# predefinition of the first merged tensor
+			merged_block_1 = np.zeros((d1,d2,d3*d4),dtype=np.complex128)
+			for i1 in range(0,d3):
+				for j1 in range(0,d4):
+					merged_block_1[:,:,i1+d3*j1]=block[:,:,i1,j1]
+			# predefinition of the second merged tensor
+			merged_block = np.zeros((d1*d2,d3*d4),dtype=np.complex128)
+			for i2 in range(0,d1):
+				for j2 in range(0,d2):
+					merged_block[i2+d1*j2,:]=merged_block_1[i2,j2,:]
+			merged_block_1=None
+			# passing on the merged dimensions
 			dims = np.array([d1,d2,d3,d4])
 	return merged_block, dims
 
@@ -124,14 +148,36 @@ def unmerge(block,dims,where):
 	and where the merged indices are
 	OUTPUT: the obtained higher-rank tensor"""
 
-	legs = len(block.shape)
+	# predefinition of the unmerged tensor
+	unmerged_block = np.zeros(dims,dtype=np.complex128)
+	# In case no merge has been done, no unmerge is needed -> return the original
 	if dims is None:
 		unmerged_block = block
-	else:
-		unmerged_block = block.reshape(dims)
+    
+	elif where=="left":
+		D = block.shape[0]
+		d1 = dims[0]
+		for I in range(0,D):
+			# Care should be taken about the rank of the unmerged tensor
+			if len(block.shape)==1:
+				unmerged_block[I%d1,int((I-(I%d1))/d1)]  = block[I]
+			elif len(block.shape)==2:
+				unmerged_block[I%d1,int((I-(I%d1))/d1),:]  = block[I,:]
+	elif where=="right":
+		if len(block.shape)==1:
+			D = block.shape[0]
+		elif len(block.shape)==2:
+			D = block.shape[1]
+		for I in range(0,D):
+			# Care should be taken about the rank of the unmerged tensor
+			if len(block.shape)==1:
+				d2 = dims[0]
+				unmerged_block[I%d2,int((I-(I%d2))/d2)]  = block[I]
+			elif len(block.shape)==2:
+				d2 = dims[1]
+				unmerged_block[:,I%d2,int((I-(I%d2))/d2)]  = block[:,I]
 	block = None
 	return unmerged_block
-
 
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
@@ -320,7 +366,7 @@ def cut(block,tolerance,how,OC=None):
 #########################
 ### Swapping timebins ###
 #########################
-def SWAP(states,base_ind,direction,OC,L,tol):
+def SWAP(states,base_ind,direction,L,tol):
 	"""Moving the interacting past bin over the length of the whole delay towards future or past bins.
 	INPUT: list of timebins, index of start, direction of SWAPs ("future" or "past") and the location of
 	the orthogonality centre (optional)
@@ -333,52 +379,59 @@ def SWAP(states,base_ind,direction,OC,L,tol):
 		c=-1
         
 	for s in range(0,L-1):
+		leg_l = len(states[base_ind+c*s].shape)
+		leg_r = len(states[base_ind+c*s+1].shape)
 		# if the past bin is independent, tensor product should be performed
-		if len(states[base_ind+c*s].shape)==1 :
+		if leg_l==1 :
 			# if both bins are independent, swap does not need SVD, just a "shelf"
-			if len(states[base_ind+c*s+1].shape)==1:
+			if leg_r==1:
 				right = states[base_ind+1+c*s]
 				states[base_ind+c*s+1] = states[base_ind+c*s]
 				states[base_ind+c*s] = right
 				right=None
 			# otherwise the cut function can be used to SWAP the bins
-			elif len(states[base_ind+c*s+1].shape)==2:
+			elif leg_r==2:
 				swap_block = np.tensordot(states[base_ind+c*s+1],states[base_ind+c*s],0)
 				# the physical indices should be swapped
 				states[base_ind+c*s+1],states[base_ind+c*s] = cut(np.einsum("ijk->ikj",swap_block),tol,"left")
 				# the cut function puts the OC to the right by default. In order to move the interacting past
 				# bin next to the system bin, the orthogonality centre should also shift towards the left (future).
-				if direction =="future":
-					if len(states[base_ind+c*s].shape)>1:
-						states[base_ind+c*s+1],states[base_ind+c*s] = OC_reloc(states[base_ind+c*s+1],
-                                                                               states[base_ind+c*s],"left",tol)
+			if direction =="future":
+				if leg_l>1 and leg_r>1:
+					states[base_ind+c*s+1],states[base_ind+c*s] = OC_reloc(states[base_ind+c*s+1],
+																		   states[base_ind+c*s],"left",tol)
 			else:
 				print("problem with tensor rank in swap")
                 
-		elif len(states[base_ind+c*s].shape)==2 :            
-			if len(states[base_ind+c*s+1].shape)==1:
+		elif leg_l==2 :            
+			if leg_r==1:
 				swap_block = np.tensordot(states[base_ind+1+c*s],states[base_ind+c*s],0)
 				states[base_ind+1+c*s],states[base_ind+c*s] = cut(np.einsum("ijk->jik",swap_block),tol,"right")     
-			elif len(states[base_ind+c*s+1].shape)==3:
+			elif leg_r==3:
 			# the physical indices should be swapped while contracting the link indices
 				swap_block = np.einsum("ijk,kl->ilj",states[base_ind+1+c*s],states[base_ind+c*s])
 				states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"left")     
 			# the cut function puts the OC to the right by default. In order to move the interacting past
 			# bin next to the system bin, the orthogonality centre should also shift towards the left (future).
-				if direction =="future":
-					states[base_ind+c*s+1],states[base_ind+c*s] = OC_reloc(states[base_ind+c*s+1],states[base_ind+c*s],
-                                                                   "left",tol)
+			if direction =="future":
+				if leg_l>1 and leg_r>1:
+					states[base_ind+c*s+1],states[base_ind+c*s] = OC_reloc(states[base_ind+c*s+1],
+																		   states[base_ind+c*s],"left",tol)
 		else:            
 			# the physical indices should be swapped while contracting the link indices
-			if len(states[base_ind+c*s+1].shape)==2:
+			if leg_r==2:
 				swap_block = np.einsum("ij,jlk->lik",states[base_ind+1+c*s],states[base_ind+c*s])
 				states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"right")     
 			# the physical indices should be swapped while contracting the link indices
+				if direction =="future":
+					if leg_l>1 and leg_r>1:
+						states[base_ind+c*s+1],states[base_ind+c*s] = OC_reloc(states[base_ind+c*s+1],
+																			   states[base_ind+c*s],"left",tol)
 			else:
 				swap_block = np.einsum("ijk,klm->iljm",states[base_ind+1+c*s],states[base_ind+c*s])
-				if OC=="left":
+				if direction=="future":
 					states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"both","left")     
-				elif OC=="right":
+				elif direction=="past":
 					states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"both","right")     
 	# because of the different directions of operations the position of the output states are either to the left
 	# or to the right from the index of start
