@@ -143,6 +143,7 @@ def U(tk,tS,tl,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele): #tk: time bin stat
 			elif legs==4:
 				new_tS[:,0:dim_tS:2,:,:] = 0
 			return -1j*dt*(C(state)+JC(state)+Dele*new_tS)
+	#don't worry about this one!
 	def Nn(tk,tS,tl,NBmin,NBmax):
 		B_tk,B_tl = B(tk,tl)
 		BdB_tk,BdB_tl = Bd(B_tk,B_tl)

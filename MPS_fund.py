@@ -396,27 +396,45 @@ def SWAP(states,base_ind,direction,L,tol):
 				states[base_ind+c*s+1],states[base_ind+c*s] = cut(np.einsum("ijk->ikj",swap_block),tol,"left")
 				# the cut function puts the OC to the right by default. In order to move the interacting past
 				# bin next to the system bin, the orthogonality centre should also shift towards the left (future).
+			else:
+				print("problem with tensor rank in swap")
 			if direction =="future":
 				if leg_l>1 and leg_r>1:
 					states[base_ind+c*s+1],states[base_ind+c*s] = OC_reloc(states[base_ind+c*s+1],
 																		   states[base_ind+c*s],"left",tol)
-			else:
-				print("problem with tensor rank in swap")
                 
 		elif leg_l==2 :            
 			if leg_r==1:
 				swap_block = np.tensordot(states[base_ind+1+c*s],states[base_ind+c*s],0)
 				states[base_ind+1+c*s],states[base_ind+c*s] = cut(np.einsum("ijk->jik",swap_block),tol,"right")     
+				if direction =="future":
+					if leg_l>1 and leg_r>1:
+						states[base_ind+c*s+1],states[base_ind+c*s] = OC_reloc(states[base_ind+c*s+1],states[base_ind+c*s],"left",tol)
+			elif leg_r==2:
+				if states[base_ind+1+c*s].shape[0]>states[base_ind+1+c*s].shape[1]:
+					swap_block = np.tensordot(states[base_ind+1+c*s],states[base_ind+c*s],1)
+					svd_block = svd_sig(swap_block,tol)
+					if direction=="future":
+						states[base_ind+1+c*s] = np.einsum("ij,jk",svd_block[0],svd_block[1])
+						states[base_ind+c*s] = svd_block[2]
+					elif direction=="past":
+						states[base_ind+c*s] = np.einsum("ij,jk",svd_block[1],svd_block[2])
+						states[base_ind+1+c*s] = svd_block[0]
+				elif states[base_ind+1+c*s].shape[1]>states[base_ind+1+c*s].shape[0]:
+					swap_block = np.einsum("ij,kl->ikjl",states[base_ind+1+c*s],states[base_ind+c*s],0)
+					if direction=="future":
+						states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"both","left")     
+					elif direction=="past":
+						states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"both","right")     
 			elif leg_r==3:
 			# the physical indices should be swapped while contracting the link indices
 				swap_block = np.einsum("ijk,kl->ilj",states[base_ind+1+c*s],states[base_ind+c*s])
 				states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"left")     
 			# the cut function puts the OC to the right by default. In order to move the interacting past
 			# bin next to the system bin, the orthogonality centre should also shift towards the left (future).
-			if direction =="future":
-				if leg_l>1 and leg_r>1:
-					states[base_ind+c*s+1],states[base_ind+c*s] = OC_reloc(states[base_ind+c*s+1],
-																		   states[base_ind+c*s],"left",tol)
+				if direction =="future":
+					if leg_l>1 and leg_r>1:
+						states[base_ind+c*s+1],states[base_ind+c*s] = OC_reloc(states[base_ind+c*s+1],states[base_ind+c*s],"left",tol)
 		else:            
 			# the physical indices should be swapped while contracting the link indices
 			if leg_r==2:

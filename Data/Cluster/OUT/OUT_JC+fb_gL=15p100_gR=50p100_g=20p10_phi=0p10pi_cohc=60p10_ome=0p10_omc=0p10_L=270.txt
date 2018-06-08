@@ -1,7 +1,0 @@
-Direct plotting: False
-gamma_L = 0.150000, gamma_R = 0.500000, Om_e = 0.000000, Om_c = 0.000000, phi = 0.000000pi,
-Delta_e = 0.000000, Delta_c = 0.000000, g = 2.000000, Nphot_max = 50,
-tolerance = 1E-03, delay_L = 270, endt = 20, dt = 0.005000
-
-coherent initial state amplitude for cavity: 6.000000 and the environment 0.000000
-Data file: M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,NB,NB_outa

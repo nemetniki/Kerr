@@ -108,7 +108,7 @@ else:
 	initJC[args.init_ind]  = 1. #starting at |e>
 initenv    = np.zeros(N_env+1,complex)
 if args.cohE>0.:
-	initenv = coherent(args.cohE,0,initenv)
+	initenv = coherent(args.cohE,0,initenv)/np.sqrt(dt)
 else:
 	initenv[0] = 1.
 states     = [initenv]*L+(N-L)*[0.]
