@@ -200,7 +200,10 @@ def OC_reloc(state_left,state_right,where,tolerance):
 	# Number of indices left after contraction
 	num_ind = left_ind+right_ind
 
-	if num_ind==2:
+	if left_ind==0 or right_ind==0:
+		new_left = state_left
+		new_right = state_right
+	elif num_ind==2:
 		Combo_svd,link_dim = SVD_sig(Combo,tolerance)
 		if where=="left":
 			new_left = np.dot(Combo_svd[0],Combo_svd[1])
@@ -379,18 +382,18 @@ def SWAP(states,base_ind,direction,L,tol):
 		c=-1
         
 	for s in range(0,L-1):
-		leg_l = len(states[base_ind+c*s].shape)
-		leg_r = len(states[base_ind+c*s+1].shape)
+		leg_r = len(states[base_ind+c*s].shape)
+		leg_l = len(states[base_ind+c*s+1].shape)
 		# if the past bin is independent, tensor product should be performed
-		if leg_l==1 :
+		if leg_r==1 :
 			# if both bins are independent, swap does not need SVD, just a "shelf"
-			if leg_r==1:
+			if leg_l==1:
 				right = states[base_ind+1+c*s]
 				states[base_ind+c*s+1] = states[base_ind+c*s]
 				states[base_ind+c*s] = right
 				right=None
 			# otherwise the cut function can be used to SWAP the bins
-			elif leg_r==2:
+			elif leg_l==2:
 				swap_block = np.tensordot(states[base_ind+c*s+1],states[base_ind+c*s],0)
 				# the physical indices should be swapped
 				states[base_ind+c*s+1],states[base_ind+c*s] = cut(np.einsum("ijk->ikj",swap_block),tol,"left")
@@ -403,15 +406,15 @@ def SWAP(states,base_ind,direction,L,tol):
 					states[base_ind+c*s+1],states[base_ind+c*s] = OC_reloc(states[base_ind+c*s+1],
 																		   states[base_ind+c*s],"left",tol)
                 
-		elif leg_l==2 :            
-			if leg_r==1:
+		elif leg_r==2 :            
+			if leg_l==1:
 				swap_block = np.tensordot(states[base_ind+1+c*s],states[base_ind+c*s],0)
 				states[base_ind+1+c*s],states[base_ind+c*s] = cut(np.einsum("ijk->jik",swap_block),tol,"right")     
 				if direction =="future":
 					if leg_l>1 and leg_r>1:
 						states[base_ind+c*s+1],states[base_ind+c*s] = OC_reloc(states[base_ind+c*s+1],states[base_ind+c*s],"left",tol)
-			elif leg_r==2:
-				if states[base_ind+1+c*s].shape[0]>states[base_ind+1+c*s].shape[1]:
+			elif leg_l==2:
+				if states[base_ind+1+c*s].shape[1]==states[base_ind+c*s].shape[0]:
 					swap_block = np.tensordot(states[base_ind+1+c*s],states[base_ind+c*s],1)
 					svd_block = svd_sig(swap_block,tol)
 					if direction=="future":
@@ -420,13 +423,13 @@ def SWAP(states,base_ind,direction,L,tol):
 					elif direction=="past":
 						states[base_ind+c*s] = np.einsum("ij,jk",svd_block[1],svd_block[2])
 						states[base_ind+1+c*s] = svd_block[0]
-				elif states[base_ind+1+c*s].shape[1]>states[base_ind+1+c*s].shape[0]:
+				else:
 					swap_block = np.einsum("ij,kl->ikjl",states[base_ind+1+c*s],states[base_ind+c*s],0)
 					if direction=="future":
 						states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"both","left")     
 					elif direction=="past":
 						states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"both","right")     
-			elif leg_r==3:
+			elif leg_l==3:
 			# the physical indices should be swapped while contracting the link indices
 				swap_block = np.einsum("ijk,kl->ilj",states[base_ind+1+c*s],states[base_ind+c*s])
 				states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"left")     
@@ -437,14 +440,13 @@ def SWAP(states,base_ind,direction,L,tol):
 						states[base_ind+c*s+1],states[base_ind+c*s] = OC_reloc(states[base_ind+c*s+1],states[base_ind+c*s],"left",tol)
 		else:            
 			# the physical indices should be swapped while contracting the link indices
-			if leg_r==2:
+			if leg_l==2:
 				swap_block = np.einsum("ij,jlk->lik",states[base_ind+1+c*s],states[base_ind+c*s])
 				states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"right")     
 			# the physical indices should be swapped while contracting the link indices
 				if direction =="future":
 					if leg_l>1 and leg_r>1:
-						states[base_ind+c*s+1],states[base_ind+c*s] = OC_reloc(states[base_ind+c*s+1],
-																			   states[base_ind+c*s],"left",tol)
+						states[base_ind+c*s+1],states[base_ind+c*s] = OC_reloc(states[base_ind+c*s+1], states[base_ind+c*s],"left",tol)
 			else:
 				swap_block = np.einsum("ijk,klm->iljm",states[base_ind+1+c*s],states[base_ind+c*s])
 				if direction=="future":

@@ -232,7 +232,7 @@ def g2_t(state,N_env,dt):
         NB = np.einsum("jil,jil",temp2,np.conjugate(temp2))
         g2_t = np.einsum("jil,jil",temp,np.conjugate(temp))/(NB**2)
         temp = None
-    return np.real(g2_t),np.real(NB)
+    return np.real(g2_t),np.real(NB)/dt
 
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
