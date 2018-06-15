@@ -103,7 +103,10 @@ thermal = False
 initJC     = np.zeros(2*N_env+1,complex)
 if args.cohC>0.:
 	preinitJC = coherent(args.cohC,0,np.zeros(N_env+1,complex))
-	initJC[0::2] = preinitJC
+	if args.init_ind==0:
+		initJC[0::2] = preinitJC
+	elif args.init_ind==1:
+		initJC[1::2] = preinitJC[:-1]
 	preinitJC = None
 else:
 	initJC[args.init_ind]  = 1. #starting at |e>
