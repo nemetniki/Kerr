@@ -129,8 +129,8 @@ def U(tk,tS,tl,N_env,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele,thermal): #tk:
 				new_tS_g[:,1:dim_tS-1:2,:]   = np.einsum("j,ijk->ijk",np.sqrt(n[0:dim_tS-1:2])*g,state[:,2:dim_tS:2,:])
 				new_tS_g[:,2:dim_tS:2,:]   = np.einsum("j,ijk->ijk",np.sqrt(n[0:dim_tS-1:2])*g,state[:,1:dim_tS-1:2,:])
 			if Ome is not 0:
-				new_tS_Ome[:,0:dim_tS-2:2,:] = Ome*state[:,1:dim_tS-1:2,:]
-				new_tS_Ome[:,1:dim_tS-1:2,:] = Ome*state[:,0:dim_tS-2:2,:]
+				new_tS_Ome[:,0:dim_tS-1:2,:] = Ome*state[:,1:dim_tS:2,:]
+				new_tS_Ome[:,1:dim_tS:2,:] = Ome*state[:,0:dim_tS-1:2,:]
 		elif len(state.shape)==4:
 			if g is not 0:
 				new_tS_g[:,1:dim_tS-1:2,:,:]   = np.einsum("j,ijkl->ijkl",np.sqrt(n[0:dim_tS-1:2])*g,state[:,2:dim_tS:2,:,:])
@@ -149,7 +149,7 @@ def U(tk,tS,tl,N_env,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele,thermal): #tk:
 		return new_state
 	def C(state):
 		if Delc is 0 and Omc is 0:
-			return 0.
+			return np.zeros(state.shape,complex)
 		elif Delc is 0 and Omc is not 0:
 			return Omc*(c(state)+cd(state))
 		elif Delc is not 0 and Omc is 0:

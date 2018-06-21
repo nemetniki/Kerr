@@ -17,7 +17,7 @@ import sys
 import argparse
 from decimal import Decimal
 from math import factorial
-from MPS_fund import *
+from MPS_fund_therm import *
 from U_JC_therm import *
 from MPS_analysis_therm import *
 
@@ -134,27 +134,32 @@ sgg = np.diag(z)
 see = np.identity(2*N_env+1)-sgg
 ncdiag = np.linspace(0,N_env+.1,2*N_env+1).astype(np.int64)
 nc = np.diag(ncdiag)
+gcdiag = np.zeros(N_env+1,complex)
+for i in range(1,N_env+1):
+	gcdiag[i] = gcdiag[i-1]+2*(i-1)
+g2c = np.diag(np.sort(np.concatenate((gcdiag[:-1],gcdiag))))
+
 
 if args.cohC>0:
-	filename = "./Data/JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohC*10,Ome*10,Omc*10,L)
-	outname = "./Data/OUT_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohC*10,Ome*10,Omc*10,L)
-	specname = "./Data/spec_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohC*10,Ome*10,Omc*10,L)
-	g2tau = "./Data/g2tau_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohC*10,Ome*10,Omc*10,L)
+	filename = "./Data/JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohC*10,Ome*10,Omc*10,L)
+	outname = "./Data/OUT_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohC*10,Ome*10,Omc*10,L)
+	specname = "./Data/spec_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohC*10,Ome*10,Omc*10,L)
+	g2tau = "./Data/g2tau_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohC*10,Ome*10,Omc*10,L)
 elif args.cohE>0:
-	filename = "./Data/JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
-	outname = "./Data/OUT_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
-	specname = "./Data/spec_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
-	g2tau = "./Data/g2tau_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
+	filename = "./Data/JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
+	outname = "./Data/OUT_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
+	specname = "./Data/spec_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
+	g2tau = "./Data/g2tau_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
 elif args.nT>0:
-	filename = "./Data/JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_nT=%dp1000_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.nT*1000,args.init_ind,Ome*10,Omc*10,L)
-	outname = "./Data/OUT_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_nT=%dp1000_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.nT*1000,args.init_ind,Ome*10,Omc*10,L)
-	specname = "./Data/spec_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_nT=%dp1000_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.nT*1000,args.init_ind,Ome*10,Omc*10,L)
-	g2tau = "./Data/g2tau_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_nT=%dp1000_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.nT*1000,args.init_ind,Ome*10,Omc*10,L)
+	filename = "./Data/JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.init_ind,Ome*10,Omc*10,L)
+	outname = "./Data/OUT_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.init_ind,Ome*10,Omc*10,L)
+	specname = "./Data/spec_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.init_ind,Ome*10,Omc*10,L)
+	g2tau = "./Data/g2tau_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.init_ind,Ome*10,Omc*10,L)
 else:
-	filename = "./Data/JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
-	outname = "./Data/OUT_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
-	specname = "./Data/spec_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
-	g2tau = "./Data/g2tau_JC+fb_gL=%dp10_gR=%dp10_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*10, gamma_R*10, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
+	filename = "./Data/JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
+	outname = "./Data/OUT_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
+	specname = "./Data/spec_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
+	g2tau = "./Data/g2tau_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
 	
 file_out = open(outname,"a")
 file_out.close()
@@ -182,11 +187,12 @@ file_evol = open(filename,"a")
 ### Time evolution ###
 ######################
 for M in range(0,N-L-1):
+#    print(M*dt)
     percent10 = (N-L-1)/10.
     count = 0
     if M%(int(percent10))==0:
 #        count=count+5
-        print("M =",M, " out of ",N-L-2)
+        print("M =",M, " out of ",N-L-1)
         sys.stdout.flush()
     
 #        print("%d percent" % count)
@@ -194,22 +200,19 @@ for M in range(0,N-L-1):
     # After the first time step, bring the interacting past bin next to the system bin
     if M>0:
         # Relocating the orthogonality centre to the next interacting past bin if applicable
-        if len(states[M-1].shape)>1:
-            if len(states[M].shape)>1:
-                states[M],states[M-1] = OC_reloc(states[M],states[M-1],"left",tol)
+        states[M],states[M-1] = OC_reloc(states[M],states[M-1],"left",tol)
         states[M:M+L] = SWAP(states,M,"future",L,tol)
                 
     # Relocating the orthogonality centre from the past bin to the system bin before the evolution
     # operator's action if applicable
-    if len(states[ind_sys-1].shape)>1:
-        if len(states[ind_sys].shape)>1:
-            states[ind_sys],states[ind_sys-1] = OC_reloc(states[ind_sys],states[ind_sys-1],"left",tol)
+    states[ind_sys],states[ind_sys-1] = OC_reloc(states[ind_sys],states[ind_sys-1],"left",tol)
         
     norm,normL = normf(M,L,states,normL)
     nc_exp = exp_sys(nc,states[ind_sys],M)
     exc_pop = exp_sys(see,states[ind_sys],M)
     gr_pop  = exp_sys(sgg,states[ind_sys],M)
-    file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,NB,NB_outa))
+    g2_tac  = exp_sys(g2c,states[ind_sys],M)/nc_exp**2
+    file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_tac,g2_ta,NB,NB_outa))
     file_evol.flush()
     file_out.close()
 
@@ -293,7 +296,8 @@ exc_pop = exp_sys(see,states[N-1],N-L-1)
 gr_pop  = exp_sys(sgg,states[N-1],N-L-1)
 #	file_evol = open("./Data/TLS+feedback_gL=%dp10_gR=%dp10_Om=%dp10_phi=%dp10pi.txt" % \
 #			(gamma_L*10, gamma_R*10, Om_TLS*10, args.phi*10),"a")
-file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,NB,NB_outa))
+g2_tac  = exp_sys(g2c,states[N-1],N-L-1)/nc_exp**2
+file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_tac,g2_ta,NB,NB_outa))
 
 end = time.time()-start
 h = int(end/3600)
