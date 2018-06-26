@@ -69,24 +69,24 @@ def U(tk,tS,tl,N_env,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele,thermal): #tk:
 				if gamma_L is not 0:
 					new_state_tk[N_env:,:,:] = np.einsum("i,ijk->ijk",np.sqrt(n[0:-N_env]*gamma_L*dt),state[0:-N_env,:,:])
 				if gamma_R is not 0:
-					new_state_tl[:,:,N_env:] = np.einsum("k,ijk->ijk",np.sqrt(n[0:-N_env]*gamma_R*dt)*np.exp(-1j*phi),state[:,:,0:-N_env])
+					new_state_tl[:,:,N_env:] = np.einsum("k,ijk->ijk",np.sqrt(n[0:-N_env]*gamma_R*dt)*np.exp(1j*phi),state[:,:,0:-N_env])
 			elif legs==4:
 				if gamma_L is not 0:
 					new_state_tk[N_env:,:,:,:] = np.einsum("i,ijkl->ijkl",np.sqrt(n[0:-N_env]*gamma_L*dt),state[0:-N_env,:,:,:])
 				if gamma_R is not 0:
-					new_state_tl[:,:,N_env:,:] = np.einsum("k,ijkl->ijkl",np.sqrt(n[0:-N_env]*gamma_R*dt)*np.exp(-1j*phi),state[:,:,0:-N_env,:])
+					new_state_tl[:,:,N_env:,:] = np.einsum("k,ijkl->ijkl",np.sqrt(n[0:-N_env]*gamma_R*dt)*np.exp(1j*phi),state[:,:,0:-N_env,:])
 		elif thermal == False:
 			n = np.arange(1,state.shape[0])
 			if legs==3:
 				if gamma_L is not 0:
 					new_state_tk[1:,:,:] = np.einsum("i,ijk->ijk",np.sqrt(n*gamma_L*dt),state[0:-1,:,:])
 				if gamma_R is not 0:
-					new_state_tl[:,:,1:] = np.einsum("k,ijk->ijk",np.sqrt(n*gamma_R*dt)*np.exp(-1j*phi),state[:,:,0:-1])
+					new_state_tl[:,:,1:] = np.einsum("k,ijk->ijk",np.sqrt(n*gamma_R*dt)*np.exp(1j*phi),state[:,:,0:-1])
 			elif legs==4:
 				if gamma_L is not 0:
 					new_state_tk[1:,:,:,:] = np.einsum("i,ijkl->ijkl",np.sqrt(n*gamma_L*dt),state[0:-1,:,:,:])
 				if gamma_R is not 0:
-					new_state_tl[:,:,1:,:] = np.einsum("k,ijkl->ijkl",np.sqrt(n*gamma_R*dt)*np.exp(-1j*phi),state[:,:,0:-1,:])
+					new_state_tl[:,:,1:,:] = np.einsum("k,ijkl->ijkl",np.sqrt(n*gamma_R*dt)*np.exp(1j*phi),state[:,:,0:-1,:])
 		return new_state_tk+new_state_tl
 	def c(state):
     #        print("c",state[0,2,0], state.shape, len(state.shape))

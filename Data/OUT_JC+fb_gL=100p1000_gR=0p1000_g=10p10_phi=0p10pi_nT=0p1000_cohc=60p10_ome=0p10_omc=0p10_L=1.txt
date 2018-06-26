@@ -8,3 +8,5 @@ coherent initial state amplitude for cavity: 6.000000 and the environment 0.0000
 thermal photon number: 0.000000
 
 Data file: M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,NB,NB_outa
+
+finished in: 03:00:11

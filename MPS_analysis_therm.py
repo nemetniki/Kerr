@@ -26,23 +26,28 @@ def normf(M,L,state,norm_L):
 		norm = np.einsum("i,i",state[L],np.conjugate(state[L]))
 		norm_L = 1.
 	else:
+		#print(state[M-1].shape)
 		#print(state[M-1].shape,norm_L.shape)
 	# Contracting part of the MPS that won't change anymore with its dual and with previously stored tensors
 		if len(state[M-1].shape)==1:
 			norm_L = np.einsum("i,i",state[M-1],np.conjugate(state[M-1]))
+		#	print(norm_L)
 		elif len(state[M-1].shape)==2:
 			if state[M-1].shape[1]>state[M-1].shape[0]:
-				if np.isscalar(norm_L):
+				if np.isscalar(norm_L) or len(norm_L.shape)==0.:
 					norm_L = np.einsum("ik,jk->ij",state[M-1],np.conjugate(state[M-1]))*norm_L
 				else:
 					norm_L = np.einsum("ik,jk->ij",state[M-1],np.conjugate(state[M-1]))*np.einsum("ii",norm_L)
 			else:
-				if np.isscalar(norm_L):
+				if np.isscalar(norm_L) or len(norm_L.shape)==0.:
 					norm_L = np.einsum("ik,ik",state[M-1],np.conjugate(state[M-1]))*norm_L
 				else:
 					norm_L = np.einsum("ij,ij",np.einsum("ik,ij->kj",state[M-1],np.conjugate(state[M-1])),norm_L)
 		else:
-			norm_L = np.einsum("kmj,lmj->kl",np.einsum("kmi,ij->kmj",state[M-1],norm_L),np.conjugate(state[M-1]))
+			if np.isscalar(norm_L) or len(norm_L.shape)==0.:
+				norm_L = np.einsum("kmj,lmj->kl",state[M-1],np.conjugate(state[M-1]))*norm_L
+			else:
+				norm_L = np.einsum("kmj,lmj->kl",np.einsum("kmi,ij->kmj",state[M-1],norm_L),np.conjugate(state[M-1]))
         
 		# Contracting the system part of the MPS
 		if len(state[L+M].shape)==1:
@@ -50,13 +55,15 @@ def normf(M,L,state,norm_L):
 		else:
 			norm_S = np.einsum("ki,kj->ij",state[L+M],np.conjugate(state[L+M]))
 		norm = norm_L
+		#print(norm)
 
 	# Performing the rest of the reservoir contractions from right to left.
 		for i in range(0,L):
+		#	print(len(norm.shape))
 			#print("state",state[M+i].shape)
 			if len(state[M+i].shape)==1:
 				norm_past = np.einsum("i,i",state[M+i],np.conjugate(state[M+i]))
-				if np.isscalar(norm):
+				if np.isscalar(norm) or len(norm.shape)==0:
 					norm = norm_past*norm
 				else:
 					norm = norm_past*np.einsum("ii",norm)
@@ -64,31 +71,34 @@ def normf(M,L,state,norm_L):
 			elif len(state[M+i].shape)==2:
 				if state[M+i].shape[0]>state[M+i].shape[1]:
 					norm_past = np.einsum("ji,jk->ik",state[M+i],np.conjugate(state[M+i]))
-					if np.isscalar(norm):
+					if np.isscalar(norm) or len(norm.shape)==0:
 						norm = np.einsum("ii",norm_past)*norm
 					else:
 						norm = np.einsum("ij,ij",norm_past,norm)
 				elif state[M+i].shape[0]<state[M+i].shape[1]:
 					norm_past = np.einsum("ij,kj->ik",state[M+i],np.conjugate(state[M+i]))
-					if np.isscalar(norm):
+					if np.isscalar(norm) or len(norm.shape)==0:
 						norm = norm_past*norm
 					else:
 						norm = norm_past*np.einsum("ii",norm)
 #				print("norm",norm.shape)
 			else:
 				#print("norm",norm.shape)
-				if np.isscalar(norm):
+				if np.isscalar(norm) or len(norm.shape)==0:
 					norm = np.einsum("kmi,lmi->kl",state[M+i],np.conjugate(state[M+i]))*norm
 				else:
 					norm = np.einsum("kmj,lmj->kl",np.einsum("kmi,ij->kmj",state[M+i],norm),np.conjugate(state[M+i]))
 	# Contracting the environment part with the system part
 		if len(state[L+M].shape) ==1:
-			if np.isscalar(norm):
+			if np.isscalar(norm) or len(norm.shape)==0:
 				norm = norm*norm_S
 			else:
 				norm = np.einsum("ii",norm)*norm_S
 		else:
-			norm = np.einsum("ij,ij",norm,norm_S)
+			if np.isscalar(norm) or len(norm.shape)==0:
+				norm = np.einsum("ii",norm_S)*norm
+			else:
+				norm = np.einsum("ij,ij",norm,norm_S)
 		norm_S = None
 	return np.real(norm),np.real(norm_L)
 
@@ -129,7 +139,7 @@ def spectrum(states,freqs,pmax,N_env,dt,index,thermal):
 			n = ((np.linspace(0,(N_env-1)**2-1,(N_env-1)**2)/(N_env-1)).astype(int)+1)[0:(-N_env+1)]
 			iend = N_env-1
 		else:
-			n = np.arange(1,state.shape[0])
+			n = np.arange(1,N_env)
 			iend = 1
 		if legs==1:
 			new_state[0:(-iend)] = np.einsum("i,i->i",np.sqrt(n*dt),state[iend:])
@@ -149,7 +159,7 @@ def spectrum(states,freqs,pmax,N_env,dt,index,thermal):
 			n = ((np.linspace(0,(N_env-1)**2-1,(N_env-1)**2)/(N_env-1)).astype(int)+1)[0:(-N_env+1)]
 			iend = N_env-1
 		else:
-			n = np.arange(1,state.shape[0])
+			n = np.arange(1,N_env)
 			iend = 1
 		if legs==1:
 			new_state[iend:] = np.einsum("k,k->k",np.sqrt(n*dt),state[0:-iend])
@@ -235,18 +245,18 @@ def g2_t(state,N_env,dt,thermal):
 			n = ((np.linspace(0,(N_env-1)**2-1,(N_env-1)**2)/(N_env-1)).astype(int)+1)[0:(-N_env+1)]
 			iend = N_env-1
 		else:
-			n = np.arange(1,state.shape[0])
+			n = np.arange(1,N_env)
 			iend = 1
 		if legs==1:
-			new_state[0:(-iend)] = np.einsum("i,i->i",np.sqrt(n*dt),state[iend:])
+			new_state[0:(-iend)] = np.einsum("i,i->i",np.sqrt(n),state[iend:])
 		elif legs==2:
 			ind = state.shape.index(np.max(state.shape))
 			if ind == 0:
-				new_state[0:(-iend),:] = np.einsum("i,ij->ij",np.sqrt(n*dt),state[iend:,:])
+				new_state[0:(-iend),:] = np.einsum("i,ij->ij",np.sqrt(n),state[iend:,:])
 			elif ind == 1:
-				new_state[:,0:(-iend)] = np.einsum("i,ji->ji",np.sqrt(n*dt),state[:,iend:])
+				new_state[:,0:(-iend)] = np.einsum("i,ji->ji",np.sqrt(n),state[:,iend:])
 		elif legs==3:
-			new_state[:,0:(-iend),:] = np.einsum("i,jik->jik",np.sqrt(n*dt),state[:,iend:,:])
+			new_state[:,0:(-iend),:] = np.einsum("i,jik->jik",np.sqrt(n),state[:,iend:,:])
 		return new_state
 #    dBd = sc.eye(N_env,N_env,-1)*np.sqrt(dt*np.arange(1,N_env+1))
 	temp = dB(dB(state))
@@ -264,7 +274,7 @@ def g2_t(state,N_env,dt,thermal):
 		NB = np.einsum("jil,jil",temp2,np.conjugate(temp2))
 		g2_t = np.einsum("jil,jil",temp,np.conjugate(temp))/(NB**2)
 		temp = None
-	return np.real(g2_t),np.real(NB)/dt
+	return np.real(g2_t),np.real(NB)
 
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
@@ -284,72 +294,75 @@ def g2_out(states,taumax,N_env,dt,index,thermal):
 			n = ((np.linspace(0,(N_env-1)**2-1,(N_env-1)**2)/(N_env-1)).astype(int)+1)[0:(-N_env+1)]
 			iend = N_env-1
 		else:
-			n = np.arange(1,state.shape[0])
+			n = np.arange(1,N_env)
 			iend = 1
 		if legs==1:
-			new_state[0:(-iend)] = np.einsum("i,i->i",np.sqrt(n*dt),state[iend:])
+			new_state[0:(-iend)] = np.einsum("i,i->i",np.sqrt(n),state[iend:])
 		elif legs==2:
 			ind = state.shape.index(np.max(state.shape))
 			if ind == 0:
-				new_state[0:(-iend),:] = np.einsum("i,ij->ij",np.sqrt(n*dt),state[iend:,:])
+				new_state[0:(-iend),:] = np.einsum("i,ij->ij",np.sqrt(n),state[iend:,:])
 			elif ind == 1:
-				new_state[:,0:(-iend)] = np.einsum("i,ji->ji",np.sqrt(n*dt),state[:,iend:])
+				new_state[:,0:(-iend)] = np.einsum("i,ji->ji",np.sqrt(n),state[:,iend:])
 		elif legs==3:
-			new_state[:,0:(-iend),:] = np.einsum("i,jik->jik",np.sqrt(n*dt),state[:,iend:,:])
+			new_state[:,0:(-iend),:] = np.einsum("i,jik->jik",np.sqrt(n),state[:,iend:,:])
 		return new_state
 	g2_out = np.zeros(taumax)
 	tau = np.zeros(taumax)
 	temp      = dB(dB(states[index]))
 	temp2     = dB(states[index])
 	if len(states[index].shape)==1:
-		g2_out[0] = np.einsum("j,j",temp,np.conjugate(temp))
 		next_step = np.einsum("j,j",temp2,np.conjugate(temp2))
+		NB = next_step
+		g2_out[0] = np.einsum("j,j",temp,np.conjugate(temp))/(NB**2)
 	elif len(states[index].shape)==2:
 		ind = states[index].shape.index(np.max(states[index].shape))
+		NB = np.einsum("jk,jk",temp2, np.conjugate(temp2))
 		if ind==0:
-			g2_out[0] = np.einsum("jk,jk",temp, np.conjugate(temp))
+			g2_out[0] = np.einsum("jk,jk",temp, np.conjugate(temp))/(NB**2)
 			next_step = np.einsum("jk,jl->kl",temp2,np.conjugate(temp2))
 		elif ind==1:
-			g2_out[0] = np.einsum("kj,kj",temp, np.conjugate(temp))
+			g2_out[0] = np.einsum("kj,kj",temp, np.conjugate(temp))/(NB**2)
 			next_step = np.einsum("kj,kj",temp2,np.conjugate(temp2))
 	elif len(states[index].shape)==3:
-			g2_out[0] = np.einsum("ijk,ijk",temp, np.conjugate(temp))
-			next_step = np.einsum("ijk,ijl->kl",temp2,np.conjugate(temp2))
+		NB = np.einsum("ijk,ijk",temp2, np.conjugate(temp2))
+		g2_out[0] = np.einsum("ijk,ijk",temp, np.conjugate(temp))/(NB**2)
+		next_step = np.einsum("ijk,ijl->kl",temp2,np.conjugate(temp2))
 	for it in range(1,taumax):
 		tau[it] = dt*it
 		temp    = dB(states[index-it])
 		if len(states[index-it].shape)==1:
 			if np.isscalar(next_step):
-				g2_out[it] = next_step * np.einsum("j,j",temp,np.conjugate(temp))
+				g2_out[it] = next_step * np.einsum("j,j",temp,np.conjugate(temp))/(NB**2)
 				next_step  = next_step * np.einsum("j,j",states[index-it],np.conjugate(states[index-it]))
 			else:
-				g2_out[it] = np.einsum("ii",next_step) * np.einsum("j,j",temp,np.conjugate(temp))
+				g2_out[it] = np.einsum("ii",next_step) * np.einsum("j,j",temp,np.conjugate(temp))/(NB**2)
 				next_step  = np.einsum("ii",next_step) * np.einsum("j,j",states[index-it],
                                                                    np.conjugate(states[index-it]))
 		if len(states[index-it].shape)==2:
 			indp = states[index-it].shape.index(np.max(states[index-it].shape))
 			if indp == 0:
 				if np.isscalar(next_step):
-					g2_out[it] = next_step*np.einsum("jk,jk",temp,np.conjugate(temp))
+					g2_out[it] = next_step*np.einsum("jk,jk",temp,np.conjugate(temp))/(NB**2)
 					next_step = next_step*np.einsum("jk,jl->kl",states[index-it],np.conjugate(states[index-it]))
 				else:
-					g2_out[it] = np.einsum("ii",next_step)*np.einsum("jk,jk",temp, np.conjugate(temp))
+					g2_out[it] = np.einsum("ii",next_step)*np.einsum("jk,jk",temp, np.conjugate(temp))/(NB**2)
 					next_step = np.einsum("ii",next_step)*np.einsum("jk,jl->kl",states[index-it],
 																	np.conjugate(states[index-it]))
 			elif indp == 1:
 				if np.isscalar(next_step):
-					g2_out[it] = next_step*np.einsum("kj,kj",temp, np.conjugate(temp))
+					g2_out[it] = next_step*np.einsum("kj,kj",temp, np.conjugate(temp))/(NB**2)
 					next_step = next_step*np.einsum("kj,kj",states[index-it],np.conjugate(states[index-it]))
 				else:
-					g2_out[it] = np.einsum("ki,ki",next_step,np.einsum("kj,ij->ki",temp, np.conjugate(temp)))
+					g2_out[it] = np.einsum("ki,ki",next_step,np.einsum("kj,ij->ki",temp, np.conjugate(temp)))/(NB**2)
 					next_step = np.einsum("ki,ki",next_step,np.einsum("kj,ij->ki",states[index-it],
 																		np.conjugate(states[index-it])))
 		elif len(states[index-it].shape)==3:
 			if np.isscalar(next_step):
-				g2_out[it] = next_step*np.einsum("ijk,ijk",temp, np.conjugate(temp))
+				g2_out[it] = next_step*np.einsum("ijk,ijk",temp, np.conjugate(temp))/(NB**2)
 				next_step = next_step * np.einsum("ijk,ijl->kl",states[index-it],np.conjugate(states[index-it]))
 			else:
-				g2_out[it] = np.einsum("mn,mn",next_step,np.einsum("mjk,njk->mn",temp, np.conjugate(temp)))
+				g2_out[it] = np.einsum("mn,mn",next_step,np.einsum("mjk,njk->mn",temp, np.conjugate(temp)))/(NB**2)
 				next_step = np.einsum("mjk,mjl->kl",np.einsum("ijk,im->mjk",states[index-it],next_step),
 									np.conjugate(states[index-it]))
 	return np.real(tau),np.real(g2_out)
@@ -368,18 +381,18 @@ def NB_out(state,N_env,NB_past,dt,thermal):
 			n = ((np.linspace(0,(N_env-1)**2-1,(N_env-1)**2)/(N_env-1)).astype(int)+1)[0:(-N_env+1)]
 			iend = N_env-1
 		else:
-			n = np.arange(1,state.shape[0])
+			n = np.arange(1,N_env)
 			iend = 1
 		if legs==1:
-			new_state[0:(-iend)] = np.einsum("i,i->i",np.sqrt(n*dt),state[iend:])
+			new_state[0:(-iend)] = np.einsum("i,i->i",np.sqrt(n),state[iend:])
 		elif legs==2:
 			ind = state.shape.index(np.max(state.shape))
 			if ind == 0:
-				new_state[0:(-iend),:] = np.einsum("i,ij->ij",np.sqrt(n*dt),state[iend:,:])
+				new_state[0:(-iend),:] = np.einsum("i,ij->ij",np.sqrt(n),state[iend:,:])
 			elif ind == 1:
-				new_state[:,0:(-iend)] = np.einsum("i,ji->ji",np.sqrt(n*dt),state[:,iend:])
+				new_state[:,0:(-iend)] = np.einsum("i,ji->ji",np.sqrt(n),state[:,iend:])
 		elif legs==3:
-			new_state[:,0:(-iend),:] = np.einsum("i,jik->jik",np.sqrt(n*dt),state[:,iend:,:])
+			new_state[:,0:(-iend),:] = np.einsum("i,jik->jik",np.sqrt(n),state[:,iend:,:])
 		return new_state
 	temp = dB(state)
 	if len(state.shape)==1:       

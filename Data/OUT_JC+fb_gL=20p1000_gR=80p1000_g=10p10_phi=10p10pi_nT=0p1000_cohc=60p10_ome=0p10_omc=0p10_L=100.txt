@@ -1,0 +1,10 @@
+
+gamma_L = 0.020000, gamma_R = 0.080000, Om_e = 0.000000, Om_c = 0.000000, phi = 1.000000pi,
+Delta_e = 0.000000, Delta_c = 0.000000, g = 1.000000, Nphot_max = 17, initind = 0,
+tolerance = 1E-04, delay_L = 100, endt = 50, dt = 0.002000
+
+coherent initial state amplitude for cavity: 6.000000 and the environment 0.000000
+
+thermal photon number: 0.000000
+
+Data file: M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,NB,NB_outa
