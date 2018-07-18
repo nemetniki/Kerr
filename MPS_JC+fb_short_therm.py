@@ -151,13 +151,13 @@ elif args.cohE>0:
 #	specname = "./Data/spec_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
 #	g2tau = "./Data/g2tau_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
 elif args.nT>0:
-	filename = "./Data/JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.init_ind,Ome*10,Omc*10,L)
-	outname = "./Data/OUT_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.init_ind,Ome*10,Omc*10,L)
+	filename = "./Data/JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_initind=%d_ome=%dp10_omc=%dp10_L=%d-2.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.init_ind,Ome*10,Omc*10,L)
+	outname = "./Data/OUT_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_initind=%d_ome=%dp10_omc=%dp10_L=%d-2.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.init_ind,Ome*10,Omc*10,L)
 #	specname = "./Data/spec_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.init_ind,Ome*10,Omc*10,L)
 #	g2tau = "./Data/g2tau_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.init_ind,Ome*10,Omc*10,L)
 else:
-	filename = "./Data/JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
-	outname = "./Data/OUT_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
+	filename = "./Data/JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d-2.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
+	outname = "./Data/OUT_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d-2.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
 #	specname = "./Data/spec_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
 #	g2tau = "./Data/g2tau_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
 	

@@ -26,12 +26,10 @@ def normf(M,L,state,norm_L):
 		norm = np.einsum("i,i",state[L],np.conjugate(state[L]))
 		norm_L = 1.
 	else:
-		#print(state[M-1].shape)
 		#print(state[M-1].shape,norm_L.shape)
 	# Contracting part of the MPS that won't change anymore with its dual and with previously stored tensors
 		if len(state[M-1].shape)==1:
 			norm_L = np.einsum("i,i",state[M-1],np.conjugate(state[M-1]))
-		#	print(norm_L)
 		elif len(state[M-1].shape)==2:
 			if state[M-1].shape[1]>state[M-1].shape[0]:
 				if np.isscalar(norm_L) or len(norm_L.shape)==0.:
