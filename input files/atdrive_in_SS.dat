@@ -1,0 +1,3 @@
+0.1 .0 1. 0. -L 1 -tol -4 -Nphot 30 -dt 0.002 -Om_e 2. -endt 150.
+.02 .08 1. 0.0 -tol -4 -Nphot 30 -L 20 -dt 0.002 -Om_e 2. -endt 150.
+.02 .08 1. 1.0 -tol -4 -Nphot 30 -L 20 -dt 0.002 -Om_e 2. -endt 150.

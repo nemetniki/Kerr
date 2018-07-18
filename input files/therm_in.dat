@@ -1,0 +1,6 @@
+0.1 .0 1. 0. -L 1 -tol -4 -Nphot 17 -dt 0.002 -cohC 6. -nT 0.100000 -endt 15.
+0.1 .0 1. 0. -L 1 -tol -4 -Nphot 17 -dt 0.002 -cohC 6. -nT 0.500000 -endt 15.
+.02 .08 1. 0.0 -tol -4 -Nphot 17 -L 20 -dt 0.002 -cohC 6. -nT 0.100000 -endt 15.
+.02 .08 1. 0.0 -tol -4 -Nphot 17 -L 20 -dt 0.002 -cohC 6. -nT 0.500000 -endt 15.
+.02 .08 1. 1.0 -tol -4 -Nphot 17 -L 20 -dt 0.002 -cohC 6. -nT 0.100000 -endt 15.
+.02 .08 1. 1.0 -tol -4 -Nphot 17 -L 20 -dt 0.002 -cohC 6. -nT 0.500000 -endt 15.
