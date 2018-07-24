@@ -63,6 +63,7 @@ parser.add_argument("gamma_L",type=float,help='gamma_L')
 parser.add_argument("gamma_R",type=float,help='gamma_R')
 parser.add_argument("g",type=float,help='g: cavity atom coupling')
 parser.add_argument("phi",type=float,help='phi/pi (note that constructive interference is pi, destructive is 0)')
+parser.add_argument("filename",type=int,help='number for the filename')
 parser.add_argument("-init_ind",type=int,default = 0,help='initial index of system vector')
 parser.add_argument("-Om_e",type=float,default = 0,help='Om_e: direct driving strength of the TLS')
 parser.add_argument("-Om_c",type=float,default = 0,help='Om_c: driving strength for the cavity')
@@ -74,6 +75,7 @@ parser.add_argument("-dt",type=float,default = 0.005, help ='dt')
 parser.add_argument("-cohC",type=float, default = 0.,help='coherent initial state for the cavity')
 parser.add_argument("-cohE",type=float, default = 0.,help='coherent initial state for the environment')
 parser.add_argument("-nT",type=float, default = 0.,help='thermal photon number')
+
 
 args = parser.parse_args()
 
@@ -100,26 +102,26 @@ thermal = False
 ################################
 ### MPS state initialization ###
 ################################
-initJC     = np.zeros(2*N_env+1,complex)
+initJC     = np.zeros((2*N_env+1,1),complex)
 if args.cohC>0.:
-	preinitJC = coherent(args.cohC,0,np.zeros(N_env+1,complex))
+	preinitJC = coherent(args.cohC,0,N_env+1))
 	if args.init_ind==0:
-		initJC[0::2] = preinitJC
+		initJC[0::2,0] = preinitJC
 	elif args.init_ind==1:
-		initJC[1::2] = preinitJC[:-1]
+		initJC[1::2,0] = preinitJC[:-1]
 	preinitJC = None
 else:
-	initJC[args.init_ind]  = 1. #starting at |e>
-initenv    = np.zeros(N_env+1,complex)
+	initJC[args.init_ind,0]  = 1. 
+initenv    = np.zeros((1,N_env+1,1),complex)
 if args.cohE>0.:
-	initenv = coherent(args.cohE,0,initenv)
+	initenv = coherent(args.cohE,0,initenv)[np.newaxis,:,np.newaxis]
 elif args.nT>0.:
 	thermal = True
 	phots = np.linspace(0,N_env-1,N_env)
 	rhotherm = np.diag(1./np.sqrt(1+args.nT)*(args.nT/(args.nT+1))**(phots/2.))
-	initenv = rhotherm.reshape(N_env**2)
+	initenv = rhotherm.reshape(N_env**2)[np.newaxis,:,np.newaxis]
 else:
-	initenv[0] = 1.
+	initenv[0,0,0] = 1.
 states     = [initenv]*L+(N-L)*[0.]
 ind_sys       = L
 states[ind_sys] = initJC/np.sqrt(np.sum(initJC**2))
@@ -140,27 +142,11 @@ for i in range(1,N_env+1):
 g2c = np.diag(np.sort(np.concatenate((gcdiag[:-1],gcdiag))))
 
 
-if args.cohC>0:
-	filename = "./Data/JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohC*10,Ome*10,Omc*10,L)
-	outname = "./Data/OUT_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohC*10,Ome*10,Omc*10,L)
-#	specname = "./Data/spec_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohC*10,Ome*10,Omc*10,L)
-#	g2tau = "./Data/g2tau_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohC*10,Ome*10,Omc*10,L)
-elif args.cohE>0:
-	filename = "./Data/JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
-	outname = "./Data/OUT_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
-#	specname = "./Data/spec_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
-#	g2tau = "./Data/g2tau_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
-elif args.nT>0:
-	filename = "./Data/JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_initind=%d_ome=%dp10_omc=%dp10_L=%d-2.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.init_ind,Ome*10,Omc*10,L)
-	outname = "./Data/OUT_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_initind=%d_ome=%dp10_omc=%dp10_L=%d-2.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.init_ind,Ome*10,Omc*10,L)
-#	specname = "./Data/spec_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.init_ind,Ome*10,Omc*10,L)
-#	g2tau = "./Data/g2tau_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.init_ind,Ome*10,Omc*10,L)
-else:
-	filename = "./Data/JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d-2.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
-	outname = "./Data/OUT_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d-2.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
-#	specname = "./Data/spec_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
-#	g2tau = "./Data/g2tau_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
-	
+filename = "./Data/JC%d.txt" % (args.filename)
+outname = "./Data/OUT_JC%d.txt" % (args.filename)
+specname = "./Data/spec_JC%d.txt" % (args.filename)
+g2tau = "./Data/g2tau_JC%d.txt" % (args.filename)
+
 file_out = open(outname,"a")
 file_out.close()
 file_out = open(outname,"r+")
@@ -168,12 +154,12 @@ file_out.truncate()
 file_out.close()
 file_out = open(outname,"a")
 
-file_out.write("""\ngamma_L = %f, gamma_R = %f, Om_e = %f, Om_c = %f, phi = %fpi,
+file_out.write("""\nfilename number: %d\n
+gamma_L = %f, gamma_R = %f, Om_e = %f, Om_c = %f, phi = %fpi,
 Delta_e = %f, Delta_c = %f, g = %f, Nphot_max = %d, initind = %d,
 tolerance = %.0E, delay_L = %d, endt = %.0f, dt = %f\n
 coherent initial state amplitude for cavity: %f and the environment %f\n
-thermal photon number: %f\n
-Data file: M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,NB,NB_outa\n""" % (gamma_L, gamma_R, Ome, Omc, args.phi, Dele, Delc, g, N_env, args.init_ind, Decimal(tol), L, endt, dt,args.cohC,args.cohE,args.nT))
+thermal photon number: %f\n""" % (args.filename,gamma_L, gamma_R, Ome, Omc, args.phi, Dele, Delc, g, N_env, args.init_ind, Decimal(tol), L, endt, dt,args.cohC,args.cohE,args.nT))
 file_out.close()
 
 file_evol = open(filename,"a")
@@ -189,14 +175,10 @@ file_evol = open(filename,"a")
 for M in range(0,N-L-1):
 #    print(M*dt)
     percent10 = (N-L-1)/10.
-    count = 0
     if M%(int(percent10))==0:
-#        count=count+5
         print("M =",M, " out of ",N-L-1)
         sys.stdout.flush()
-    
-#        print("%d percent" % count)
- 
+     
     # After the first time step, bring the interacting past bin next to the system bin
     if M>0:
         # Relocating the orthogonality centre to the next interacting past bin if applicable
@@ -224,14 +206,11 @@ for M in range(0,N-L-1):
 
     # The time evolution operator acting on the interacting state bins
 #    print("initial shapes",initenv.shape, states[ind_sys].shape, states[ind_sys-1].shape)
-    U_block = U(initenv,states[ind_sys],states[ind_sys-1],N_env,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele,thermal)
+    U_block = U(initenv[0,:,0],states[ind_sys],states[ind_sys-1],N_env,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele,thermal)
 #    print("U block",U_block.shape)
 
     # Merging of the link index on the right into a new tensor if applicable    
-    U_right_merge=False
-    if len(U_block.shape)>3:
-        U_right_merge=True
-        U_block,U_right_dims = merge(U_block,"right")
+	U_block,U_right_dims = merge(U_block,"right")
     # Exchanging the position of the system and the present bin in the MPS state list
     U_block  = np.einsum("ijk->jik",U_block)
 #    print("U block merge right",U_block.shape)
