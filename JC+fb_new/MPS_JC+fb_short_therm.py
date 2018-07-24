@@ -104,7 +104,7 @@ thermal = False
 ################################
 initJC     = np.zeros((2*N_env+1,1),complex)
 if args.cohC>0.:
-	preinitJC = coherent(args.cohC,0,N_env+1))
+	preinitJC = coherent(args.cohC,0,N_env+1)
 	if args.init_ind==0:
 		initJC[0::2,0] = preinitJC
 	elif args.init_ind==1:
@@ -174,29 +174,29 @@ file_evol = open(filename,"a")
 ######################
 for M in range(0,N-L-1):
 #    print(M*dt)
-    percent10 = (N-L-1)/10.
-    if M%(int(percent10))==0:
-        print("M =",M, " out of ",N-L-1)
-        sys.stdout.flush()
+	percent10 = (N-L-1)/10.
+	if M%(int(percent10))==0:
+		print("M =",M, " out of ",N-L-1)
+		sys.stdout.flush()
      
     # After the first time step, bring the interacting past bin next to the system bin
-    if M>0:
+	if M>0:
         # Relocating the orthogonality centre to the next interacting past bin if applicable
-        states[M],states[M-1] = OC_reloc(states[M],states[M-1],"left",tol)
-        states[M:M+L] = SWAP(states,M,"future",L,tol)
+		states[M],states[M-1] = OC_reloc(states[M],states[M-1],"left",tol)
+		states[M:M+L] = SWAP(states,M,"future",L,tol)
                 
     # Relocating the orthogonality centre from the past bin to the system bin before the evolution
     # operator's action if applicable
-    states[ind_sys],states[ind_sys-1] = OC_reloc(states[ind_sys],states[ind_sys-1],"left",tol)
+	states[ind_sys],states[ind_sys-1] = OC_reloc(states[ind_sys],states[ind_sys-1],"left",tol)
         
-    norm,normL = normf(M,L,states,normL)
-    nc_exp = exp_sys(nc,states[ind_sys],M)
-    exc_pop = exp_sys(see,states[ind_sys],M)
-    gr_pop  = exp_sys(sgg,states[ind_sys],M)
-    g2_tac  = exp_sys(g2c,states[ind_sys],M)/nc_exp**2
-    file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_tac,g2_ta,NB,NB_outa))
-    file_evol.flush()
-    file_out.close()
+	norm,normL = normf(M,L,states,normL)
+	nc_exp = exp_sys(nc,states[ind_sys],M)
+	exc_pop = exp_sys(see,states[ind_sys],M)
+	gr_pop  = exp_sys(sgg,states[ind_sys],M)
+	g2_tac  = exp_sys(g2c,states[ind_sys],M)/nc_exp**2
+	file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_tac,g2_ta,NB,NB_outa))
+	file_evol.flush()
+	file_out.close()
 
 
 #    # Erase the remnants of the states that will not influence the dynamics anymore:
@@ -206,40 +206,40 @@ for M in range(0,N-L-1):
 
     # The time evolution operator acting on the interacting state bins
 #    print("initial shapes",initenv.shape, states[ind_sys].shape, states[ind_sys-1].shape)
-    U_block = U(initenv[0,:,0],states[ind_sys],states[ind_sys-1],N_env,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele,thermal)
+	U_block = U(initenv[0,:,0],states[ind_sys],states[ind_sys-1],N_env,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele,thermal)
 #    print("U block",U_block.shape)
 
     # Merging of the link index on the right into a new tensor if applicable    
 	U_block,U_right_dims = merge(U_block,"right")
     # Exchanging the position of the system and the present bin in the MPS state list
-    U_block  = np.einsum("ijk->jik",U_block)
+	U_block  = np.einsum("ijk->jik",U_block)
 #    print("U block merge right",U_block.shape)
     
     # Separating the system state from the environment bins
-    states[ind_sys+1],U_small_block = cut(U_block,tol,"right")
+	states[ind_sys+1],U_small_block = cut(U_block,tol,"right")
 #    print("tS and rest",states[ind_sys+1].shape,U_small_block.shape)
-    U_block = None
+	U_block = None
     # Separating the present time bin from the interacting past bin
-    states[ind_sys],states[ind_sys-1] = cut(U_small_block,tol,"left")
+	states[ind_sys],states[ind_sys-1] = cut(U_small_block,tol,"left")
 #    print("tk and tl",states[ind_sys].shape,states[ind_sys-1].shape)
-    U_small_block=None
+	U_small_block=None
     # Unmerging of the previously merged link index on the right if applicable
-    if U_right_merge:
-        if len(states[ind_sys-1].shape)==1:
-            U_dims = U_right_dims
-        else:
-            U_dims = np.concatenate((np.array([states[ind_sys-1].shape[0]]),U_right_dims),axis = 0)
-        states[ind_sys-1] = unmerge(states[ind_sys-1],U_dims,"right")
-        U_dims = None
+	if U_right_merge:
+		if len(states[ind_sys-1].shape)==1:
+			U_dims = U_right_dims
+		else:
+			U_dims = np.concatenate((np.array([states[ind_sys-1].shape[0]]),U_right_dims),axis = 0)
+		states[ind_sys-1] = unmerge(states[ind_sys-1],U_dims,"right")
+		U_dims = None
 #    print("tl final",states[ind_sys-1].shape)
 #    print("U done, states done", states[ind_sys+1].shape, states[ind_sys].shape, states[ind_sys-1].shape)
         
     # Moving the interacting past bin's state back to its original position in the MPS
-    states[(ind_sys-L):(ind_sys)] = SWAP(states,(ind_sys-2),"past",L,tol)
-    g2_ta,NB = g2_t(states[M],N_env+1,dt,thermal)
-    NB_outa = NB_out(states[M],N_env+1,NB_outa,dt,thermal)
+	states[(ind_sys-L):(ind_sys)] = SWAP(states,(ind_sys-2),"past",L,tol)
+	g2_ta,NB = g2_t(states[M],N_env+1,dt,thermal)
+	NB_outa = NB_out(states[M],N_env+1,NB_outa,dt,thermal)
     # Preparing for the next step with the system index
-    ind_sys =1+ind_sys
+	ind_sys =1+ind_sys
 
 # restoring the normalization after the time step with moving the past bin next to the system state
 # and relocating the orthogonality centre

@@ -45,7 +45,7 @@ def normf(M,L,state,norm_L):
 			if np.isscalar(norm) or len(norm.shape)==0:
 				norm = np.einsum("kmi,lmi->kl",state[M+i],np.conjugate(state[M+i]))*norm
 			else:
-				norm = oe.contract("kmi,ij,lmj->kl",state[M+i],norm),np.conjugate(state[M+i]))
+				norm = oe.contract("kmi,ij,lmj->kl",state[M+i],norm,np.conjugate(state[M+i]))
 	# Contracting the environment part with the system part
 		if np.isscalar(norm) or len(norm.shape)==0:
 			norm = np.einsum("ii",norm_S)*norm
