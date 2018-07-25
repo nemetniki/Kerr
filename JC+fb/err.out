@@ -1,0 +1,26 @@
+D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb\MPS_analysis_therm.py:264: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("i,i",temp,np.conjugate(temp))/(NB**2)
+Traceback (most recent call last):
+  File "C:\Anaconda\envs\py35\lib\runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "C:\Anaconda\envs\py35\lib\runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "C:\Anaconda\envs\py35\lib\cProfile.py", line 160, in <module>
+    main()
+  File "C:\Anaconda\envs\py35\lib\cProfile.py", line 153, in main
+    runctx(code, globs, None, options.outfile, options.sort)
+  File "C:\Anaconda\envs\py35\lib\cProfile.py", line 20, in runctx
+    filename, sort)
+  File "C:\Anaconda\envs\py35\lib\profile.py", line 64, in runctx
+    prof.runctx(statement, globals, locals)
+  File "C:\Anaconda\envs\py35\lib\cProfile.py", line 100, in runctx
+    exec(cmd, globals, locals)
+  File "MPS_JC+fb_short_therm.py", line 204, in <module>
+    states[M:M+L] = SWAP(states,M,"future",L,tol)
+  File "D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb\MPS_fund_therm.py", line 466, in SWAP
+    states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"both","left")     
+  File "D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb\MPS_fund_therm.py", line 361, in cut
+    new_left = unmerge(np.einsum("jk,kl->jl",block_merged_svd[0],block_merged_svd[1]),left_dims,"left")
+  File "C:\Anaconda\envs\py35\lib\site-packages\numpy\core\einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+KeyboardInterrupt

@@ -76,7 +76,6 @@ parser.add_argument("-cohC",type=float, default = 0.,help='coherent initial stat
 parser.add_argument("-cohE",type=float, default = 0.,help='coherent initial state for the environment')
 parser.add_argument("-nT",type=float, default = 0.,help='thermal photon number')
 
-
 args = parser.parse_args()
 
 
@@ -99,6 +98,7 @@ Dele    = 0.#1.0
 Delc    = 0.#1.0
 phi     = args.phi*np.pi#pi
 thermal = False
+number = args.filename
 ################################
 ### MPS state initialization ###
 ################################
@@ -142,10 +142,10 @@ for i in range(1,N_env+1):
 g2c = np.diag(np.sort(np.concatenate((gcdiag[:-1],gcdiag))))
 
 
-filename = "./Data/JC%d.txt" % (args.filename)
-outname = "./Data/OUT_JC%d.txt" % (args.filename)
-specname = "./Data/spec_JC%d.txt" % (args.filename)
-g2tau = "./Data/g2tau_JC%d.txt" % (args.filename)
+filename = "./Data/JC%d.txt" % (number)
+outname = "./Data/OUT_JC%d.txt" % (number)
+specname = "./Data/spec_JC%d.txt" % (number)
+g2tau = "./Data/g2tau_JC%d.txt" % (number)
 
 file_out = open(outname,"a")
 file_out.close()
@@ -159,7 +159,7 @@ gamma_L = %f, gamma_R = %f, Om_e = %f, Om_c = %f, phi = %fpi,
 Delta_e = %f, Delta_c = %f, g = %f, Nphot_max = %d, initind = %d,
 tolerance = %.0E, delay_L = %d, endt = %.0f, dt = %f\n
 coherent initial state amplitude for cavity: %f and the environment %f\n
-thermal photon number: %f\n""" % (args.filename,gamma_L, gamma_R, Ome, Omc, args.phi, Dele, Delc, g, N_env, args.init_ind, Decimal(tol), L, endt, dt,args.cohC,args.cohE,args.nT))
+thermal photon number: %f\n""" % (number,gamma_L, gamma_R, Ome, Omc, args.phi, Dele, Delc, g, N_env, args.init_ind, Decimal(tol), L, endt, dt,args.cohC,args.cohE,args.nT))
 file_out.close()
 
 file_evol = open(filename,"a")
@@ -208,11 +208,15 @@ for M in range(0,N-L-1):
 #    print("initial shapes",initenv.shape, states[ind_sys].shape, states[ind_sys-1].shape)
 	U_block = U(initenv[0,:,0],states[ind_sys],states[ind_sys-1],N_env,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele,thermal)
 #    print("U block",U_block.shape)
-
+	U_right_merge=False
     # Merging of the link index on the right into a new tensor if applicable    
-	U_block,U_right_dims = merge(U_block,"right")
+	if U_block.shape[3]>1:
+		U_block,U_right_dims = merge(U_block,"right")
+		U_block  = np.einsum("ijk->jik",U_block)
+		U_right_merge=True
+	else:
+		U_block=np.einsum("ijkl->jik",U_block)
     # Exchanging the position of the system and the present bin in the MPS state list
-	U_block  = np.einsum("ijk->jik",U_block)
 #    print("U block merge right",U_block.shape)
     
     # Separating the system state from the environment bins
@@ -224,13 +228,12 @@ for M in range(0,N-L-1):
 #    print("tk and tl",states[ind_sys].shape,states[ind_sys-1].shape)
 	U_small_block=None
     # Unmerging of the previously merged link index on the right if applicable
-	if U_right_merge:
-		if len(states[ind_sys-1].shape)==1:
-			U_dims = U_right_dims
-		else:
-			U_dims = np.concatenate((np.array([states[ind_sys-1].shape[0]]),U_right_dims),axis = 0)
+	if U_right_merge==True:
+		U_dims = np.concatenate((np.array([states[ind_sys-1].shape[0]]),U_right_dims),axis = 0)
 		states[ind_sys-1] = unmerge(states[ind_sys-1],U_dims,"right")
 		U_dims = None
+	else:
+		states[ind_sys-1] = states[ind_sys-1][:,:,np.newaxis]
 #    print("tl final",states[ind_sys-1].shape)
 #    print("U done, states done", states[ind_sys+1].shape, states[ind_sys].shape, states[ind_sys-1].shape)
         
@@ -243,8 +246,7 @@ for M in range(0,N-L-1):
 
 # restoring the normalization after the time step with moving the past bin next to the system state
 # and relocating the orthogonality centre
-if len(states[M].shape)>1:
-    states[M+1],states[M] = OC_reloc(states[M+1],states[M],"left",tol)
+states[M+1],states[M] = OC_reloc(states[M+1],states[M],"left",tol)
 
 #Calculating the output spectra over a range of frequencies
 om = np.linspace(-20,20,5000)
@@ -263,10 +265,10 @@ om = np.linspace(-20,20,5000)
 #f.truncate()
 #np.savetxt(g2tau,time_out)
 #time_out=None
-
-states[M+1:M+L+1] = SWAP(states,M+1,"future",L,tol)
-if len(states[ind_sys-1].shape)>1:
-    states[ind_sys],states[ind_sys-1] = OC_reloc(states[ind_sys],states[ind_sys-1],"left",tol)
+#print("ind_sys=",ind_sys, "M=",M,"N-L-1=",N-L-1)
+#states[M+1:M+L+1] = SWAP(states,M+1,"future",L,tol)
+for j in range(L):
+	states[N-L+j],states[N-L-1+j] = OC_reloc(states[N-L+j],states[N-L+j-1],"left",tol)
 
 # Calculating the last value of the norm and the excited and ground population in time
 norm,normL = normf(N-L-1,L,states,normL)

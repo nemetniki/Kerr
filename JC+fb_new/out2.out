@@ -1,0 +1,174 @@
+M = 0  out of  500
+M = 50  out of  500
+M = 100  out of  500
+M = 150  out of  500
+M = 200  out of  500
+M = 250  out of  500
+M = 300  out of  500
+M = 350  out of  500
+M = 400  out of  500
+M = 450  out of  500
+Wrote profile results to MPS_JC+fb_short_therm.py.lprof
+Timer unit: 4.66511e-07 s
+
+Total time: 33.3552 s
+File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\MPS_fund_therm.py
+Function: SVD_sig at line 22
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    22                                           @profile
+    23                                           def SVD_sig(block,cutoff):
+    24                                           	"""Performing SVD with singular values above a certain threshold
+    25                                           	INPUT: the block to perform SVD on, threshold for singular values
+    26                                           	OUTPUT: SVD elements and the number of significant singular values"""
+    27                                           
+    28                                           	# Predefining the list for the output
+    29     51001       354443      6.9      0.5  	svd_final = [0]*3
+    30                                           
+    31                                           	# Performing the SVD
+    32     51001     58103940   1139.3     81.3  	svd_init  = svd(block,full_matrices=False)
+    33                                           	# Storing the singular values in an array
+    34                                           	#sing      = np.array(svd_init[1])
+    35                                           	# Storing only the significant singular values
+    36                                           #	print(sing)
+    37                                           
+    38     51001       310802      6.1      0.4  	d   = 0
+    39     51001       151021      3.0      0.2  	eps = 100.
+    40    153002       903352      5.9      1.3  	while eps>cutoff:
+    41    102001       390995      3.8      0.5  		d = d+1
+    42    102001      9425772     92.4     13.2  		eps = np.sqrt(np.sum(svd_init[1][d:]**2))
+    43                                           
+    44                                           	# Determining the number of significant singular values and resizing the svd matrices accordingly
+    45                                           	#print("link_dim",sing_num)
+    46     51001       496764      9.7      0.7  	svd_final[0] = svd_init[0][:,:d]
+    47     51001       313749      6.2      0.4  	svd_final[1] = svd_init[1][:d]
+    48     51001       399299      7.8      0.6  	svd_final[2] = svd_init[2][:d,:]
+    49                                           
+    50                                           	# Clear unnecessary variables
+    51     51001       182052      3.6      0.3  	svd_init  = None
+    52     51001       149506      2.9      0.2  	sing      = None
+    53     51001       148353      2.9      0.2  	sign_sing = None
+    54                                           
+    55     51001       169125      3.3      0.2  	return svd_final,d
+
+Total time: 19.4006 s
+File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\MPS_fund_therm.py
+Function: merge at line 64
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    64                                           @profile
+    65                                           def merge(block,where):
+    66                                           	"""Merging indices to provide a lower-rank tensor from a block
+    67                                           	INPUT: block for index-merging and the position of indices to be merged
+    68                                           	OUTPUT: block with the merged indices and the dimensions of the merged indices"""
+    69                                           
+    70                                           	### Determining the rank of the tensor and the index-dimensions
+    71     51500       241875      4.7      0.6  	num_ind = block.ndim
+    72     51500       227544      4.4      0.5  	d1 = block.shape[0]
+    73     51500       180144      3.5      0.4  	d2 = block.shape[1]
+    74                                               
+    75     51500       155655      3.0      0.4  	if num_ind==4:
+    76     49999       164554      3.3      0.4  		d3 = block.shape[2]
+    77     49999       162716      3.3      0.4  		d4 = block.shape[3]
+    78     49999       144299      2.9      0.3  		if where=="both":
+    79                                           			# 2 consequent merges are needed           
+    80                                           			# predefinition of the first merged tensor
+    81     49500       940432     19.0      2.3  			merged_block_1 = np.zeros((d1,d2,d3*d4),dtype=np.complex128)
+    82    594000      1809077      3.0      4.4  			for i1 in range(0,d3):
+    83   1632950      6746637      4.1     16.2  				for j1 in range(0,d4):
+    84   1088450     12198872     11.2     29.3  					merged_block_1[:,:,i1+d3*j1]=block[:,:,i1,j1]
+    85                                           			# predefinition of the second merged tensor
+    86     49500       878761     17.8      2.1  			merged_block = np.zeros((d1*d2,d3*d4),dtype=np.complex128)
+    87    148500       620747      4.2      1.5  			for i2 in range(0,d1):
+    88   1188000      3850735      3.2      9.3  				for j2 in range(0,d2):
+    89   1089000      9531395      8.8     22.9  					merged_block[i2+d1*j2,:]=merged_block_1[i2,j2,:]
+    90     49500       174177      3.5      0.4  			merged_block_1=None
+    91                                           			# passing on the merged dimensions
+    92     49500      1162388     23.5      2.8  			dims = np.array([d1,d2,d3,d4])
+    93       499         1463      2.9      0.0  		elif where=="right":
+    94                                           			# predefinition of the merged tensor
+    95       499        15602     31.3      0.0  			merged_block = np.zeros((d1,d2,d3*d4),dtype=np.complex128)
+    96      5988        21263      3.6      0.1  			for i in range(0,d3):
+    97     16467        70130      4.3      0.2  				for j in range(0,d4):
+    98     10978       148078     13.5      0.4  					merged_block[:,:,i+d3*j]=block[:,:,i,j]
+    99                                           			# passing on the merged dimensions
+   100       499        13893     27.8      0.0  			dims = np.array([d3,d4])
+   101                                           		elif where=="left":
+   102                                           			# predefinition of the merged tensor
+   103                                           			merged_block = np.zeros((d1*d2,d3,d4),dtype=np.complex128)
+   104                                           			for i in range(0,d1):
+   105                                           				for j in range(0,d2):
+   106                                           					merged_block[i+d1*j,:,:]=block[i,j,:,:]
+   107                                           			# passing on the merged dimensions
+   108                                           			dims = np.array([d1,d2])
+   109      1501         4676      3.1      0.0  	elif num_ind==3:
+   110      1501         5229      3.5      0.0  		d3 = block.shape[2]
+   111      1501         4978      3.3      0.0  		if where=="left":
+   112                                           			# predefinition of the merged tensor
+   113       500        13793     27.6      0.0  			merged_block = np.zeros((d1*d2,d3),dtype=np.complex128)
+   114      1500         8257      5.5      0.0  			for i in range(0,d1):
+   115     12000        40934      3.4      0.1  				for j in range(0,d2):
+   116     11000        98957      9.0      0.2  					merged_block[i+d1*j,:]=block[i,j,:]
+   117                                           			# passing on the merged dimensions
+   118       500        13603     27.2      0.0  			dims = np.array([d1,d2])
+   119      1001         3131      3.1      0.0  		elif where=="right":
+   120                                           			# predefinition of the merged tensor
+   121      1001        24925     24.9      0.1  			merged_block = np.zeros((d1,d2*d3),dtype=np.complex128)
+   122     12012        39670      3.3      0.1  			for i in range(0,d2):
+   123    142901       486905      3.4      1.2  				for j in range(0,d3):
+   124    131890      1154623      8.8      2.8  					merged_block[:,i+d2*j]=block[:,i,j]
+   125                                           			# passing on the merged dimensions
+   126      1001        25395     25.4      0.1  			dims = np.array([d2,d3])
+   127                                           	elif num_ind == 2: # for a rank 2 tensor, there is no use of merging indices, return the original
+   128                                           		merged_block = block
+   129                                           		dims=None
+   130                                                   
+   131                                           
+   132     51500       201058      3.9      0.5  	return merged_block, dims
+
+Total time: 26.6278 s
+File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\MPS_fund_therm.py
+Function: unmerge at line 141
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   141                                           @profile
+   142                                           def unmerge(block,dims,where):
+   143                                           	"""Unmerging indices to provide a higher-rank tensor from block
+   144                                           	INPUT: the block for which the index-merging should be undone, the dimensions of the final block indices
+   145                                           	and where the merged indices are
+   146                                           	OUTPUT: the obtained higher-rank tensor"""
+   147                                           
+   148                                           	# predefinition of the unmerged tensor
+   149    101000      1795376     17.8      3.1  	unmerged_block = np.zeros(dims,dtype=np.complex128)
+   150                                           	# In case no merge has been done, no unmerge is needed -> return the original
+   151                                               
+   152    101000       372119      3.7      0.7  	if where=="right":
+   153     51000       185424      3.6      0.3  		if block.ndim==2:
+   154     51000       204264      4.0      0.4  			D = block.shape[1]
+   155                                           		elif block.ndim==1:
+   156                                           			D = block.shape[0]
+   157   1282318      3985390      3.1      7.0  		for I in range(0,D):
+   158                                           			# Care should be taken about the rank of the unmerged tensor
+   159   1231318      3714735      3.0      6.5  			if block.ndim==2:
+   160   1231318      4126125      3.4      7.2  				d2 = dims[1]
+   161   1231318     18622764     15.1     32.6  				unmerged_block[:,I%d2,int((I-(I%d2))/d2)]  = block[:,I]
+   162                                           			elif block.ndim==1:
+   163                                           				d2 = dims[0]
+   164                                           				unmerged_block[I%d2,int((I-(I%d2))/d2)]  = block[I]
+   165     50000       122927      2.5      0.2  	elif where=="left":
+   166     50000       196693      3.9      0.3  		D = block.shape[0]
+   167     50000       188913      3.8      0.3  		d1 = dims[0]
+   168   1150000      3584468      3.1      6.3  		for I in range(0,D):
+   169                                           			# Care should be taken about the rank of the unmerged tensor
+   170   1100000      3313911      3.0      5.8  			if block.ndim==2:
+   171   1100000     16146463     14.7     28.3  				unmerged_block[I%d1,int((I-(I%d1))/d1),:]  = block[I,:]
+   172                                           			elif block.ndim==1:
+   173                                           				unmerged_block[I%d1,int((I-(I%d1))/d1)]  = block[I]
+   174                                           	elif dims is None:
+   175                                           		unmerged_block = block
+   176    101000       245528      2.4      0.4  	block = None
+   177    101000       273449      2.7      0.5  	return unmerged_block
+
