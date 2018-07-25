@@ -1,174 +1,496 @@
-M = 0  out of  500
-M = 50  out of  500
-M = 100  out of  500
-M = 150  out of  500
-M = 200  out of  500
-M = 250  out of  500
-M = 300  out of  500
-M = 350  out of  500
-M = 400  out of  500
-M = 450  out of  500
+M = 0  out of  250
+M = 25  out of  250
+M = 50  out of  250
+M = 75  out of  250
+M = 100  out of  250
+M = 125  out of  250
+M = 150  out of  250
+M = 175  out of  250
+M = 200  out of  250
+M = 225  out of  250
 Wrote profile results to MPS_JC+fb_short_therm.py.lprof
 Timer unit: 4.66511e-07 s
 
-Total time: 33.3552 s
-File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\MPS_fund_therm.py
-Function: SVD_sig at line 22
+Total time: 0.712457 s
+File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\MPS_analysis_therm.py
+Function: normf at line 19
 
 Line #      Hits         Time  Per Hit   % Time  Line Contents
 ==============================================================
-    22                                           @profile
-    23                                           def SVD_sig(block,cutoff):
-    24                                           	"""Performing SVD with singular values above a certain threshold
-    25                                           	INPUT: the block to perform SVD on, threshold for singular values
-    26                                           	OUTPUT: SVD elements and the number of significant singular values"""
-    27                                           
-    28                                           	# Predefining the list for the output
-    29     51001       354443      6.9      0.5  	svd_final = [0]*3
-    30                                           
-    31                                           	# Performing the SVD
-    32     51001     58103940   1139.3     81.3  	svd_init  = svd(block,full_matrices=False)
-    33                                           	# Storing the singular values in an array
-    34                                           	#sing      = np.array(svd_init[1])
-    35                                           	# Storing only the significant singular values
-    36                                           #	print(sing)
-    37                                           
-    38     51001       310802      6.1      0.4  	d   = 0
-    39     51001       151021      3.0      0.2  	eps = 100.
-    40    153002       903352      5.9      1.3  	while eps>cutoff:
-    41    102001       390995      3.8      0.5  		d = d+1
-    42    102001      9425772     92.4     13.2  		eps = np.sqrt(np.sum(svd_init[1][d:]**2))
-    43                                           
-    44                                           	# Determining the number of significant singular values and resizing the svd matrices accordingly
-    45                                           	#print("link_dim",sing_num)
-    46     51001       496764      9.7      0.7  	svd_final[0] = svd_init[0][:,:d]
-    47     51001       313749      6.2      0.4  	svd_final[1] = svd_init[1][:d]
-    48     51001       399299      7.8      0.6  	svd_final[2] = svd_init[2][:d,:]
-    49                                           
-    50                                           	# Clear unnecessary variables
-    51     51001       182052      3.6      0.3  	svd_init  = None
-    52     51001       149506      2.9      0.2  	sing      = None
-    53     51001       148353      2.9      0.2  	sign_sing = None
-    54                                           
-    55     51001       169125      3.3      0.2  	return svd_final,d
+    19                                           @profile
+    20                                           def normf(M,L,state,norm_L):
+    21                                           	"""Performing the contractions for the norm
+    22                                           	INPUT: calculated states in list "state" with a delay index-length L 
+    23                                           	and the stored values of norm_L (tensor with indices for state and dual) at timestep M
+    24                                           	OUTPUT: the norm at the present time and the contraction of the past bins which stay constant"""
+    25                                           
+    26                                           	# Indices of the timebins initially: 0->furthest past, L->system, L+1->first future timebin
+    27       251         1586      6.3      0.1  	if M==0:
+    28         1           44     44.0      0.0  		norm = np.einsum("ij,ij",state[L],np.conjugate(state[L]))
+    29         1            3      3.0      0.0  		norm_L = 1.
+    30                                           	else:
+    31                                           		# Contracting part of the MPS that won't change anymore with its dual and with previously stored tensors
+    32       250         4569     18.3      0.3  		if np.isscalar(norm_L) or norm_L.size==1:
+    33         1           64     64.0      0.0  			norm_L = np.einsum("kmj,lmj->kl",state[M-1],np.conjugate(state[M-1]))*norm_L
+    34                                           		else:
+    35       249        56917    228.6      3.7  			norm_L = np.einsum("kmj,lmj->kl",np.einsum("kmi,ij->kmj",state[M-1],norm_L),np.conjugate(state[M-1]))
+    36                                           		
+    37                                           		# Contracting the system part of the MPS
+    38       250        10735     42.9      0.7  		norm_S = np.einsum("ki,kj->ij",state[L+M],np.conjugate(state[L+M]))
+    39       250          757      3.0      0.0  		norm = norm_L
+    40                                           		#print(norm)
+    41                                           
+    42                                           	# Performing the rest of the reservoir contractions from right to left.
+    43     12750        39684      3.1      2.6  		for i in range(0,L):
+    44                                           		#	print(len(norm.shape))
+    45                                           			#print("state",state[M+i].shape)
+    46                                           			#if np.isscalar(norm) or norm.size==1:
+    47                                           			#	norm = np.einsum("kmi,lmi->kl",state[M+i],np.conjugate(state[M+i]))*norm
+    48                                           			#else:
+    49     12500      1402107    112.2     91.8  			norm = np.einsum("kmj,lmj->kl",np.einsum("kmi,ij->kmj",state[M+i],norm),np.conjugate(state[M+i]))
+    50                                           	# Contracting the environment part with the system part
+    51                                           		#if np.isscalar(norm) or norm.size==1:
+    52                                           		#	norm = np.einsum("ii",norm_S)*norm
+    53                                           		#else:
+    54       250         6486     25.9      0.4  		norm = np.einsum("ij,ij",norm,norm_S)
+    55       250          742      3.0      0.0  		norm_S = None
+    56       251         3509     14.0      0.2  	return np.real(norm),np.real(norm_L)
 
-Total time: 19.4006 s
-File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\MPS_fund_therm.py
-Function: merge at line 64
-
-Line #      Hits         Time  Per Hit   % Time  Line Contents
-==============================================================
-    64                                           @profile
-    65                                           def merge(block,where):
-    66                                           	"""Merging indices to provide a lower-rank tensor from a block
-    67                                           	INPUT: block for index-merging and the position of indices to be merged
-    68                                           	OUTPUT: block with the merged indices and the dimensions of the merged indices"""
-    69                                           
-    70                                           	### Determining the rank of the tensor and the index-dimensions
-    71     51500       241875      4.7      0.6  	num_ind = block.ndim
-    72     51500       227544      4.4      0.5  	d1 = block.shape[0]
-    73     51500       180144      3.5      0.4  	d2 = block.shape[1]
-    74                                               
-    75     51500       155655      3.0      0.4  	if num_ind==4:
-    76     49999       164554      3.3      0.4  		d3 = block.shape[2]
-    77     49999       162716      3.3      0.4  		d4 = block.shape[3]
-    78     49999       144299      2.9      0.3  		if where=="both":
-    79                                           			# 2 consequent merges are needed           
-    80                                           			# predefinition of the first merged tensor
-    81     49500       940432     19.0      2.3  			merged_block_1 = np.zeros((d1,d2,d3*d4),dtype=np.complex128)
-    82    594000      1809077      3.0      4.4  			for i1 in range(0,d3):
-    83   1632950      6746637      4.1     16.2  				for j1 in range(0,d4):
-    84   1088450     12198872     11.2     29.3  					merged_block_1[:,:,i1+d3*j1]=block[:,:,i1,j1]
-    85                                           			# predefinition of the second merged tensor
-    86     49500       878761     17.8      2.1  			merged_block = np.zeros((d1*d2,d3*d4),dtype=np.complex128)
-    87    148500       620747      4.2      1.5  			for i2 in range(0,d1):
-    88   1188000      3850735      3.2      9.3  				for j2 in range(0,d2):
-    89   1089000      9531395      8.8     22.9  					merged_block[i2+d1*j2,:]=merged_block_1[i2,j2,:]
-    90     49500       174177      3.5      0.4  			merged_block_1=None
-    91                                           			# passing on the merged dimensions
-    92     49500      1162388     23.5      2.8  			dims = np.array([d1,d2,d3,d4])
-    93       499         1463      2.9      0.0  		elif where=="right":
-    94                                           			# predefinition of the merged tensor
-    95       499        15602     31.3      0.0  			merged_block = np.zeros((d1,d2,d3*d4),dtype=np.complex128)
-    96      5988        21263      3.6      0.1  			for i in range(0,d3):
-    97     16467        70130      4.3      0.2  				for j in range(0,d4):
-    98     10978       148078     13.5      0.4  					merged_block[:,:,i+d3*j]=block[:,:,i,j]
-    99                                           			# passing on the merged dimensions
-   100       499        13893     27.8      0.0  			dims = np.array([d3,d4])
-   101                                           		elif where=="left":
-   102                                           			# predefinition of the merged tensor
-   103                                           			merged_block = np.zeros((d1*d2,d3,d4),dtype=np.complex128)
-   104                                           			for i in range(0,d1):
-   105                                           				for j in range(0,d2):
-   106                                           					merged_block[i+d1*j,:,:]=block[i,j,:,:]
-   107                                           			# passing on the merged dimensions
-   108                                           			dims = np.array([d1,d2])
-   109      1501         4676      3.1      0.0  	elif num_ind==3:
-   110      1501         5229      3.5      0.0  		d3 = block.shape[2]
-   111      1501         4978      3.3      0.0  		if where=="left":
-   112                                           			# predefinition of the merged tensor
-   113       500        13793     27.6      0.0  			merged_block = np.zeros((d1*d2,d3),dtype=np.complex128)
-   114      1500         8257      5.5      0.0  			for i in range(0,d1):
-   115     12000        40934      3.4      0.1  				for j in range(0,d2):
-   116     11000        98957      9.0      0.2  					merged_block[i+d1*j,:]=block[i,j,:]
-   117                                           			# passing on the merged dimensions
-   118       500        13603     27.2      0.0  			dims = np.array([d1,d2])
-   119      1001         3131      3.1      0.0  		elif where=="right":
-   120                                           			# predefinition of the merged tensor
-   121      1001        24925     24.9      0.1  			merged_block = np.zeros((d1,d2*d3),dtype=np.complex128)
-   122     12012        39670      3.3      0.1  			for i in range(0,d2):
-   123    142901       486905      3.4      1.2  				for j in range(0,d3):
-   124    131890      1154623      8.8      2.8  					merged_block[:,i+d2*j]=block[:,i,j]
-   125                                           			# passing on the merged dimensions
-   126      1001        25395     25.4      0.1  			dims = np.array([d2,d3])
-   127                                           	elif num_ind == 2: # for a rank 2 tensor, there is no use of merging indices, return the original
-   128                                           		merged_block = block
-   129                                           		dims=None
-   130                                                   
-   131                                           
-   132     51500       201058      3.9      0.5  	return merged_block, dims
-
-Total time: 26.6278 s
-File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\MPS_fund_therm.py
-Function: unmerge at line 141
+Total time: 0.0386364 s
+File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\MPS_analysis_therm.py
+Function: exp_sys at line 65
 
 Line #      Hits         Time  Per Hit   % Time  Line Contents
 ==============================================================
-   141                                           @profile
-   142                                           def unmerge(block,dims,where):
-   143                                           	"""Unmerging indices to provide a higher-rank tensor from block
-   144                                           	INPUT: the block for which the index-merging should be undone, the dimensions of the final block indices
-   145                                           	and where the merged indices are
-   146                                           	OUTPUT: the obtained higher-rank tensor"""
-   147                                           
-   148                                           	# predefinition of the unmerged tensor
-   149    101000      1795376     17.8      3.1  	unmerged_block = np.zeros(dims,dtype=np.complex128)
-   150                                           	# In case no merge has been done, no unmerge is needed -> return the original
-   151                                               
-   152    101000       372119      3.7      0.7  	if where=="right":
-   153     51000       185424      3.6      0.3  		if block.ndim==2:
-   154     51000       204264      4.0      0.4  			D = block.shape[1]
-   155                                           		elif block.ndim==1:
-   156                                           			D = block.shape[0]
-   157   1282318      3985390      3.1      7.0  		for I in range(0,D):
-   158                                           			# Care should be taken about the rank of the unmerged tensor
-   159   1231318      3714735      3.0      6.5  			if block.ndim==2:
-   160   1231318      4126125      3.4      7.2  				d2 = dims[1]
-   161   1231318     18622764     15.1     32.6  				unmerged_block[:,I%d2,int((I-(I%d2))/d2)]  = block[:,I]
-   162                                           			elif block.ndim==1:
-   163                                           				d2 = dims[0]
-   164                                           				unmerged_block[I%d2,int((I-(I%d2))/d2)]  = block[I]
-   165     50000       122927      2.5      0.2  	elif where=="left":
-   166     50000       196693      3.9      0.3  		D = block.shape[0]
-   167     50000       188913      3.8      0.3  		d1 = dims[0]
-   168   1150000      3584468      3.1      6.3  		for I in range(0,D):
-   169                                           			# Care should be taken about the rank of the unmerged tensor
-   170   1100000      3313911      3.0      5.8  			if block.ndim==2:
-   171   1100000     16146463     14.7     28.3  				unmerged_block[I%d1,int((I-(I%d1))/d1),:]  = block[I,:]
-   172                                           			elif block.ndim==1:
-   173                                           				unmerged_block[I%d1,int((I-(I%d1))/d1)]  = block[I]
-   174                                           	elif dims is None:
-   175                                           		unmerged_block = block
-   176    101000       245528      2.4      0.4  	block = None
-   177    101000       273449      2.7      0.5  	return unmerged_block
+    65                                           @profile
+    66                                           def exp_sys(observable,sys,M):
+    67                                           	"""Calculating the expectation value of a given system observable
+    68                                           	INPUT: observable of interest, the state of the system and timestep M
+    69                                           	OUTPUT: expectation value of the observable"""
+    70                                           
+    71                                           	# Indices of the timebins initially: 0->furthest past, L->system, L+1->first future timebin
+    72      1004        76894     76.6     92.8  	obs = np.einsum("jk,kj",np.einsum("ij,ik->jk",sys,observable),np.conjugate(sys))
+    73      1004         5926      5.9      7.2  	return np.real(obs)
+
+Total time: 0.0532228 s
+File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\MPS_analysis_therm.py
+Function: g2_t at line 125
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   125                                           @profile
+   126                                           def g2_t(state,N_env,dt,thermal):
+   127                                           	"""Calculating the expectation value of a given system observable
+   128                                           	INPUT: observable of interest, the state of the system and timestep M
+   129                                           	OUTPUT: expectation value of the observable"""
+   130       251         1860      7.4      1.6  	def dB(state):
+   131                                           		new_state = np.zeros(state.shape,complex)
+   132                                           		if thermal == False:
+   133                                           			n = np.arange(1,N_env)
+   134                                           			iend = 1
+   135                                           		elif thermal == True:
+   136                                           			n = ((np.linspace(0,(N_env-1)**2-1,(N_env-1)**2)/(N_env-1)).astype(int)+1)[0:(-N_env+1)]
+   137                                           			iend = N_env-1
+   138                                           		new_state[:,0:(-iend),:] = np.einsum("i,jik->jik",np.sqrt(n),state[:,iend:,:])
+   139                                           		return new_state
+   140                                           #    dBd = sc.eye(N_env,N_env,-1)*np.sqrt(dt*np.arange(1,N_env+1))
+   141       251        57959    230.9     50.8  	temp = dB(dB(state))
+   142       251        22011     87.7     19.3  	temp2 = dB(state)
+   143       251        12977     51.7     11.4  	NB = np.einsum("jil,jil",temp2,np.conjugate(temp2))
+   144       251        14772     58.9     12.9  	g2_t = np.einsum("jil,jil",temp,np.conjugate(temp))/(NB**2)
+   145       251         1020      4.1      0.9  	temp = None
+   146       251         3488     13.9      3.1  	return np.real(g2_t),np.real(NB)
+
+Total time: 0 s
+File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\MPS_analysis_therm.py
+Function: g2_out at line 154
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   154                                           @profile
+   155                                           def g2_out(states,taumax,N_env,dt,index,thermal):
+   156                                           	"""Calculating the expectation value of a given system observable
+   157                                           	INPUT: observable of interest, the state of the system and timestep M
+   158                                           	OUTPUT: expectation value of the observable"""
+   159                                           	def dB(state):
+   160                                           		new_state = np.zeros(state.shape,complex)
+   161                                           		if thermal == False:
+   162                                           			n = np.arange(1,N_env)
+   163                                           			iend = 1
+   164                                           		elif thermal == True:
+   165                                           			n = ((np.linspace(0,(N_env-1)**2-1,(N_env-1)**2)/(N_env-1)).astype(int)+1)[0:(-N_env+1)]
+   166                                           			iend = N_env-1
+   167                                           		new_state[:,0:(-iend),:] = np.einsum("i,jik->jik",np.sqrt(n),state[:,iend:,:])
+   168                                           		return new_state
+   169                                           	g2_out = np.zeros(taumax)
+   170                                           	tau = np.zeros(taumax)
+   171                                           	temp      = dB(dB(states[index]))
+   172                                           	temp2     = dB(states[index])
+   173                                           	NB = np.einsum("ijk,ijk",temp2, np.conjugate(temp2))
+   174                                           	g2_out[0] = np.einsum("ijk,ijk",temp, np.conjugate(temp))/(NB**2)
+   175                                           	next_step = np.einsum("ijk,ijl->kl",temp2,np.conjugate(temp2))
+   176                                           	for it in range(1,taumax):
+   177                                           		tau[it] = dt*it
+   178                                           		temp    = dB(states[index-it])
+   179                                           		g2_out[it] = np.einsum("njk,njk",np.einsum("mn,mjk->njk",next_step,temp), np.conjugate(temp))/(NB**2)
+   180                                           		next_step = np.einsum("mjk,mjl->kl",np.einsum("ijk,im->mjk",states[index-it],next_step),np.conjugate(states[index-it]))
+   181                                           	return np.real(tau),np.real(g2_out)
+
+Total time: 0.0187985 s
+File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\MPS_analysis_therm.py
+Function: NB_out at line 186
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   186                                           @profile
+   187                                           def NB_out(state,N_env,NB_past,dt,thermal):
+   188                                           	"""Calculating the expectation value of a given system observable
+   189                                           	INPUT: observable of interest, the state of the system and timestep M
+   190                                           	OUTPUT: expectation value of the observable"""
+   191       250         1030      4.1      2.6  	def dB(state):
+   192                                           		new_state = np.zeros(state.shape,complex)
+   193                                           		if thermal == False:
+   194                                           			n = np.arange(1,N_env)
+   195                                           			iend = 1
+   196                                           		elif thermal == True:
+   197                                           			n = ((np.linspace(0,(N_env-1)**2-1,(N_env-1)**2)/(N_env-1)).astype(int)+1)[0:(-N_env+1)]
+   198                                           			iend = N_env-1
+   199                                           		new_state[:,0:(-iend),:] = np.einsum("i,jik->jik",np.sqrt(n),state[:,iend:,:])
+   200                                           		return new_state
+   201       250        22932     91.7     56.9  	temp = dB(state)
+   202       250        11348     45.4     28.2  	NB_now = np.einsum("jil,jil",temp,np.conjugate(temp))
+   203       250         1811      7.2      4.5  	NB = NB_now+NB_past
+   204       250          760      3.0      1.9  	temp = None
+   205       250          648      2.6      1.6  	NB_now = None
+   206       250         1767      7.1      4.4  	return np.real(NB)
+
+Total time: 3.38547 s
+File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\U_JC_therm.py
+Function: U at line 13
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    13                                           @profile
+    14                                           def U(tk,tS,tl,N_env,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele,thermal): #tk: time bin state at k, tS: state of S
+    15                                           	"""Evolution operator up to dt^2
+    16                                           	INPUT: states at the current time (t_k), the delayed time (t_l) and the system state (t_S) at timestep M
+    17                                           	Remember, at M=0 the state is separable
+    18                                           	OUTPUT: combined block of states at t_k, for the system and at t_l"""
+    19                                               
+    20                                               #print(tk.shape,tS.shape,tl.shape,M)
+    21                                               
+    22                                               ####--------------------------####
+    23                                               #### Parameters and operators ####
+    24                                               ####--------------------------####
+    25                                               
+    26                                               #####Dimensions of the physical indices#####
+    27       250         5273     21.1      0.1  	dim_tk,dim_tS,dim_tl = tk.shape[0],tS.shape[0],tl.shape[1]
+    28                                           #	print("dims",dim_tk,dim_tS,dim_tl)
+    29                                           
+    30                                               #####Frequently used operators#####
+    31       250        23996     96.0      0.3  	@profile
+    32                                           	def B(state):
+    33                                           		if thermal == False:
+    34                                           			n = np.arange(1,state.shape[0]+1)
+    35                                           			ind = 1
+    36                                           		elif thermal == True:
+    37                                           			n = (np.arange(N_env,N_env*(N_env+1))/N_env).astype(np.int64)
+    38                                           			ind = N_env
+    39                                           		if gamma_L > 0:
+    40                                           			new_state_tk = np.zeros(state.shape,complex)
+    41                                           			new_state_tk[0:-ind,:,:,:] = np.einsum("i,ijkl->ijkl",np.sqrt(n[0:-ind]*gamma_L*dt),state[ind:,:,:,:])
+    42                                           		if gamma_R > 0:
+    43                                           			new_state_tl = np.zeros(state.shape,complex)
+    44                                           			new_state_tl[:,:,0:-ind,:] = np.einsum("k,ijkl->ijkl",np.sqrt(n[0:-ind]*gamma_R*dt)*np.exp(-1j*phi),state[:,:,ind:,:])
+    45                                           		return new_state_tk+new_state_tl
+    46                                           
+    47       250        15064     60.3      0.2  	@profile
+    48                                           	def Bd(state):
+    49                                           		if thermal == False:
+    50                                           			n = np.arange(1,state.shape[0]+1)
+    51                                           			ind = 1
+    52                                           		elif thermal == True:
+    53                                           			n = (np.arange(N_env,N_env*(N_env+1))/N_env).astype(np.int64)
+    54                                           			ind = N_env
+    55                                           		if gamma_L > 0:
+    56                                           			new_state_tk = np.zeros(state.shape,complex)
+    57                                           			new_state_tk[ind:,:,:,:] = np.einsum("i,ijkl->ijkl",np.sqrt(n[0:-ind]*gamma_L*dt),state[0:-ind,:,:,:])
+    58                                           		if gamma_R > 0:
+    59                                           			new_state_tl = np.zeros(state.shape,complex)
+    60                                           			new_state_tl[:,:,ind:,:] = np.einsum("k,ijkl->ijkl",np.sqrt(n[0:-ind]*gamma_R*dt)*np.exp(1j*phi),state[:,:,0:-ind,:])
+    61                                           		return new_state_tk+new_state_tl
+    62                                           
+    63       250        14212     56.8      0.2  	@profile
+    64                                           	def c(state):
+    65                                           		new_state = np.zeros(state.shape,complex)
+    66                                           		n=(np.arange(2,dim_tS)/2).astype(np.int64)
+    67                                           		new_state[:,0:-2,:,:] = np.einsum("j,ijkl->ijkl",np.sqrt(n),state[:,2:,:,:])
+    68                                           		return new_state
+    69                                           		
+    70       250        13898     55.6      0.2  	@profile
+    71                                           	def cd(state):
+    72                                           		new_state = np.zeros(state.shape,complex)
+    73                                           		n=(np.arange(2,dim_tS)/2).astype(np.int64)
+    74                                           		new_state[:,2:,:,:] = np.einsum("j,ijkl->ijkl",np.sqrt(n),state[:,0:-2,:,:])
+    75                                           		return new_state
+    76                                           		
+    77       250        13784     55.1      0.2  	@profile
+    78                                           	def sm(state):
+    79                                           		new_state = np.zeros(state.shape,complex)
+    80                                           		new_state[:,0:dim_tS-1:2,:,:] = state[:,1:dim_tS:2,:,:]
+    81                                           		return new_state
+    82                                           
+    83       250        13560     54.2      0.2  	@profile
+    84                                           	def sp(state):
+    85                                           		new_state = np.zeros(state.shape,complex)
+    86                                           		new_state[:,1:dim_tS:2,:,:] = state[:,0:dim_tS-1:2,:,:]
+    87                                           		return new_state
+    88                                           
+    89       250        13678     54.7      0.2  	@profile
+    90                                           	def JC(state):
+    91                                           		new_tS_g = np.zeros(state.shape,complex)
+    92                                           		new_tS_Ome = np.zeros(state.shape,complex)
+    93                                           		n=(np.arange(2,dim_tS)/2).astype(np.int64)
+    94                                           		if g is not 0:
+    95                                           			new_tS_g[:,1:dim_tS-1:2,:,:]   = np.einsum("j,ijkl->ijkl",np.sqrt(n[0:dim_tS-1:2])*g,state[:,2:dim_tS:2,:,:])
+    96                                           			new_tS_g[:,2:dim_tS:2,:,:]   = np.einsum("j,ijkl->ijkl",np.sqrt(n[0:dim_tS-1:2])*g,state[:,1:dim_tS-1:2,:,:])
+    97                                           		if Ome is not 0:
+    98                                           			new_tS_Ome[:,0:dim_tS-2:2,:,:] = Ome*state[:,1:dim_tS-1:2,:,:]
+    99                                           			new_tS_Ome[:,1:dim_tS-1:2,:,:] = Ome*state[:,0:dim_tS-2:2,:,:]
+   100                                           		return new_tS_g+new_tS_Ome
+   101                                           		
+   102       250        13674     54.7      0.2  	@profile
+   103                                           	def nc(state):
+   104                                           		n=(np.arange(0,dim_tS)/2).astype(np.int64)
+   105                                           		new_state = np.zeros(state.shape,complex)
+   106                                           		new_state = np.einsum("j,ijkl->ijkl",n,state)
+   107                                           		return new_state
+   108                                           		
+   109       250        13667     54.7      0.2  	@profile
+   110                                           	def C(state):
+   111                                           		if Delc == 0. and Omc == 0.:
+   112                                           			return np.zeros(state.shape,complex)
+   113                                           		elif Delc == 0. and Omc > 0.:
+   114                                           			return Omc*(c(state)+cd(state))
+   115                                           		elif (Delc > 0. or Delc < 0.) and Omc == 0.:
+   116                                           			return Delc*nc(state)
+   117                                           		else:
+   118                                           			return Delc*nc(state)+Omc*(c(state)+cd(state))
+   119                                           	
+   120       250        13612     54.4      0.2  	@profile
+   121                                           	def MB(state):
+   122                                           		return Bd(c(state))-B(cd(state))
+   123                                           	
+   124       250        13835     55.3      0.2  	@profile
+   125                                           	def MS(state):
+   126                                           		new_tS = np.zeros(state.shape,complex)
+   127                                           		new_tS += state
+   128                                           		if Dele == 0.:
+   129                                           			return -1j*dt*(C(state)+JC(state))
+   130                                           		else:
+   131                                           			new_tS[:,0:dim_tS:2,:,:] = 0
+   132                                           			return -1j*dt*(C(state)+JC(state)+Dele*new_tS)
+   133                                                   
+   134                                               ####----------------------####
+   135                                               #### Different terms in U ####
+   136                                               ####----------------------####
+   137                                               
+   138                                               #####Initial state#####
+   139                                           #	initial = np.einsum("i,kl,lmn->ikmn",tk,tS,tl,optimize=True)
+   140       250       213800    855.2      2.9  	initial = np.einsum("ikl,lmn->ikmn",np.tensordot(tk,tS,axes=0),tl)
+   141                                           #    print("init",initial[0,2,0],initial[1,0,0],initial[0,0,1],initial[0,0,0], initial.shape)
+   142                                           	
+   143       250         4637     18.5      0.1  	if gamma_L > 0. or gamma_R > 0.:
+   144                                           		#####Environment#####
+   145       250        16995     68.0      0.2  		MBi = np.zeros(initial.shape, complex)
+   146       250        23325     93.3      0.3  		MBi += initial
+   147       250        17861     71.4      0.2  		env = np.zeros(MBi.shape,complex)
+   148      1250        22609     18.1      0.3  		for i in range(1,5):
+   149      1000      2875403   2875.4     39.6  			MBi = MB(MBi)/i
+   150      1000        84165     84.2      1.2  			env += MBi
+   151       250         5594     22.4      0.1  		MBi = None
+   152                                           		
+   153                                           		#####System-Environment#####
+   154       250       846803   3387.2     11.7  		sys_env = MS(MB(initial))
+   155       250       624538   2498.2      8.6  		sys_env += (.5*(MB(sys_env)) -
+   156       250         4535     18.1      0.1  					0.5j*dt*( Bd(Delc*c(initial)+Omc*initial+g*sm(initial)) + 
+   157                                           								B(Delc*cd(initial)+Omc*initial+g*sp(initial))-
+   158                                           								(gamma_L+gamma_R)/3.*dt*(C(initial)+g*(c(sp(initial))+cd(sm(initial)))+
+   159       250      1761537   7046.1     24.3  								Delc*nc(initial)) + 2/3.*Delc*Bd(B(initial))))
+   160                                               
+   161                                               #####System#####
+   162       250       533606   2134.4      7.4  	sys = MS(initial+MS(initial)/2.)
+   163                                               
+   164                                           #    print("sysenv",sys_env[0,2,0])
+   165                                           
+   166       250        53336    213.3      0.7  	return initial + sys + env + sys_env##
+
+Total time: 0.712043 s
+File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\U_JC_therm.py
+Function: B at line 31
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    31                                           	@profile
+    32                                           	def B(state):
+    33      2000         8065      4.0      0.5  		if thermal == False:
+    34      2000        24971     12.5      1.6  			n = np.arange(1,state.shape[0]+1)
+    35      2000         6864      3.4      0.4  			ind = 1
+    36                                           		elif thermal == True:
+    37                                           			n = (np.arange(N_env,N_env*(N_env+1))/N_env).astype(np.int64)
+    38                                           			ind = N_env
+    39      2000         6788      3.4      0.4  		if gamma_L > 0:
+    40      2000        56467     28.2      3.7  			new_state_tk = np.zeros(state.shape,complex)
+    41      2000       563424    281.7     36.9  			new_state_tk[0:-ind,:,:,:] = np.einsum("i,ijkl->ijkl",np.sqrt(n[0:-ind]*gamma_L*dt),state[ind:,:,:,:])
+    42      2000        10533      5.3      0.7  		if gamma_R > 0:
+    43      2000        60230     30.1      3.9  			new_state_tl = np.zeros(state.shape,complex)
+    44      2000       639836    319.9     41.9  			new_state_tl[:,:,0:-ind,:] = np.einsum("k,ijkl->ijkl",np.sqrt(n[0:-ind]*gamma_R*dt)*np.exp(-1j*phi),state[:,:,ind:,:])
+    45      2000       149137     74.6      9.8  		return new_state_tk+new_state_tl
+
+Total time: 0.707972 s
+File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\U_JC_therm.py
+Function: Bd at line 47
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    47                                           	@profile
+    48                                           	def Bd(state):
+    49      2000         7304      3.7      0.5  		if thermal == False:
+    50      2000        24205     12.1      1.6  			n = np.arange(1,state.shape[0]+1)
+    51      2000         5770      2.9      0.4  			ind = 1
+    52                                           		elif thermal == True:
+    53                                           			n = (np.arange(N_env,N_env*(N_env+1))/N_env).astype(np.int64)
+    54                                           			ind = N_env
+    55      2000         5561      2.8      0.4  		if gamma_L > 0:
+    56      2000        55453     27.7      3.7  			new_state_tk = np.zeros(state.shape,complex)
+    57      2000       566804    283.4     37.3  			new_state_tk[ind:,:,:,:] = np.einsum("i,ijkl->ijkl",np.sqrt(n[0:-ind]*gamma_L*dt),state[0:-ind,:,:,:])
+    58      2000         9361      4.7      0.6  		if gamma_R > 0:
+    59      2000        60640     30.3      4.0  			new_state_tl = np.zeros(state.shape,complex)
+    60      2000       638143    319.1     42.0  			new_state_tl[:,:,ind:,:] = np.einsum("k,ijkl->ijkl",np.sqrt(n[0:-ind]*gamma_R*dt)*np.exp(1j*phi),state[:,:,0:-ind,:])
+    61      2000       144349     72.2      9.5  		return new_state_tk+new_state_tl
+
+Total time: 0.367265 s
+File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\U_JC_therm.py
+Function: c at line 63
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    63                                           	@profile
+    64                                           	def c(state):
+    65      2000        66083     33.0      8.4  		new_state = np.zeros(state.shape,complex)
+    66      2000        54272     27.1      6.9  		n=(np.arange(2,dim_tS)/2).astype(np.int64)
+    67      2000       660349    330.2     83.9  		new_state[:,0:-2,:,:] = np.einsum("j,ijkl->ijkl",np.sqrt(n),state[:,2:,:,:])
+    68      2000         6555      3.3      0.8  		return new_state
+
+Total time: 0.343676 s
+File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\U_JC_therm.py
+Function: cd at line 70
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    70                                           	@profile
+    71                                           	def cd(state):
+    72      2000        58043     29.0      7.9  		new_state = np.zeros(state.shape,complex)
+    73      2000        51833     25.9      7.0  		n=(np.arange(2,dim_tS)/2).astype(np.int64)
+    74      2000       620375    310.2     84.2  		new_state[:,2:,:,:] = np.einsum("j,ijkl->ijkl",np.sqrt(n),state[:,0:-2,:,:])
+    75      2000         6443      3.2      0.9  		return new_state
+
+Total time: 0.0139977 s
+File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\U_JC_therm.py
+Function: sm at line 77
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    77                                           	@profile
+    78                                           	def sm(state):
+    79       500        14105     28.2     47.0  		new_state = np.zeros(state.shape,complex)
+    80       500        14881     29.8     49.6  		new_state[:,0:dim_tS-1:2,:,:] = state[:,1:dim_tS:2,:,:]
+    81       500         1019      2.0      3.4  		return new_state
+
+Total time: 0.0141092 s
+File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\U_JC_therm.py
+Function: sp at line 83
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    83                                           	@profile
+    84                                           	def sp(state):
+    85       500        14074     28.1     46.5  		new_state = np.zeros(state.shape,complex)
+    86       500        15107     30.2     50.0  		new_state[:,1:dim_tS:2,:,:] = state[:,0:dim_tS-1:2,:,:]
+    87       500         1063      2.1      3.5  		return new_state
+
+Total time: 0.192413 s
+File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\U_JC_therm.py
+Function: JC at line 89
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    89                                           	@profile
+    90                                           	def JC(state):
+    91       750        21289     28.4      5.2  		new_tS_g = np.zeros(state.shape,complex)
+    92       750        21312     28.4      5.2  		new_tS_Ome = np.zeros(state.shape,complex)
+    93       750        19756     26.3      4.8  		n=(np.arange(2,dim_tS)/2).astype(np.int64)
+    94       750         2033      2.7      0.5  		if g is not 0:
+    95       750       147783    197.0     35.8  			new_tS_g[:,1:dim_tS-1:2,:,:]   = np.einsum("j,ijkl->ijkl",np.sqrt(n[0:dim_tS-1:2])*g,state[:,2:dim_tS:2,:,:])
+    96       750       146071    194.8     35.4  			new_tS_g[:,2:dim_tS:2,:,:]   = np.einsum("j,ijkl->ijkl",np.sqrt(n[0:dim_tS-1:2])*g,state[:,1:dim_tS-1:2,:,:])
+    97       750         2584      3.4      0.6  		if Ome is not 0:
+    98                                           			new_tS_Ome[:,0:dim_tS-2:2,:,:] = Ome*state[:,1:dim_tS-1:2,:,:]
+    99                                           			new_tS_Ome[:,1:dim_tS-1:2,:,:] = Ome*state[:,0:dim_tS-2:2,:,:]
+   100       750        51623     68.8     12.5  		return new_tS_g+new_tS_Ome
+
+Total time: 0.0333863 s
+File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\U_JC_therm.py
+Function: nc at line 102
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   102                                           	@profile
+   103                                           	def nc(state):
+   104       250         6543     26.2      9.1  		n=(np.arange(0,dim_tS)/2).astype(np.int64)
+   105       250         6688     26.8      9.3  		new_state = np.zeros(state.shape,complex)
+   106       250        57630    230.5     80.5  		new_state = np.einsum("j,ijkl->ijkl",n,state)
+   107       250          705      2.8      1.0  		return new_state
+
+Total time: 0.0149274 s
+File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\U_JC_therm.py
+Function: C at line 109
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   109                                           	@profile
+   110                                           	def C(state):
+   111      1000         3634      3.6     11.4  		if Delc == 0. and Omc == 0.:
+   112      1000        28364     28.4     88.6  			return np.zeros(state.shape,complex)
+   113                                           		elif Delc == 0. and Omc > 0.:
+   114                                           			return Omc*(c(state)+cd(state))
+   115                                           		elif (Delc > 0. or Delc < 0.) and Omc == 0.:
+   116                                           			return Delc*nc(state)
+   117                                           		else:
+   118                                           			return Delc*nc(state)+Omc*(c(state)+cd(state))
+
+Total time: 1.75424 s
+File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\U_JC_therm.py
+Function: MB at line 120
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   120                                           	@profile
+   121                                           	def MB(state):
+   122      1500      3760342   2506.9    100.0  		return Bd(c(state))-B(cd(state))
+
+Total time: 0.308985 s
+File: D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\U_JC_therm.py
+Function: MS at line 124
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   124                                           	@profile
+   125                                           	def MS(state):
+   126       750        23952     31.9      3.6  		new_tS = np.zeros(state.shape,complex)
+   127       750        50525     67.4      7.6  		new_tS += state
+   128       750         3551      4.7      0.5  		if Dele == 0.:
+   129       750       584303    779.1     88.2  			return -1j*dt*(C(state)+JC(state))
+   130                                           		else:
+   131                                           			new_tS[:,0:dim_tS:2,:,:] = 0
+   132                                           			return -1j*dt*(C(state)+JC(state)+Dele*new_tS)
 

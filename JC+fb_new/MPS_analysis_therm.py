@@ -16,7 +16,7 @@ import opt_einsum as oe
 ############################
 ### Calculating the norm ###
 ############################
-#@profile
+@profile
 def normf(M,L,state,norm_L):
 	"""Performing the contractions for the norm
 	INPUT: calculated states in list "state" with a delay index-length L 
@@ -62,7 +62,7 @@ def normf(M,L,state,norm_L):
 ##############################################
 ### Expectation value of system observable ###
 ##############################################
-#@profile
+@profile
 def exp_sys(observable,sys,M):
 	"""Calculating the expectation value of a given system observable
 	INPUT: observable of interest, the state of the system and timestep M
@@ -89,7 +89,7 @@ def spectrum(states,freqs,pmax,N_env,dt,index,thermal):
 			n = np.arange(1,N_env)
 			iend = 1
 		elif thermal == True:
-			n = ((np.linspace(0,(N_env-1)**2-1,(N_env-1)**2)/(N_env-1)).astype(int)+1)[0:(-N_env+1)]
+			n = np.arange(0,N_env*(N_env-1))/N_env).astype(np.int64)+1
 			iend = N_env-1
 		new_state[:,0:(-iend),:] = np.einsum("i,jik->jik",np.sqrt(n*dt),state[:,iend:,:])
 		return new_state
@@ -100,7 +100,7 @@ def spectrum(states,freqs,pmax,N_env,dt,index,thermal):
 			n = np.arange(1,N_env)
 			iend = 1
 		elif thermal == True:
-			n = ((np.linspace(0,(N_env-1)**2-1,(N_env-1)**2)/(N_env-1)).astype(int)+1)[0:(-N_env+1)]
+			n = np.arange(0,N_env*(N_env-1))/N_env).astype(np.int64)+1
 			iend = N_env-1
 		new_state[:,iend:,:] = np.einsum("k,ikl->ikl",np.sqrt(n*dt),state[:,0:-iend,:])
 		return new_state
@@ -122,7 +122,7 @@ def spectrum(states,freqs,pmax,N_env,dt,index,thermal):
 ######################
 ### g2 correlation ###
 ######################
-#@profile
+@profile
 def g2_t(state,N_env,dt,thermal):
 	"""Calculating the expectation value of a given system observable
 	INPUT: observable of interest, the state of the system and timestep M
@@ -133,7 +133,7 @@ def g2_t(state,N_env,dt,thermal):
 			n = np.arange(1,N_env)
 			iend = 1
 		elif thermal == True:
-			n = ((np.linspace(0,(N_env-1)**2-1,(N_env-1)**2)/(N_env-1)).astype(int)+1)[0:(-N_env+1)]
+			n = np.arange(0,N_env*(N_env-1))/N_env).astype(np.int64)+1
 			iend = N_env-1
 		new_state[:,0:(-iend),:] = np.einsum("i,jik->jik",np.sqrt(n),state[:,iend:,:])
 		return new_state
@@ -148,10 +148,10 @@ def g2_t(state,N_env,dt,thermal):
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
-
 #############################
 ### g2 output correlation ###
 #############################
+@profile
 def g2_out(states,taumax,N_env,dt,index,thermal):
 	"""Calculating the expectation value of a given system observable
 	INPUT: observable of interest, the state of the system and timestep M
@@ -162,7 +162,7 @@ def g2_out(states,taumax,N_env,dt,index,thermal):
 			n = np.arange(1,N_env)
 			iend = 1
 		elif thermal == True:
-			n = ((np.linspace(0,(N_env-1)**2-1,(N_env-1)**2)/(N_env-1)).astype(int)+1)[0:(-N_env+1)]
+			n = np.arange(0,N_env*(N_env-1))/N_env).astype(np.int64)+1
 			iend = N_env-1
 		new_state[:,0:(-iend),:] = np.einsum("i,jik->jik",np.sqrt(n),state[:,iend:,:])
 		return new_state
@@ -183,7 +183,7 @@ def g2_out(states,taumax,N_env,dt,index,thermal):
 ################################
 ### Number of output photons ###
 ################################
-#@profile
+@profile
 def NB_out(state,N_env,NB_past,dt,thermal):
 	"""Calculating the expectation value of a given system observable
 	INPUT: observable of interest, the state of the system and timestep M
@@ -194,7 +194,7 @@ def NB_out(state,N_env,NB_past,dt,thermal):
 			n = np.arange(1,N_env)
 			iend = 1
 		elif thermal == True:
-			n = ((np.linspace(0,(N_env-1)**2-1,(N_env-1)**2)/(N_env-1)).astype(int)+1)[0:(-N_env+1)]
+			n = np.arange(0,N_env*(N_env-1))/N_env).astype(np.int64)+1
 			iend = N_env-1
 		new_state[:,0:(-iend),:] = np.einsum("i,jik->jik",np.sqrt(n),state[:,iend:,:])
 		return new_state

@@ -1,0 +1,2 @@
+D:\Dokumentumok\Auckland\Research\notebook\Kerr\JC+fb_new\MPS_analysis_therm.py:144: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("jil,jil",temp,np.conjugate(temp))/(NB**2)

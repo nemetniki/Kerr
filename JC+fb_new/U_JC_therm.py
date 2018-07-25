@@ -10,7 +10,7 @@ import opt_einsum as oe
 ############################
 ### Evolution operator U ###
 ############################
-#@profile
+@profile
 def U(tk,tS,tl,N_env,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele,thermal): #tk: time bin state at k, tS: state of S
 	"""Evolution operator up to dt^2
 	INPUT: states at the current time (t_k), the delayed time (t_l) and the system state (t_S) at timestep M
@@ -28,13 +28,13 @@ def U(tk,tS,tl,N_env,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele,thermal): #tk:
 #	print("dims",dim_tk,dim_tS,dim_tl)
 
     #####Frequently used operators#####
-	#@profile
+	@profile
 	def B(state):
 		if thermal == False:
 			n = np.arange(1,state.shape[0]+1)
 			ind = 1
 		elif thermal == True:
-			n = (np.linspace(0,(N_env)**2-1,(N_env)**2)/(N_env)).astype(int)+1
+			n = (np.arange(N_env,N_env*(N_env+1))/N_env).astype(np.int64)
 			ind = N_env
 		if gamma_L > 0:
 			new_state_tk = np.zeros(state.shape,complex)
@@ -44,13 +44,13 @@ def U(tk,tS,tl,N_env,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele,thermal): #tk:
 			new_state_tl[:,:,0:-ind,:] = np.einsum("k,ijkl->ijkl",np.sqrt(n[0:-ind]*gamma_R*dt)*np.exp(-1j*phi),state[:,:,ind:,:])
 		return new_state_tk+new_state_tl
 
-	#@profile
+	@profile
 	def Bd(state):
 		if thermal == False:
 			n = np.arange(1,state.shape[0]+1)
 			ind = 1
 		elif thermal == True:
-			n = (np.linspace(0,(N_env)**2-1,(N_env)**2)/(N_env)).astype(int)+1
+			n = (np.arange(N_env,N_env*(N_env+1))/N_env).astype(np.int64)
 			ind = N_env
 		if gamma_L > 0:
 			new_state_tk = np.zeros(state.shape,complex)
@@ -60,37 +60,37 @@ def U(tk,tS,tl,N_env,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele,thermal): #tk:
 			new_state_tl[:,:,ind:,:] = np.einsum("k,ijkl->ijkl",np.sqrt(n[0:-ind]*gamma_R*dt)*np.exp(1j*phi),state[:,:,0:-ind,:])
 		return new_state_tk+new_state_tl
 
-	#@profile
+	@profile
 	def c(state):
 		new_state = np.zeros(state.shape,complex)
-		n=np.linspace(1,int((dim_tS)/2),dim_tS-2).astype(np.int64)
+		n=(np.arange(2,dim_tS)/2).astype(np.int64)
 		new_state[:,0:-2,:,:] = np.einsum("j,ijkl->ijkl",np.sqrt(n),state[:,2:,:,:])
 		return new_state
 		
-	#@profile
+	@profile
 	def cd(state):
 		new_state = np.zeros(state.shape,complex)
-		n=np.linspace(1,int((dim_tS)/2),dim_tS-2).astype(np.int64)
+		n=(np.arange(2,dim_tS)/2).astype(np.int64)
 		new_state[:,2:,:,:] = np.einsum("j,ijkl->ijkl",np.sqrt(n),state[:,0:-2,:,:])
 		return new_state
 		
-	#@profile
+	@profile
 	def sm(state):
 		new_state = np.zeros(state.shape,complex)
 		new_state[:,0:dim_tS-1:2,:,:] = state[:,1:dim_tS:2,:,:]
 		return new_state
 
-	#@profile
+	@profile
 	def sp(state):
 		new_state = np.zeros(state.shape,complex)
 		new_state[:,1:dim_tS:2,:,:] = state[:,0:dim_tS-1:2,:,:]
 		return new_state
 
-	#@profile
+	@profile
 	def JC(state):
 		new_tS_g = np.zeros(state.shape,complex)
 		new_tS_Ome = np.zeros(state.shape,complex)
-		n=np.linspace(1,int((dim_tS)/2),dim_tS-2).astype(np.int64)
+		n=(np.arange(2,dim_tS)/2).astype(np.int64)
 		if g is not 0:
 			new_tS_g[:,1:dim_tS-1:2,:,:]   = np.einsum("j,ijkl->ijkl",np.sqrt(n[0:dim_tS-1:2])*g,state[:,2:dim_tS:2,:,:])
 			new_tS_g[:,2:dim_tS:2,:,:]   = np.einsum("j,ijkl->ijkl",np.sqrt(n[0:dim_tS-1:2])*g,state[:,1:dim_tS-1:2,:,:])
@@ -99,14 +99,14 @@ def U(tk,tS,tl,N_env,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele,thermal): #tk:
 			new_tS_Ome[:,1:dim_tS-1:2,:,:] = Ome*state[:,0:dim_tS-2:2,:,:]
 		return new_tS_g+new_tS_Ome
 		
-	#@profile
+	@profile
 	def nc(state):
-		n=np.linspace(0,int((dim_tS)/2),dim_tS).astype(np.int64)
+		n=(np.arange(0,dim_tS)/2).astype(np.int64)
 		new_state = np.zeros(state.shape,complex)
 		new_state = np.einsum("j,ijkl->ijkl",n,state)
 		return new_state
 		
-	#@profile
+	@profile
 	def C(state):
 		if Delc == 0. and Omc == 0.:
 			return np.zeros(state.shape,complex)
@@ -117,11 +117,11 @@ def U(tk,tS,tl,N_env,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele,thermal): #tk:
 		else:
 			return Delc*nc(state)+Omc*(c(state)+cd(state))
 	
-	#@profile
+	@profile
 	def MB(state):
 		return Bd(c(state))-B(cd(state))
 	
-	#@profile
+	@profile
 	def MS(state):
 		new_tS = np.zeros(state.shape,complex)
 		new_tS += state
