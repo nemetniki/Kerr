@@ -1,0 +1,37 @@
+#!/bin/bash
+
+<<COMMENT
+	usage: MPS Jaynes-Cummings+feedback [-h] [-init_ind INIT_IND] [-Om_e OM_E]
+	                                    [-Om_c OM_C] [-tol TOL] [-Nphot NPHOT]
+	                                    [-L L] [-endt ENDT] [-dt DT] [-cohC COHC]
+	                                    [-cohE COHE] [-nT NT]
+	                                    gamma_L gamma_R g phi
+	
+	Calculating the evolution of the occupation of the TLS levels the photon
+	number inside the cavity and the norm for different driving and feedback
+	conditions
+	
+	positional arguments:
+	  gamma_L             gamma_L
+	  gamma_R             gamma_R
+  	  g                   g: cavity atom coupling
+	  phi                 phi/pi (note that constructive interference is pi,
+	                      destructive is 0)
+
+	optional arguments:
+	  -h, --help          show this help message and exit
+	  -init_ind INIT_IND  initial index of system vector (default: 0)
+	  -Om_e OM_E          Om_e: direct driving strength of the TLS (default: 0)
+	  -Om_c OM_C          Om_c: driving strength for the cavity (default: 0)
+	  -tol TOL            tolerance (default: -3)
+	  -Nphot NPHOT        maximal boson number (default: 50)
+	  -L L                delay as number of dt (default: 10)
+	  -endt ENDT          end of time evolution (default: 10)
+	  -dt DT              dt (default: 0.005)
+	  -cohC COHC          coherent initial state for the cavity (default: 0.0)
+	  -cohE COHE          coherent initial state for the environment (default:
+	                      0.0)
+	  -nT NT              thermal photon number (default: 0.0)
+COMMENT
+
+nohup >cprof.txt 2>proferr.txt python -m cProfile -s tottime MPS_JC+fb_short_therm.py .02 .08 1 0 10 -tol -4 -Nphot 40 -L 20 -dt 0.002 -Om_e 2. -endt 30&

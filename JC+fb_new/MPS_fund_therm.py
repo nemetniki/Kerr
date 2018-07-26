@@ -51,6 +51,7 @@ def SVD_sig(block,cutoff):
 #	svd_init  = None
 	#sing      = None
 	#sign_sing = None
+	
 
 	return svd_final,d
 
@@ -318,7 +319,7 @@ def SWAP(states,base_ind,direction,L,tol):
 	INPUT: list of timebins, index of start, direction of SWAPs ("future" or "past") and the location of
 	the orthogonality centre (optional)
 	OUTPUT: list of states that changed"""
-
+#	print("L = ", L )
 	# Determining the direction of SWAPs
 	if direction=="future":
 		c = 1

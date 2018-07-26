@@ -187,7 +187,7 @@ for M in range(0,N-L-1):
                 
     # Relocating the orthogonality centre from the past bin to the system bin before the evolution
     # operator's action if applicable
-	states[ind_sys],states[ind_sys-1] = OC_reloc(states[ind_sys],states[ind_sys-1],"left",tol)
+		states[ind_sys],states[ind_sys-1] = OC_reloc(states[ind_sys],states[ind_sys-1],"left",tol)
         
 	norm,normL = normf(M,L,states,normL)
 	nc_exp = exp_sys(nc,states[ind_sys],M)
@@ -220,6 +220,7 @@ for M in range(0,N-L-1):
 #    print("U block merge right",U_block.shape)
     
     # Separating the system state from the environment bins
+	#print("main M = ",M)
 	states[ind_sys+1],U_small_block = cut(U_block,tol,"right")
 #    print("tS and rest",states[ind_sys+1].shape,U_small_block.shape)
 	U_block = None
