@@ -51,9 +51,9 @@ def SVD_sig(file_k,block,cutoff):
 #	svd_init  = None
 	#sing      = None
 	#sign_sing = None
-#	kname = "./k.txt"	
+#	kname = "./k2.txt"	
 #	file_k = open(kname,"a")
-	file_k.write(str(d)+"\n")
+	file_k.write(str(d)+" "+str(min(block.shape))+"\n")
 	file_k.flush()
 
 	return svd_final,d

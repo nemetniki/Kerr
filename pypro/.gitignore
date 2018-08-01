@@ -1,0 +1,6 @@
+*.pyc
+*~
+*.so
+pypropack/_*.c
+pypropack/_*.f
+build
