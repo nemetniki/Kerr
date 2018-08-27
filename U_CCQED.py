@@ -516,12 +516,15 @@ def U(M,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele): #tk
 	sys = MS(initial+MS(initial)/2.)
 	
 	#####Environment#####
-	env = 0.
+	env = ME1(ME1(initial,2),1)+.5*ME2(ME2(initial,2),1)
 	for i in range(1,3):
 		env += .5*ME2(initial,i)+ME3(initial,i)/6.+ME4(initial,i)/24.+ME1(initial,i)*(initial+.5*ME2(initial,3-i)+ME3(initial,3-i)/6.)
-	
 			
-    
+    #####System+environment#####
+	sys_env = 0.
+	for i in range(1,3):
+		sys_env += .5*(D1(ME1(initial,3-i)+initial,i)+D2(initial,i)/3.+MS(ME1(ME1(initial,i)+initial,i)+ME1(initial,,i)+
+				
 #    print("sysenv",sys_env[0,2,0])
 
 	return initial + sys + env + sys_env##
