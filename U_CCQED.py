@@ -172,6 +172,8 @@ def U(M,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele): #tk
 				else:
 					new_tS[:,:,:,:,0:dim_tS:2,:,:,:] = 0
 			return -1j*dt*(C(state,which)+JC(state,which)+Dele[which-1]*new_tS)
+	def MStot(state):
+		return MS(state,1)+MS(state,2)
 	def E(state,which,N):
 		new_state_tB = np.zeros(state.shape,complex)
 		new_state_tF = np.zeros(state.shape,complex)
@@ -477,30 +479,34 @@ def U(M,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele): #tk
 		return (ad(E(state,which,3)+E3mix(state,which),which,3) - a(Ed(state,which,3)+Ed3mix(state,which),which,3)-
 				E(ad(nEad(state,which),which,1),which,1)+Ed(a(nEda(state,which),which,1),which,1))
 	def ME4(state,which):
-		return (ad(E(state,which,4)+E4mix(state,which),which,4) + a(Ed(state,which,4)+Ed4mix(state,which),which,4)+
-				nEad(nE(nc(state,which,1),which,0)-Ed(a(state,which,2),which,2),which)+
-				nEda(nE(nc(state,which,0),which,1)-E(ad(state,which,2),which,2),which))
+		return (ad(E(state,which,4)+E4mix(state,which),which,4) + a(Ed(state,which,4)+Ed4mix(state,which),which,4)-
+				nE(nc(ad(E(state,which,2)+E2mix(state,which,2),which,2),which,-2),which,3)-
+				nE(nc(a(Ed(state,which,2)+Ed2mix(state,which,2),which,2),which,3),which,-2)-
+				nEad(nE(nc(state,which,1),which,0)-a(Ed(state,which,2)+Ed2mix(state,which,2),which)+
+				nEda(nE(nc(state,which,0),which,1)-ad(E(state,which,2)+E2mix(state,which,2),which))
 
-	def D1(state,which):
+	def D1(state):
 		new_state = np.zeros(state.shape)
-		if Delc[which-1] !=0:
-			new_state += Delc[which-1]*(E(ad(state,which,1),which,1)+Ed(a(state,which,1),which,1)
-		if g[which-1] != 0:
-			new_state += g[which-1]*(sm(Ed(state,which,1),which)+sm(Ed(state,which,1),which))
-		if Ome[which-1] != 0:
-			new_state += Ome[which-1]*(Ed(state,which,1)+E(state,which,1))
+		for which in range(0,3):
+			if Delc[which-1] !=0:
+				new_state += Delc[which-1]*(E(ad(state,which,1),which,1)+Ed(a(state,which,1),which,1)
+			if g[which-1] != 0:
+				new_state += g[which-1]*(sm(Ed(state,which,1),which)+sm(Ed(state,which,1),which))
+			if Ome[which-1] != 0:
+				new_state += Ome[which-1]*(Ed(state,which,1)+E(state,which,1))
 		return -1j*new_state
-	def D2(state,which):
+	def D2(state):
 		new_state = np.zeros(state.shape)
-		if Delc[which-1] !=0:
-			new_state += 2*Delc[which-1]*(nE(state,which,0)-(gamma_B[which-1]+gamma_F[which-1])*dt*nc(state,which,0))
-		if g[which-1] !=0:
-			new_state += g[which-1]*(gamma_B[which-1]+gamma_F[which-1])*dt*(a(sp(state,which),which,1)-ad(sm(state,which),which,1))
-		if Omc[which-1] !=0:
-			new_state += Omc[which-1]*(gamma_B[which-1]+gamma_F[which-1])*dt*(a(state,which,1)-ad(state,which,1))
+		for which in range(0,3):
+			if Delc[which-1] !=0:
+				new_state += 2*Delc[which-1]*(nE(state,which,0)-(gamma_B[which-1]+gamma_F[which-1])*dt*nc(state,which,0))
+			if g[which-1] !=0:
+				new_state += g[which-1]*(gamma_B[which-1]+gamma_F[which-1])*dt*(a(sp(state,which),which,1)-ad(sm(state,which),which,1))
+			if Omc[which-1] !=0:
+				new_state += Omc[which-1]*(gamma_B[which-1]+gamma_F[which-1])*dt*(a(state,which,1)-ad(state,which,1))
 		return -1j*new_state
 
-			####----------------------####
+    ####----------------------####
     #### Different terms in U ####
     ####----------------------####
     
@@ -510,20 +516,21 @@ def U(M,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele): #tk
 	else:
 		initial = contract("oip,j,okqr,pltu,m,unr->ijkqltmn",tFL,tBL,tS1,tS2,tB2,tF2)
 #    print("init",initial[0,2,0],initial[1,0,0],initial[0,0,1],initial[0,0,0], initial.shape)
-	legs = len(initial.shape)
+	#legs = len(initial.shape)
 	
-    #####System#####
-	sys = MS(initial+MS(initial)/2.)
+	#####System#####
+	s1 = MStot(initial)
+	sys = s1+MStot(s1)*.5
 	
 	#####Environment#####
-	env = ME1(ME1(initial,2),1)+.5*ME2(ME2(initial,2),1)
+	env = ME1(ME1(initial,2),1)+.25*ME2(ME2(initial,2),1)
 	for i in range(1,3):
-		env += .5*ME2(initial,i)+ME3(initial,i)/6.+ME4(initial,i)/24.+ME1(initial,i)*(initial+.5*ME2(initial,3-i)+ME3(initial,3-i)/6.)
+		env += .5*ME2(initial,i)+ME3(initial,i)/6.+ME4(initial,i)/24.+ME1(initial+.5*ME2(initial,3-i)+ME3(initial,3-i)/6.,i)
 			
-    #####System+environment#####
-	sys_env = 0.
+	#####System+environment#####
+	sys_env = .5*D1(initial)+D2(initial)/6.+ME1(ME1(s1,2),1)
 	for i in range(1,3):
-		sys_env += .5*(D1(ME1(initial,3-i)+initial,i)+D2(initial,i)/3.+MS(ME1(ME1(initial,i)+initial,i)+ME1(initial,,i)+
+		sys_env += ME1(s1+.5*D1(initial),i)+.5*ME2(s1,i)
 				
 #    print("sysenv",sys_env[0,2,0])
 
