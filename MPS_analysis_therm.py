@@ -5,6 +5,7 @@ import time
 import sys
 from decimal import Decimal
 from math import factorial
+from opt_einsum import contract
 
 #*************************#
 #***-------------------***#
@@ -15,37 +16,78 @@ from math import factorial
 ############################
 ### Calculating the norm ###
 ############################
-def normf(M,L,state,norm_L):
+def normf(M,L,statesB1,statesB2,statesFS,normB1,normB2):
 	"""Performing the contractions for the norm
 	INPUT: calculated states in list "state" with a delay index-length L 
 	and the stored values of norm_L (tensor with indices for state and dual) at timestep M
 	OUTPUT: the norm at the present time and the contraction of the past bins which stay constant"""
+	
+	def B(M,states,norm_past):
+		if len(states[M-1].shape)==1:
+			norm_past = np.einsum("i,i",states[M-1],np.conjugate(states[M-1]))*norm_past
+		elif len(states[M-1].shape)==2:
+			if states[M-1].shape[1]>states[M-1].shape[0]:
+				if np.isscalar(norm_past) or len(norm_past)==1:
+					norm_past = np.einsum("ik,jk->ij",states[M-1],np.conjugate(states[M-1]))*norm_past
+				else:
+					norm_past = np.einsum("ik,jk->ij",states[M-1],np.conjugate(states[M-1]))*np.einsum("ii",norm_past)
+			else:
+				if np.isscalar(norm_past) or len(norm_past)==1:
+					norm_past = np.einsum("ik,ik",states[M-1],np.conjugate(states[M-1]))*norm_past
+				else:
+					norm_past = contract("ik,ij,kj",states[M-1],np.conjugate(states[M-1]),norm_past)
+		else:
+			if np.isscalar(norm_past) or len(norm_past)==1:
+				norm_past = np.einsum("kmj,lmj->kl",states[M-1],np.conjugate(states[M-1]))*norm_past
+			else:
+				norm_past = contract("kmi,ij,lmj->kl",states[M-1],norm_past,np.conjugate(states[M-1]))
+		return norm_past
+	def F(M,L,states,ind):
+		normF = B(ind,states,1.):
+		for i in range(1,L-1):
+			if len(states[ind+i].shape)==1:
+				temp = np.einsum("i,i",state[M+i],np.conjugate(state[M+i]))
+				if np.isscalar(normF) or len(normF)==1:
+					normF = temp*normF
+				else:
+					normF = temp*np.einsum("ii",normF)
+			elif len(states[ind+i].shape)==2:
+				if state[ind+i].shape[0]>state[ind+i].shape[1]:
+					temp = np.einsum("ji,jk->ik",states[ind+i],np.conjugate(states[ind+i]))
+					if np.isscalar(normF) or len(normF)==1:
+						normF = np.einsum("ii",temp)*normF
+					else:
+						normF = np.einsum("ij,ij",temp,normF)
+				elif state[ind+i].shape[0]<state[ind+i].shape[1]:
+					temp = np.einsum("ij,kj->ik",states[ind+i],np.conjugate(states[ind+i]))
+					if np.isscalar(normF) or len(normF)==1:
+						normF = temp*normF
+					else:
+						normF = temp*np.einsum("ii",normF)
+			else:
+				if np.isscalar(normF) or len(normF)==1:
+					normF = np.einsum("kmi,lmi->kl",states[ind+i],np.conjugate(states[ind+i]))*normF
+				else:
+					normF = contract("kmi,ij,lmj->kl",states[ind+i],normF,np.conjugate(states[ind+i]))
+		return normF
 
 	# Indices of the timebins initially: 0->furthest past, L->system, L+1->first future timebin
 	if M==0:
-		norm = np.einsum("i,i",state[L],np.conjugate(state[L]))
-		norm_L = 1.
+		normS = np.einsum("i,i",statesFS[0],np.conjugate(statesFS[0]))*np.einsum("i,i",statesFS[2],np.conjugate(statesFS[2]))
+		normB1 = 1.
+		normB2 = 1.
+		normF1 = 1.
+		normF2 = 1.
+		norm = 0. + normS
 	else:
 		#print(state[M-1].shape,norm_L.shape)
 	# Contracting part of the MPS that won't change anymore with its dual and with previously stored tensors
-		if len(state[M-1].shape)==1:
-			norm_L = np.einsum("i,i",state[M-1],np.conjugate(state[M-1]))
-		elif len(state[M-1].shape)==2:
-			if state[M-1].shape[1]>state[M-1].shape[0]:
-				if np.isscalar(norm_L) or len(norm_L.shape)==0.:
-					norm_L = np.einsum("ik,jk->ij",state[M-1],np.conjugate(state[M-1]))*norm_L
-				else:
-					norm_L = np.einsum("ik,jk->ij",state[M-1],np.conjugate(state[M-1]))*np.einsum("ii",norm_L)
-			else:
-				if np.isscalar(norm_L) or len(norm_L.shape)==0.:
-					norm_L = np.einsum("ik,ik",state[M-1],np.conjugate(state[M-1]))*norm_L
-				else:
-					norm_L = np.einsum("ij,ij",np.einsum("ik,ij->kj",state[M-1],np.conjugate(state[M-1])),norm_L)
-		else:
-			if np.isscalar(norm_L) or len(norm_L.shape)==0.:
-				norm_L = np.einsum("kmj,lmj->kl",state[M-1],np.conjugate(state[M-1]))*norm_L
-			else:
-				norm_L = np.einsum("kmj,lmj->kl",np.einsum("kmi,ij->kmj",state[M-1],norm_L),np.conjugate(state[M-1]))
+		normB1 = B(M,statesB1,normB1)		
+		normB2 = B(M,statesB2,normB2)
+		normF1 = F(M,L,statesFS,4)		
+		normF2 = F(M,L,statesFS,L+3)
+		
+		
         
 		# Contracting the system part of the MPS
 		if len(state[L+M].shape)==1:
