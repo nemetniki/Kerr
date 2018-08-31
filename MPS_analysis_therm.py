@@ -94,7 +94,7 @@ def normf(M,L,statesB1,statesB2,statesFS,normB1,normB2):
 	
 	norm = contract("ij,kl,mn,op,ijklmnop",normB1,normF2,normB2,normF1,normS)
 	
-	return np.real(norm),np.real(normB1),np.real(normB1)
+	return np.real(norm),np.real(normB1),np.real(normB1),sys_state
 
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
@@ -103,16 +103,16 @@ def normf(M,L,statesB1,statesB2,statesFS,normB1,normB2):
 ##############################################
 ### Expectation value of system observable ###
 ##############################################
-def exp_sys(observable,sys,M):
+def exp_sys(observable,sys_state,which):
 	"""Calculating the expectation value of a given system observable
 	INPUT: observable of interest, the state of the system and timestep M
 	OUTPUT: expectation value of the observable"""
 
 	# Indices of the timebins initially: 0->furthest past, L->system, L+1->first future timebin
-	if len(sys.shape)==1:
-		obs = np.einsum("i,i",np.einsum("i,ji",sys,observable),np.conjugate(sys))
-	else:
-		obs = np.einsum("kj,kj",np.einsum("ij,ki->kj",sys,observable),np.conjugate(sys))
+	if which == 1:
+		obs = contract("IvJtLqrM,JK,IvKtLqrM",sys_state,observable,np.conjugate(sys_state))
+	elif which == 2:
+		obs = contract("IvJtLqrM,MK,IvJtLqrK",sys_state,observable,np.conjugate(sys_state))
 	return np.real(obs)
 
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
