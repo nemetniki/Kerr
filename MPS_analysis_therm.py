@@ -80,67 +80,21 @@ def normf(M,L,statesB1,statesB2,statesFS,normB1,normB2):
 		normF2 = 1.
 		norm = 0. + normS
 	else:
-		#print(state[M-1].shape,norm_L.shape)
+
 	# Contracting part of the MPS that won't change anymore with its dual and with previously stored tensors
 		normB1 = B(M,statesB1,normB1)		
 		normB2 = B(M,statesB2,normB2)
 		normF1 = F(M,L,statesFS,4)		
 		normF2 = F(M,L,statesFS,L+3)
-		
-		
         
-		# Contracting the system part of the MPS
-		if len(state[L+M].shape)==1:
-			norm_S = np.dot(state[L+M],np.conjugate(state[L+M]))
-		else:
-			norm_S = np.einsum("ki,kj->ij",state[L+M],np.conjugate(state[L+M]))
-		norm = norm_L
-		#print(norm)
-
-	# Performing the rest of the reservoir contractions from right to left.
-		for i in range(0,L):
-		#	print(len(norm.shape))
-			#print("state",state[M+i].shape)
-			if len(state[M+i].shape)==1:
-				norm_past = np.einsum("i,i",state[M+i],np.conjugate(state[M+i]))
-				if np.isscalar(norm) or len(norm.shape)==0:
-					norm = norm_past*norm
-				else:
-					norm = norm_past*np.einsum("ii",norm)
-				#print("norm",norm.shape)
-			elif len(state[M+i].shape)==2:
-				if state[M+i].shape[0]>state[M+i].shape[1]:
-					norm_past = np.einsum("ji,jk->ik",state[M+i],np.conjugate(state[M+i]))
-					if np.isscalar(norm) or len(norm.shape)==0:
-						norm = np.einsum("ii",norm_past)*norm
-					else:
-						norm = np.einsum("ij,ij",norm_past,norm)
-				elif state[M+i].shape[0]<state[M+i].shape[1]:
-					norm_past = np.einsum("ij,kj->ik",state[M+i],np.conjugate(state[M+i]))
-					if np.isscalar(norm) or len(norm.shape)==0:
-						norm = norm_past*norm
-					else:
-						norm = norm_past*np.einsum("ii",norm)
-#				print("norm",norm.shape)
-			else:
-				#print("norm",norm.shape)
-				if np.isscalar(norm) or len(norm.shape)==0:
-					norm = np.einsum("kmi,lmi->kl",state[M+i],np.conjugate(state[M+i]))*norm
-				else:
-					norm = np.einsum("kmj,lmj->kl",np.einsum("kmi,ij->kmj",state[M+i],norm),np.conjugate(state[M+i]))
-	# Contracting the environment part with the system part
-		if len(state[L+M].shape) ==1:
-			if np.isscalar(norm) or len(norm.shape)==0:
-				norm = norm*norm_S
-			else:
-				norm = np.einsum("ii",norm)*norm_S
-		else:
-			if np.isscalar(norm) or len(norm.shape)==0:
-				norm = np.einsum("ii",norm_S)*norm
-			else:
-				norm = np.einsum("ij,ij",norm,norm_S)
-		norm_S = None
-	return np.real(norm),np.real(norm_L)
+	# Contracting the system part of the MPS (indices: IvJKtLqrMN)
+	# capital letters: physical indices, small letters: link indices, order: F1,S1,B1,F2,S2,B2
+	sys_state = contract("opI,wvoJ,tswL,pqrsM->IvJtLqrM",statesFS[1],statesFS[0],statesFS[3],statesFS[2])
+	normS = contract("IvJtLqrM,IaJbLcdM->vatbqcrd",sys_state,np.conjugate(sys_state))
+	
+	norm = contract("ij,kl,mn,op,ijklmnop",normB1,normF2,normB2,normF1,normS)
+	
+	return np.real(norm),np.real(normB1),np.real(normB1)
 
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
