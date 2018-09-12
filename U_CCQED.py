@@ -10,7 +10,7 @@ from opt_einsum import contract
 ############################
 ### Evolution operator U ###
 ############################
-def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele): #tk: time bin state at k, tS: state of S1
+def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 	"""Evolution operator up to dt^2
 	INPUT: states at the current time (t_k), the delayed time (t_l) and the system state (t_S) at timestep M
 	Remember, at M=0 the state is separable
@@ -558,5 +558,5 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele): #
 				
 #    print("sysenv",sys_env[0,2,0])
 
-	return initial + sys + env + sys_env##
+	return initial + sys + env + sys_env
 

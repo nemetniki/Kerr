@@ -39,14 +39,18 @@ linestyle = ['solid','dashed','dashdot','dotted','solid']
 #***--------***#
 #**************#
 
+########################################################################################################################################################################################################
 #############
 ### Timer ###
 #############
+
 start = time.time()
 
+########################################################################################################################################################################################################
 ###################
 ### Code inputs ###
 ###################
+
 def str2bool(v):
 	if v.lower() in ('yes', 'true', 'True', 't', 'y', '1'):
 		return True
@@ -87,10 +91,11 @@ parser.add_argument("-nT",type=float, default = 0.,help='thermal photon number')
 
 args = parser.parse_args()
 
-
+########################################################################################################################################################################################################
 ##################
 ### Parameters ###
 ##################
+
 tol     = 10**(args.tol)
 endt    = args.endt
 dt      = args.dt
@@ -109,11 +114,17 @@ Delc    = np.array([0.,0.])
 phi     = args.phi*np.pi
 thermal = False
 
+########################################################################################################################################################################################################
 ################################
 ### MPS state initialization ###
 ################################
+
+#%%%%%%%%#
+# SYSTEM #
+#%%%%%%%%#
 initJC1 = np.zeros(len_sys,complex)
 initJC2 = np.zeros(len_sys,complex)
+#Coherent driving for cavities
 if args.cohC1>0. or args.cohC2>0.:
 	preJC   = coherent(args.cohC,0,np.zeros(N_env+1,complex))
 	prenorm = np.sqrt(np.sum(preJC**2))
@@ -139,14 +150,19 @@ if args.cohC1>0. or args.cohC2>0.:
 		elif args.initind2==1:
 			initJC2[1::2] = preJC[:-1]/prenorm
 	preJC = None
+#Fock initial state
 else:
 	initJC1[args.initind1] = 1.
 	initJC2[args.initind2] = 1.
 
+#%%%%%%%%%%%%%#
+# ENVIRONMENT #
+#%%%%%%%%%%%%%#
 initB1 = np.zeros(len_env,complex)
 initB2 = np.zeros(len_env,complex)
 initF  = np.zeros(len_env,complex)
 
+#Coherent driving for environments
 if args.cohB1>0. or args.cohB2>0. or args.cohF>0.:
 	if args.cohB1>0.:
 		initB1 = coherent(args.cohB1,0,initB1)
@@ -154,6 +170,7 @@ if args.cohB1>0. or args.cohB2>0. or args.cohF>0.:
 		initB2 = coherent(args.cohB2,0,initB2)
 	if args.cohF>0.:
 		initF  = coherent(args.cohF,0,initF)
+#Thermal state for environments
 elif args.nT>0.:
 	thermal = True
 	phots = np.linspace(0,N_env-1,N_env)
@@ -161,26 +178,31 @@ elif args.nT>0.:
 	initB1  = rhotherm.reshape(N_env**2)
 	initB2 += initB1
 	initF  += initB1
+#Vacuum initial state of environments
 else:
 	initB1[0] = 1.
 	initB2[0] = 1.
 	initF[0]  = 1.
 
+#Markovian environment lists
 statesB1 = [initB1]*N
 statesB2 = [initB2]*N
+#Non-Markovian environment+system list
 statesFS = (2*L-1)*[initF] + [initJC2] + [initF] + [initJC1]
-
+#Initial index of system 1 and 2
 ind_sys1 = 0
-ind_sys2 = L+1
+ind_sys2 = L+1#2
 
 #g2_ta1,NB1,NB2 = g2_t(states[ind_sys-1],N_env+1,dt,thermal)
 #NB_outa = 0.
-normL = 1.
+#Initial contribution from the norm
+normB1 = 1.
 
 z      = np.zeros(len_sys,complex)
 z[np.arange(0,len_sys,2)]=np.ones(len_env)
 sgg    = np.diag(z)
 see    = np.identity(len_sys)-sgg
+sz     = see-sgg
 
 ncdiag = (np.linspace(0,len_sys-1,len_sys)/2.).astype(np.int64)
 nc     = np.diag(ncdiag)
@@ -190,11 +212,19 @@ for i in range(1,len_env):
 g2c    = np.diag(np.sort(np.concatenate((gcdiag[:-1],gcdiag))))
 
 
+########################################################################################################################################################################################################
+###########################
+### File initialization ###
+###########################
+
 filename = "./Data/CCQED+fb_%d.txt" % (args.findex)
 outname = "./Data/OUT_CCQED+fb_%d.txt" % (args.findex)
 #	specname = "./Data/spec_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
 #	g2tau = "./Data/g2tau_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
 	
+#%%%%%%%%%%%#
+# Info file #
+#%%%%%%%%%%%#
 file_out = open(outname,"a")
 file_out.close()
 file_out = open(outname,"r+")
@@ -210,13 +240,16 @@ file_out.write("""Data file index: %d
 \nNumerical parameters: Nphot_max = %d, tolerance = %.0E, endt = %.0f, dt = %f
 \nCoherent initial state amplitude for cavity1: %f, cavity2: %f, the environment on the left %f, on the right: %f and in the fibre: %f
 \nthermal photon number: %f
-\nData file: M*dt,norm,pop1,pop2,nc1_exp,nc2_exp\n""" % (args.findex,g[0],Dele[0],Delc[0],args.initind1,Ome[0],Omc[0],
+\nData file: M*dt,norm,pop1,pop2,nc1_exp,nc2_exp,g2_1_exp,g2_2_exp\n""" % (args.findex,g[0],Dele[0],Delc[0],args.initind1,Ome[0],Omc[0],
 								g[1],Dele[1],Delc[1],args.initind2,Ome[1],Omc[1],
 								gamma_B[0],gamma_B[1],gamma_F[0],gamma_F[1],phi,L,
 								args.Nphot,tol,endt,dt,args.cohC1,args.cohC2,
 								args.cohB1,args.cohB2,args.cohF,args.nT))
 file_out.close()
 
+#%%%%%%%%%%%#
+# Data file #
+#%%%%%%%%%%%#
 file_evol = open(filename,"a")
 file_evol.close()
 file_evol = open(filename,"r+")
@@ -224,82 +257,100 @@ file_evol.truncate()
 file_evol.close()
 file_evol = open(filename,"a")
 
+########################################################################################################################################################################################################
 ######################
 ### Time evolution ###
 ######################
+
 for M in range(0,N-L-1):
-#    print(M*dt)
-    percent10 = (N-L-1)/10.
-    count = 0
-    if M%(int(percent10))==0:
-#        count=count+5
-        print("M =",M, " out of ",N-L-1)
-        sys.stdout.flush()
-    
-    # After the first time step, bring the interacting past bin next to the system bin
-    if M>0:
-        # Relocating the orthogonality centre to the next interacting past bin if applicable
-        states[M],states[M-1] = OC_reloc(states[M],states[M-1],"left",tol)
-        states[M:M+L] = SWAP(states,M,"future",L,tol)
-                
-    # Relocating the orthogonality centre from the past bin to the system bin before the evolution
-    # operator's action if applicable
-    states[ind_sys],states[ind_sys-1] = OC_reloc(states[ind_sys],states[ind_sys-1],"left",tol)
-        
-    norm,norm_past_1,norm_past_2 = normf(M,L,statesB1,statesB2,statesFS,norm_past_1,norm_past_2)
-    nc_exp = exp_sys(nc,states[ind_sys],M)
-    exc_pop = exp_sys(see,states[ind_sys],M)
-    gr_pop  = exp_sys(sgg,states[ind_sys],M)
-    g2_tac  = exp_sys(g2c,states[ind_sys],M)/nc_exp**2
-    file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_tac,g2_ta,NB,NB_outa))
-    file_evol.flush()
-    file_out.close()
+	#    print(M*dt)
+	percent10 = (N-L-1)/10.
+	count = 0
+	if M%(int(percent10))==0:
+	#        count=count+5
+		print("M =",M, " out of ",N-L-1)
+	sys.stdout.flush()
+
+	# After the first time step, bring the interacting past bin next to the system bin
+	#if M>0:
+	# Relocating the orthogonality centre to the next interacting past bin if applicable
+	#	states[M],states[M-1] = OC_reloc(states[M],states[M-1],"left",tol)
+	#	states[M:M+L] = SWAP(states,M,"future",L,tol)
+		
+	# Relocating the orthogonality centre from the past bin to the system bin before the evolution
+	# operator's action if applicable
+	states[ind_sys],states[ind_sys-1] = OC_reloc(states[ind_sys],states[ind_sys-1],"left",tol)
+
+	#%%%%%%#
+	# NORM #
+	#%%%%%%#
+	##normf(M,L,statesB1,statesB2,statesFS,normB1,normB2)
+	##return np.real(norm),np.real(normB1),np.real(normB2),sys_state
+	norm,normB1,normB2,sys_state = normf(M,L,statesB1,statesB2,statesFS,normB1,normB2)
+
+	#%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+	# SYSTEM EXPECTATION VALUES #
+	#%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+	##exp_sys(observable,sys_state,which)
+	##return np.real(obs)
+	nc_exp1  = exp_sys(nc,sys_state,1) #photon number in cavity 1
+	nc_exp2  = exp_sys(nc,sys_state,2) #photon number in cavity 2
+	pop_exp1 = exp_sys(sz,sys_state,1) #atomic population inversion in cavity 1
+	pop_exp2 = exp_sys(sz,sys_state,2) #atomic population inversion in cavity 2
+	g2_exp1  = exp_sys(g2c,sys_state,1)/nc_exp1**2 #correlation function from the field in cavity 1 
+	g2_exp2  = exp_sys(g2c,sys_state,2)/nc_exp2**2 #correlation function from the field in cavity 2 
+	file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,pop_exp1,pop_exp1,nc_exp1,nc_exp2,g2_exp1,g2_exp2))
+	file_evol.flush()
+	file_out.close()
 
 
-#    # Erase the remnants of the states that will not influence the dynamics anymore:
-#    if M>0:
-#        states[M-1] = None
-#   It is needed for the spectral calculations
+	#    # Erase the remnants of the states that will not influence the dynamics anymore:
+	#    if M>0:
+	#        states[M-1] = None
+	#   It is needed for the spectral calculations
 
-    # The time evolution operator acting on the interacting state bins
-#    print("initial shapes",initenv.shape, states[ind_sys].shape, states[ind_sys-1].shape)
-    U_block = U(initenv,states[ind_sys],states[ind_sys-1],N_env,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele,thermal)
-#    print("U block",U_block.shape)
+	#%%%%%%%%%%%%%%%%%%%%#
+	# TIME EVOLUTION MAP #
+	#%%%%%%%%%%%%%%%%%%%%#
+	##U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele)
+	#    print("initial shapes",initenv.shape, states[ind_sys].shape, states[ind_sys-1].shape)
+	U_block = U(initenv,states[ind_sys],states[ind_sys-1],N_env,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele,thermal)
+	#    print("U block",U_block.shape)
 
-    # Merging of the link index on the right into a new tensor if applicable    
-    U_right_merge=False
-    if len(U_block.shape)>3:
-        U_right_merge=True
-        U_block,U_right_dims = merge(U_block,"right")
-    # Exchanging the position of the system and the present bin in the MPS state list
-    U_block  = np.einsum("ijk->jik",U_block)
-#    print("U block merge right",U_block.shape)
-    
-    # Separating the system state from the environment bins
-    states[ind_sys+1],U_small_block = cut(U_block,tol,"right")
-#    print("tS and rest",states[ind_sys+1].shape,U_small_block.shape)
-    U_block = None
-    # Separating the present time bin from the interacting past bin
-    states[ind_sys],states[ind_sys-1] = cut(U_small_block,tol,"left")
-#    print("tk and tl",states[ind_sys].shape,states[ind_sys-1].shape)
-    U_small_block=None
-    # Unmerging of the previously merged link index on the right if applicable
-    if U_right_merge:
-        if len(states[ind_sys-1].shape)==1:
-            U_dims = U_right_dims
-        else:
-            U_dims = np.concatenate((np.array([states[ind_sys-1].shape[0]]),U_right_dims),axis = 0)
-        states[ind_sys-1] = unmerge(states[ind_sys-1],U_dims,"right")
-        U_dims = None
-#    print("tl final",states[ind_sys-1].shape)
-#    print("U done, states done", states[ind_sys+1].shape, states[ind_sys].shape, states[ind_sys-1].shape)
-        
-    # Moving the interacting past bin's state back to its original position in the MPS
-    states[(ind_sys-L):(ind_sys)] = SWAP(states,(ind_sys-2),"past",L,tol)
-    g2_ta,NB = g2_t(states[M],N_env+1,dt,thermal)
-    NB_outa = NB_out(states[M],N_env+1,NB_outa,dt,thermal)
-    # Preparing for the next step with the system index
-    ind_sys =1+ind_sys
+	# Merging of the link index on the right into a new tensor if applicable    
+	U_right_merge=False
+	if len(U_block.shape)>3:
+	U_right_merge=True
+	U_block,U_right_dims = merge(U_block,"right")
+	# Exchanging the position of the system and the present bin in the MPS state list
+	U_block  = np.einsum("ijk->jik",U_block)
+	#    print("U block merge right",U_block.shape)
+
+	# Separating the system state from the environment bins
+	states[ind_sys+1],U_small_block = cut(U_block,tol,"right")
+	#    print("tS and rest",states[ind_sys+1].shape,U_small_block.shape)
+	U_block = None
+	# Separating the present time bin from the interacting past bin
+	states[ind_sys],states[ind_sys-1] = cut(U_small_block,tol,"left")
+	#    print("tk and tl",states[ind_sys].shape,states[ind_sys-1].shape)
+	U_small_block=None
+	# Unmerging of the previously merged link index on the right if applicable
+	if U_right_merge:
+	if len(states[ind_sys-1].shape)==1:
+	    U_dims = U_right_dims
+	else:
+	    U_dims = np.concatenate((np.array([states[ind_sys-1].shape[0]]),U_right_dims),axis = 0)
+	states[ind_sys-1] = unmerge(states[ind_sys-1],U_dims,"right")
+	U_dims = None
+	#    print("tl final",states[ind_sys-1].shape)
+	#    print("U done, states done", states[ind_sys+1].shape, states[ind_sys].shape, states[ind_sys-1].shape)
+
+	# Moving the interacting past bin's state back to its original position in the MPS
+	states[(ind_sys-L):(ind_sys)] = SWAP(states,(ind_sys-2),"past",L,tol)
+	g2_ta,NB = g2_t(states[M],N_env+1,dt,thermal)
+	NB_outa = NB_out(states[M],N_env+1,NB_outa,dt,thermal)
+	# Preparing for the next step with the system index
+	ind_sys =1+ind_sys
 
 # restoring the normalization after the time step with moving the past bin next to the system state
 # and relocating the orthogonality centre
