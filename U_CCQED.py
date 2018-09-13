@@ -7,6 +7,7 @@ from decimal import Decimal
 from math import factorial
 from opt_einsum import contract
 
+es=np.einsum
 ############################
 ### Evolution operator U ###
 ############################
@@ -428,25 +429,25 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 		if gamma_F[which-1]>0:
 			if which == 1:
 				if M==0:
-					new_state_tF = dt*gamma_F[which-1]*np.einsum("i,ijklmn->ijklmn",n+const,state)
+					new_state_tF = dt*gamma_F[which-1]*es("i,ijklmn->ijklmn",n+const,state)
 				else:
-					new_state_tF = dt*gamma_F[which-1]*np.einsum("I,IvJKtLqrMN->IvJKtLqrMN",n+const,state)
+					new_state_tF = dt*gamma_F[which-1]*es("I,IvJKtLqrMN->IvJKtLqrMN",n+const,state)
 			elif which == 2:
 				if M==0:
-					new_state_tF = dt*gamma_F[which-1]*np.einsum("l,ijklmn->ijklmn",n+const,state)
+					new_state_tF = dt*gamma_F[which-1]*es("l,ijklmn->ijklmn",n+const,state)
 				else:
-					new_state_tF = dt*gamma_F[which-1]*np.einsum("L,IvJKtLqrMN->IvJKtLqrMN",n+const,state)
+					new_state_tF = dt*gamma_F[which-1]*es("L,IvJKtLqrMN->IvJKtLqrMN",n+const,state)
 		elif gamma_B[which-1]>0:
 			if which == 1:
 				if M==0:
-					new_state_tB = dt*gamma_B[which-1]*np.einsum("k,ijklmn->ijklmn",n+const,state)
+					new_state_tB = dt*gamma_B[which-1]*es("k,ijklmn->ijklmn",n+const,state)
 				else:
-					new_state_tB = dt*gamma_B[which-1]*np.einsum("K,IvJKtLqrMN->IvJKtLqrMN",n+const,state)
+					new_state_tB = dt*gamma_B[which-1]*es("K,IvJKtLqrMN->IvJKtLqrMN",n+const,state)
 			elif which == 2:
 				if M==0:
-					new_state_tB = dt*gamma_B[which-1]*np.einsum("n,ijklmn->ijklmn",n+const,state)
+					new_state_tB = dt*gamma_B[which-1]*es("n,ijklmn->ijklmn",n+const,state)
 				else:
-					new_state_tB = dt*gamma_B[which-1]*np.einsum("N,IvJKtLqrMN->IvJKtLqrMN",n+const,state)
+					new_state_tB = dt*gamma_B[which-1]*es("N,IvJKtLqrMN->IvJKtLqrMN",n+const,state)
 		elif gamma_B[which-1]>0 and gamma_F[which-1]>0:
 			if M<L:
 				phi=0.
