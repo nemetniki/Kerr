@@ -41,19 +41,17 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 		while i<N:
 			nprod *= n-i
 			i+=1
-		nprod = np.sqrt(nprod)
-
-		ich  = (-1)**(which+1)*(int(np.any(M))*(2-which)+which)
-		iend = state.shape[ich]
-		context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,IvJKtLqrMN->IvJKtLqrMN","M,IvJKtLqrMN->IvJKtLqrMN"]
-
-		idx=[slice(None)]*new_state.ndim
-		idx[ich]=np.arange(iend-2*N)
-		
-		new_state[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod,np.take(state,np.arange(2*N,iend),axis=ich))
-
+		if which == 1:
+			if M==0:
+				new_state[:,0:-(2*N),:,:,:,:] = np.einsum("j,ijklmn->ijklmn",np.sqrt(nprod),state[:,(2*N):,:,:,:,:])
+			else:
+				new_state[:,:,0:-(2*N),:,:,:,:,:,:,:] = np.einsum("J,IvJKtLqrMN->IvJKtLqrMN",np.sqrt(nprod),state[:,:,(2*N):,:,:,:,:,:,::,])
+		elif which == 2:
+			if M==0:
+				new_state[:,:,:,:,0:-(2*N),:] = np.einsum("m,ijklmn->ijklmn",np.sqrt(nprod),state[:,:,:,:,(2*N):,:])
+			else:
+				new_state[:,:,:,:,:,:,:,:,0:-(2*N),:] = np.einsum("M,IvJKtLqrMN->IvJKtLqrMN",np.sqrt(nprod),state[:,:,:,:,:,:,:,:,(2*N):,:])
 		return new_state
-
 	def ad(state,which,N):
 		new_state = np.zeros(state.shape,complex)
 		n=np.linspace(N,int((dim_tS)/2),dim_tS-2*N).astype(np.int64)
@@ -62,78 +60,92 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 		while i<N:
 			nprod *= n-i
 			i+=1
-		nprod = np.sqrt(nprod)
-
-		ich  = (-1)**(which+1)*(int(np.any(M))*(2-which)+which)
-		iend = state.shape[ich]
-		context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,IvJKtLqrMN->IvJKtLqrMN","M,IvJKtLqrMN->IvJKtLqrMN"]
-
-		idx=[slice(None)]*new_state.ndim
-		idx[ich]=np.arange(2*N,iend)
-		
-		new_state[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod,np.take(state,np.arange(iend-2*N),axis=ich))
+		if which == 1:
+			if M==0:
+				new_state[:,(2*N):,:,:,:,:] = np.einsum("j,ijklmn->ijklmn",np.sqrt(nprod),state[:,0:-(2*N),:,:,:,:])
+			else:
+				new_state[:,:,(2*N):,:,:,:,:,:,:,:] = np.einsum("J,IvJKtLqrMN->IvJKtLqrMN",np.sqrt(nprod),state[:,:,0:-(2*N),:,:,:,:,:,:,:])
+		elif which == 2:
+			if M==0:
+				new_state[:,:,:,:,(2*N):,:] = np.einsum("m,ijklmn->ijklmn",np.sqrt(nprod),state[:,:,:,:,0:-(2*N),:])
+			else:
+				new_state[:,:,:,:,:,:,:,:,(2*N):,:] = np.einsum("M,IvJKtLqrMN->IvJKtLqrMN",np.sqrt(nprod),state[:,:,:,:,:,:,:,:,0:-(2*N),:])
 		return new_state
-
 	def sm(state,which):
 		new_state = np.zeros(state.shape,complex)
-		ich  = (-1)**(which+1)*(int(np.any(M))*(2-which)+which)
-		iend = state.shape[ich]
-
-		idx=[slice(None)]*new_state.ndim
-		idx[ich]=np.arange(0,dim_tS-1,2)
-		
-		new_state[tuple(idx)] = np.take(state,np.arange(1,dim_tS,2),axis=ich)
+		if which == 1:
+			if M == 0:
+				new_state[:,0:dim_tS-1:2,:,:,:,:] = state[:,1:dim_tS:2,:,:,:,:]
+			else:
+				new_state[:,:,0:dim_tS-1:2,:,:,:,:,:,:,:] = state[:,:,1:dim_tS:2,:,:,:,:,:,:,:]
+		elif which == 2:
+			if M == 0:
+				new_state[:,:,:,:,0:dim_tS-1:2,:] = state[:,:,:,:,1:dim_tS:2,:]
+			else:
+				new_state[:,:,:,:,:,:,:,:,0:dim_tS-1:2,:] = state[:,:,:,:,:,:,:,:,1:dim_tS:2,:]
 		return new_state
-
 	def sp(state,which):
 		new_state = np.zeros(state.shape,complex)
-		ich  = (-1)**(which+1)*(int(np.any(M))*(2-which)+which)
-		iend = state.shape[ich]
-
-		idx=[slice(None)]*new_state.ndim
-		idx[ich]=np.arange(1,dim_tS,2)
-		
-		new_state[tuple(idx)] = np.take(state,np.arange(0,dim_tS-1,2),axis=ich)
+		if which == 1:
+			if M == 0:
+				new_state[:,1:dim_tS:2,:,:,:,:] = state[:,0:dim_tS-1:2,:,:,:,:]
+			else:
+				new_state[:,:,1:dim_tS:2,:,:,:,:,:,:,:] = state[:,:,0:dim_tS-1:2,:,:,:,:,:,:,:]
+		elif which == 2:
+			if M == 0:
+				new_state[:,:,:,:,1:dim_tS:2,:] = state[:,:,:,:,0:dim_tS-1:2,:]
+			else:
+				new_state[:,:,:,:,:,:,:,:,1:dim_tS:2,:] = state[:,:,:,:,:,:,:,:,0:dim_tS-1:2,:]
 		return new_state
-
 	def JC(state,which):
 		new_tS_g = np.zeros(state.shape,complex)
 		new_tS_Ome = np.zeros(state.shape,complex)
-		n = np.linspace(1,int((dim_tS)/2),dim_tS-2).astype(np.int64)
-		n = np.sqrt(n[0:dim_tS-1:2])
-
-		ich  = (-1)**(which+1)*(int(np.any(M))*(2-which)+which)
-		iend = state.shape[ich]
-
+		n=np.linspace(1,int((dim_tS)/2),dim_tS-2).astype(np.int64)
 		if g[which-1] != 0:
-			context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,IvJKtLqrMN->IvJKtLqrMN","M,IvJKtLqrMN->IvJKtLqrMN"]
-
-			idx1=[slice(None)]*new_state.ndim
-			idx2=[slice(None)]*new_state.ndim
-			idx1[ich]=np.arange(1,dim_tS-1,2)
-			idx2[ich]=np.arange(2,dim_tS,2)
-			
-			new_tS_g[tuple(idx1)] = es(context[which-1+int(np.any(M))*2],n*g[which-1],np.take(state,np.arange(2,dim_tS,2),axis=ich))
-			new_tS_g[tuple(idx2)] = es(context[which-1+int(np.any(M))*2],n*g[which-1],np.take(state,np.arange(1,dim_tS-1,2),axis=ich))
-
+			if which == 1:
+				if M == 0:
+					new_tS_g[:,1:dim_tS-1:2,:,:,:,:]   = np.einsum("j,ijklmn->ijklmn",np.sqrt(n[0:dim_tS-1:2])*g1,state[:,2:dim_tS:2,:,:,:,:])
+					new_tS_g[:,2:dim_tS:2,:,:,:,:]   = np.einsum("j,ijklmn->ijklmn",np.sqrt(n[0:dim_tS-1:2])*g1,state[:,1:dim_tS-1:2,:,:,:,:])
+				else:
+					new_tS_g[:,:,1:dim_tS-1:2,:,:,:,:,:,:,:]   = np.einsum("J,IvJKtLqrMN->IvJKtLqrMN",np.sqrt(n[0:dim_tS-1:2])*g1,state[:,:,2:dim_tS:2,:,:,:,:,:,:,:])
+					new_tS_g[:,:,2:dim_tS:2,:,:,:,:,:,:,:]   = np.einsum("J,IvJKtLqrMN->IvJKtLqrMN",np.sqrt(n[0:dim_tS-1:2])*g1,state[:,:,1:dim_tS-1:2,:,:,:,:,:,:,:])
+			elif which == 2:
+				if M == 0:
+					new_tS_g[:,:,:,:,1:dim_tS-1:2,:]   = np.einsum("m,ijklmn->ijklmn",np.sqrt(n[0:dim_tS-1:2])*g2,state[:,:,:,:,2:dim_tS:2,:])
+					new_tS_g[:,:,:,:,2:dim_tS:2,:]   = np.einsum("m,ijklmn->ijklmn",np.sqrt(n[0:dim_tS-1:2])*g2,state[:,:,:,:,1:dim_tS-1:2,:])
+				else:
+					new_tS_g[:,:,:,:,:,:,:,:,1:dim_tS-1:2,:]   = np.einsum("M,IvJKtLqrMN->IvJKtLqrMN",np.sqrt(n[0:dim_tS-1:2])*g2,state[:,:,:,:,:,:,:,:,2:dim_tS:2,:])
+					new_tS_g[:,:,:,:,:,:,:,:,2:dim_tS:2,:]   = np.einsum("M,IvJKtLqrMN->IvJKtLqrMN",np.sqrt(n[0:dim_tS-1:2])*g2,state[:,:,:,:,:,:,:,:,1:dim_tS-1:2,:])
 		if Ome[which-1] != 0:
-			idx1=[slice(None)]*new_state.ndim
-			idx2=[slice(None)]*new_state.ndim
-			idx1[ich]=np.arange(0,dim_tS-2,2)
-			idx2[ich]=np.arange(1,dim_tS-1,2)
-
-			new_tS_Ome[tuple(idx1)] = np.take(state,np.arange(1,dim_tS-1,2),axis=ich)
-			new_tS_Ome[tuple(idx2)] = np.take(state,np.arange(0,dim_tS-2,2),axis=ich)
+			if which == 1:
+				if M == 0:
+					new_tS_Ome[:,0:dim_tS-2:2,:,:,:,:] = Ome1*state[:,1:dim_tS-1:2,:,:,:,:]
+					new_tS_Ome[:,1:dim_tS-1:2,:,:,:,:] = Ome1*state[:,0:dim_tS-2:2,:,:,:,:]
+				else:
+					new_tS_Ome[:,:,0:dim_tS-2:2,:,:,:,:,:,:,:] = Ome1*state[:,:,1:dim_tS-1:2,:,:,:,:,:,:,:]
+					new_tS_Ome[:,:,1:dim_tS-1:2,:,:,:,:,:,:,:] = Ome1*state[:,:,0:dim_tS-2:2,:,:,:,:,:,:,:]
+			elif which == 2:
+				if M == 0:
+					new_tS_Ome[:,:,:,:,0:dim_tS-2:2,:] = Ome2*state[:,:,:,:,1:dim_tS-1:2,:]
+					new_tS_Ome[:,:,:,:,1:dim_tS-1:2,:] = Ome2*state[:,:,:,:,0:dim_tS-2:2,:]
+				else:
+					new_tS_Ome[:,:,:,:,:,:,:,:,0:dim_tS-2:2,:] = Ome2*state[:,:,:,:,:,:,:,:,1:dim_tS-1:2,:]
+					new_tS_Ome[:,:,:,:,:,:,:,:,1:dim_tS-1:2,:] = Ome2*state[:,:,:,:,:,:,:,:,0:dim_tS-2:2,:]
 		return new_tS_g+new_tS_Ome
-
 	def nc(state,which,const):
 		n=np.linspace(0,int((dim_tS)/2),dim_tS).astype(np.int64)
 		new_state = np.zeros(state.shape,complex)
-		context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,IvJKtLqrMN->IvJKtLqrMN","M,IvJKtLqrMN->IvJKtLqrMN"]
-
-		new_state = es(context[which-1+int(np.any(M))*2],n+const,state)
+		if which == 1:
+			if M==0:
+				new_state = np.einsum("j,imjkno->imjkno",n+const,state)
+			else:
+				new_state = np.einsum("J,IvJKtLqrMN->IvJKtLqrMN",n+const,state)
+		elif which == 2:
+			if M==0:
+				new_state = np.einsum("j,imkjno->imkjno",n+const,state)
+			else:
+				new_state = np.einsum("M,IvJKtLqrMN->IvJKtLqrMN",n+const,state)
 		return new_state
-
 	def C(state,which):
 		if Delc[which-1] == 0 and Omc[which-1] == 0:
 			return 0.*state
@@ -143,25 +155,25 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 			return Delc[which-1]*nc(state,which,0)
 		else:
 			return Delc[which-1]*nc(state,which,0)+Omc[which-1]*(c(state,which)+cd(state,which))
-
 	def MS(state,which):
 		new_tS = np.zeros(state.shape,complex)
 		new_tS += state
 		if Dele[which-1] == 0:
 			return -1j*dt*(C(state,which)+JC(state,which))
 		else:
-			ich  = (-1)**(which+1)*(int(np.any(M))*(2-which)+which)
-			iend = state.shape[ich]
-
-			idx=[slice(None)]*new_state.ndim
-			idx[ich]=np.arange(0,dim_tS,2)
-			
-			new_state[tuple(idx)] = 0
+			if which == 1:
+				if M==0:
+					new_tS[:,0:dim_tS:2,:,:,:,:] = 0
+				else:
+					new_tS[:,:,0:dim_tS:2,:,:,:,:,:,:,:] = 0
+			elif which == 1:
+				if M==0:
+					new_tS[:,:,:,:,0:dim_tS:2,:] = 0
+				else:
+					new_tS[:,:,:,:,:,:,:,:,0:dim_tS:2,:] = 0
 			return -1j*dt*(C(state,which)+JC(state,which)+Dele[which-1]*new_tS)
-
 	def MStot(state):
 		return MS(state,1)+MS(state,2)
-
 	def E(state,which,N):
 		new_state_tB = np.zeros(state.shape,complex)
 		new_state_tF = np.zeros(state.shape,complex)
@@ -173,30 +185,32 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 		while i<N:
 			nprod *= n-i
 			i+=1
-		nprod = sqrt(nprod)
-
 		if gamma_B[which-1] > 0.:
-			ich  = (-1)**(which+1)*(int(np.any(M))*(2-which)+(3-which))
-			iend = state.shape[ich]
-			context = ["k,ijklmn->ijklmn","n,ijklmn->ijklmn","K,IvJKtLqrMN->IvJKtLqrMN","N,IvJKtLqrMN->IvJKtLqrMN"]
-
-			idx=[slice(None)]*new_state.ndim
-			idx[ich]=np.arange(0,iend-N)
-			
-			new_state_tB[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod*np.sqrt(gamma_B[which-1]*dt)**N,np.take(state,np.arange(N,iend),axis=ich))
-
+			if which==1:
+				if M==0:
+					new_state_tB[:,:,0:-N,:,:,:] = np.einsum("k,ijklmn->ijklmn",np.sqrt(nprod*(gamma_B[which-1]*dt)**N),state[:,:,N:,:,:,:])
+				else:
+					new_state_tB[:,:,:,0:-N,:,:,:,:,:,:] = np.einsum("K,IvJKtLqrMN->IvJKtLqrMN",np.sqrt(nprod*(gamma_B[which-1]*dt)**N),
+																		state[:,:,:,N:,:,:,:,:,:,:])
+			elif which==2:
+				if M==0:
+					new_state_tB[:,:,:,:,:,0:-N] = np.einsum("n,ijklmn->ijklmn",np.sqrt(nprod*(gamma_B[which-1]*dt)**N),state[:,:,:,:,:,N:])
+				else:
+					new_state_tB[:,:,:,:,:,:,:,:,:,0:-N] = np.einsum("M,IvJKtLqrMN->IvJKtLqrMN",np.sqrt(nprod*(gamma_B[which-1]*dt)**N),
+																		state[:,:,:,:,:,:,:,:,:,N:])
 		if gamma_F[which-1] > 0:
-			ich  = (2*int(np.any(M))+3)*(1-which)
-			iend = state.shape[ich]
-			context = ["i,ijklmn->ijklmn","l,ijklmn->ijklmn","I,IvJKtLqrMN->IvJKtLqrMN","L,IvJKtLqrMN->IvJKtLqrMN"]
-
-			idx=[slice(None)]*new_state.ndim
-			idx[ich]=np.arange(0,iend-N)
-			
-			new_state_tF[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod*np.sqrt(gamma_F[which-1]*dt)**N),np.take(state,np.arange(N,iend),axis=ich))*np.exp(-1j*N*phi)
-
+			if which==1:
+				if M==0:
+					new_state_tF[0:-N,:,:,:,:,:] = np.einsum("i,ijklmn->ijklmn",np.sqrt(nprod*(gamma_F[which-1]*dt)**N),state[N:,:,:,:,:,:])*np.exp(-1j*N*phi)
+				else:
+					new_state_tF[0:-N,:,:,:,:,:,:,:,:,:] = np.einsum("I,IvJKtLqrMN->IvJKtLqrMN",np.sqrt(nprod*(gamma_F[which-1]*dt)**N),state[N:,:,:,:,:,:,:,:,:,:])*np.exp(-1j*N*phi)
+			elif which==2:
+				if M==0:
+					new_state_tF[:,:,:,0:-N,:,:] = np.einsum("l,ijklmn->ijklmn",np.sqrt(nprod*(gamma_F[which-1]*dt)**N),state[:,:,:,N:,:,:])*np.exp(-1j*N*phi)
+				else:
+					new_state_tF[:,:,:,:,:,0:-N,:,:,:,:] = np.einsum("L,IvJKtLqrMN->IvJKtLqrMN",np.sqrt(nprod*(gamma_F[which-1]*dt)**N),
+																		state[:,:,:,:,:,N:,:,:,:,:])*np.exp(-1j*N*phi)
 		return new_state_tB+new_state_tF
-
 	def Ed(state,which,N):
 		new_state_tB = np.zeros(state.shape,complex)
 		new_state_tF = np.zeros(state.shape,complex)
@@ -208,30 +222,32 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 		while i<N:
 			nprod *= n-i
 			i+1
-		nprod = sqrt(nprod)
-
 		if gamma_B[which-1] > 0.:
-			ich  = (-1)**(which+1)*(int(np.any(M))*(2-which)+(3-which))
-			iend = state.shape[ich]
-			context = ["k,ijklmn->ijklmn","n,ijklmn->ijklmn","K,IvJKtLqrMN->IvJKtLqrMN","N,IvJKtLqrMN->IvJKtLqrMN"]
-
-			idx=[slice(None)]*new_state.ndim
-			idx[ich]=np.arange(N,iend)
-			
-			new_state_tB[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod*np.sqrt(gamma_B[which-1]*dt)**N,np.take(state,np.arange(0,iend-N),axis=ich))
-
+			if which==1:
+				if M==0:
+					new_state_tB[:,:,N:,:,:,:] = np.einsum("i,ijklmn->ijklmn",np.sqrt(nprod*(gamma_B[which-1]*dt)**N),state[:,:,0:-N,:,:,:])
+				else:
+					new_state_tB[:,:,:,N:,:,:,:,:,:,:] = np.einsum("K,IvJKtLqrMN->IvJKtLqrMN",np.sqrt(nprod*(gamma_B[which-1]*dt)**N),
+																	state[:,:,:,0:-N,:,:,:,:,:,:])
+			elif which==2:
+				if M==0:
+					new_state_tB[:,:,:,:,:,N:] = np.einsum("n,ijklmn->ijklmn",np.sqrt(nprod*(gamma_B[which-1]*dt)**N),state[:,:,:,:,:,0:-N])
+				else:
+					new_state_tB[:,:,:,:,:,:,:,:,:,N:] = np.einsum("N,IvJKtLqrMN->IvJKtLqrMN",np.sqrt(nprod*(gamma_B[which-1]*dt)**N),
+																	state[:,:,:,:,:,:,:,:,:,0:-N])
 		if gamma_F[which-1] > 0:
-			ich  = (2*int(np.any(M))+3)*(1-which)
-			iend = state.shape[ich]
-			context = ["i,ijklmn->ijklmn","l,ijklmn->ijklmn","I,IvJKtLqrMN->IvJKtLqrMN","L,IvJKtLqrMN->IvJKtLqrMN"]
-
-			idx=[slice(None)]*new_state.ndim
-			idx[ich]=np.arange(N,iend)
-			
-			new_state_tF[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod*np.sqrt(gamma_F[which-1]*dt)**N),np.take(state,np.arange(0,iend-N),axis=ich))*np.exp(1j*N*phi)
-
+			if which==1:
+				if M==0:
+					new_state_tF[N:,:,:,:,:,:] = np.einsum("i,ijklmn->ijklmn",np.sqrt(nprod*(gamma_F[which-1]*dt)**N),state[0:-N,:,:,:,:,:])*np.exp(1j*N*phi)
+				else:
+					new_state_tF[N:,:,:,:,:,:,:,:,:,:] = np.einsum("I,IvJKtLqrMN->IvJKtLqrMN",np.sqrt(nprod*(gamma_F[which-1]*dt)**N),state[0:-N,:,:,:,:,:,:,:,:,:])*np.exp(1j*N*phi)
+			elif which==2:
+				if M==0:
+					new_state_tF[:,:,:,N:,:,:] = np.einsum("l,ijklmn->ijklmn",np.sqrt(nprod*(gamma_F[which-1]*dt)**N),state[:,:,:,0:-N,:,:])*np.exp(1j*N*phi)
+				else:
+					new_state_tF[:,:,:,:,:,N:,:,:,:,:] = np.einsum("L,IvJKtLqrMN->IvJKtLqrMN",np.sqrt(nprod*(gamma_F[which-1]*dt)**N),
+																	state[:,:,:,:,:,0:-N,:,:,:,:])*np.exp(1j*N*phi)
 		return new_state_tB+new_state_tF
-
 	def E2mix(state,which):
 		if M<L:
 			phi=0.

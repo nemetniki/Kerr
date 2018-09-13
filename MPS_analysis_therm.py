@@ -18,7 +18,7 @@ es = np.einsum
 ############################
 ### Calculating the norm ###
 ############################
-def normf(M,L,statesB1,statesB2,statesFS,normB1,normB2):
+def normf(M,L,statesB1,statesB2,statesF,statesS,normB1,normB2):
 	"""Performing the contractions for the norm
 	INPUT: Time step, delay length, Markovian and non-Markovian+system state lists, 
 	finally, the stored values of normB1 and normB2 (tensor with indices for state and dual) at timestep M
@@ -51,27 +51,29 @@ def normf(M,L,statesB1,statesB2,statesFS,normB1,normB2):
 			else:
 				norm_past = contract("kmi,ij,lmj->kl",states[M-1],norm_past,np.conjugate(states[M-1]))
 		return norm_past
-	def F(M,L,states,ind):
+	def F(M,L,states,which):
 	'''Performs the contractions in the fibre reservoir that is not affected by the present interaction 
 	by contracting with past contributions.
 	INPUT: Time step, length of the delay, fibre reservoir list, index that specifies which end
 	OUTPUT: Present contribution to the norm.'''
-		normF = B(ind,states,1.):
-		for i in range(1,L-1):
-			if len(states[ind+i].shape)==1:
-				temp = es("i,i",state[M+i],np.conjugate(state[M+i]))
+		normF   = 1.
+		context = ["imk,iml->kl","kmi,lmi->kl","imk,ij,jml->kl","kmi,ij,lmj->kl"]
+		for i in range(0,L-2):
+			index = abs(-(which-1)*(2*L-1)+i)
+			if len(states[index].shape)==1:
+				temp = es("i,i",state[index],np.conjugate(state[index]))
 				if np.isscalar(normF) or len(normF)==1:
 					normF = temp*normF
 				else:
 					normF = temp*es("ii",normF)
-			elif len(states[ind+i].shape)==2:
-				if state[ind+i].shape[0]>state[ind+i].shape[1]:
-					temp = es("ji,jk->ik",states[ind+i],np.conjugate(states[ind+i]))
+			elif len(states[index].shape)==2:
+				if state[index].shape[which-1]<state[index].shape[which%2]:
+					temp = es("ji,jk->ik",states[index],np.conjugate(states[index]))
 					if np.isscalar(normF) or len(normF)==1:
 						normF = es("ii",temp)*normF
 					else:
 						normF = es("ij,ij",temp,normF)
-				elif state[ind+i].shape[0]<state[ind+i].shape[1]:
+				elif state[index].shape[which-1]>state[index].shape[which%2]:
 					temp = es("ij,kj->ik",states[ind+i],np.conjugate(states[ind+i]))
 					if np.isscalar(normF) or len(normF)==1:
 						normF = temp*normF
@@ -79,14 +81,14 @@ def normf(M,L,statesB1,statesB2,statesFS,normB1,normB2):
 						normF = temp*es("ii",normF)
 			else:
 				if np.isscalar(normF) or len(normF)==1:
-					normF = es("kmi,lmi->kl",states[ind+i],np.conjugate(states[ind+i]))*normF
+					normF = es(context[which-1],states[index],np.conjugate(states[index]))*normF
 				else:
-					normF = contract("kmi,ij,lmj->kl",states[ind+i],normF,np.conjugate(states[ind+i]))
+					normF = contract(context[which+1],states[index],normF,np.conjugate(states[index]))
 		return normF
 
 	#Putting everything together. In the first time step there are no link indices, the states are normalized.
 	if M==0:
-		sys_state = es("i,j->ij",statesFS[0],statesFS[2])
+		sys_state = es("i,j->ij",statesS[0],statesS[1])
 		normS = es("ij,ij",sys_state,np.conjugate(sys_state))
 		normB1 = 1.
 		normB2 = 1.
@@ -97,15 +99,15 @@ def normf(M,L,statesB1,statesB2,statesFS,normB1,normB2):
 	#In other time steps we can calculate the current contributions by using the functions above
 		normB1 = B(M,statesB1,normB1)		
 		normB2 = B(M,statesB2,normB2)
-		normF1 = F(M,L,statesFS,4) #F states on the upper branch
-		normF2 = F(M,L,statesFS,L+3) #F states on the lower branch
+		normF1 = F(M,L,statesF,1) #F states on the upper branch
+		normF2 = F(M,L,statesF,2) #F states on the lower branch
         
 		# Contracting the system part of the MPS 
 		# capital letters: physical indices, small letters: link indices
 		# order for systemFS: S1,F1,S2,F2 -> final: F1,S1,(B1),F2,S2,(B2)
 		# indices: I(F1 phys)v(B1 past link)J(S1 phys)K(B1 phys)t(F lower link)
 		#	   L(F2 phys)q(F upper link)r(B2 past link)M(S2 phys)N(B2 phys)
-		sys_state = contract("opI,wvoJ,tswL,pqrsM->IvJtLqrM",statesFS[1],statesFS[0],statesFS[3],statesFS[2])
+		sys_state = contract("opI,wvoJ,tswL,pqrsM->IvJtLqrM",statesF[L-1],statesS[0],statesF[L],statesS[1])
 		normS = contract("IvJtLqrM,IaJbLcdM->vatbqcrd",sys_state,np.conjugate(sys_state))
 		
 		norm = contract("ij,kl,mn,op,ijklmnop",normB1,normF2,normB2,normF1,normS)
@@ -123,19 +125,14 @@ def exp_sys(observable,sys_state,which):
 	"""Calculating the expectation value of a given system observable
 	INPUT: observable of interest, the combined system state from the norm function, which system
 	OUTPUT: expectation value of the observable"""
-
+	
+	context = ["IvJtLqrM,JK,IvKtLqrM","IvJtLqrM,MK,IvJtLqrK","JM,JK,KM","JM,MK,JK"]
 	#Links between bins
 	if len(sys_state.shape)>2:
-		if which == 1:# observable acting on system 1
-			obs = contract("IvJtLqrM,JK,IvKtLqrM",sys_state,observable,np.conjugate(sys_state))
-		elif which == 2:# observable acting on system 2
-			obs = contract("IvJtLqrM,MK,IvJtLqrK",sys_state,observable,np.conjugate(sys_state))
+		obs = contract(context[which-1],sys_state,observable,np.conjugate(sys_state))
 	#Independent system bins
 	else:
-		if which == 1:# observable acting on system 1
-			obs = contract("JM,JK,KM",sys_state,observable,np.conjugate(sys_state))
-		elif which == 2:# observable acting on system 2
-			obs = contract("JM,MK,JK",sys_state,observable,np.conjugate(sys_state))
+		obs = contract(context[which+1],sys_state,observable,np.conjugate(sys_state))
 	return np.real(obs)
 
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#

@@ -188,7 +188,8 @@ else:
 statesB1 = [initB1]*N
 statesB2 = [initB2]*N
 #Non-Markovian environment+system list
-statesFS = (2*L-1)*[initF] + [initJC2] + [initF] + [initJC1]
+statesF  = 2*L*[initF]
+statesS  = [initJC1]+[initJC2]
 #Initial index of system 1 and 2
 ind_sys1 = 0
 ind_sys2 = L+1#2
@@ -284,9 +285,9 @@ for M in range(0,N-L-1):
 	#%%%%%%#
 	# NORM #
 	#%%%%%%#
-	##normf(M,L,statesB1,statesB2,statesFS,normB1,normB2)
+	##normf(M,L,statesB1,statesB2,statesF,statesS,normB1,normB2)
 	##return np.real(norm),np.real(normB1),np.real(normB2),sys_state
-	norm,normB1,normB2,sys_state = normf(M,L,statesB1,statesB2,statesFS,normB1,normB2)
+	norm,normB1,normB2,sys_state = normf(M,L,statesB1,statesB2,statesF,statesS,normB1,normB2)
 
 	#%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 	# SYSTEM EXPECTATION VALUES #
