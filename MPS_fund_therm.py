@@ -12,10 +12,7 @@ from math import factorial
 #***------------------------------***#
 #************************************#
 
-#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
-#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
-#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
-
+#####################################################################################################################################################################################################
 #################################################
 ### SVD with only significant singular values ###
 #################################################
@@ -60,123 +57,223 @@ def SVD_sig(block,cutoff):
 
 	return svd_final,link_dim
 
-#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
-#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
-#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
-
+######################################################################################################################################################################################################
 #######################
 ### Merging indices ###
 #######################
-def merge(block,where):
+def merge(block,NL,NR):
 	"""Merging indices to provide a lower-rank tensor from a block
-	INPUT: block for index-merging and the position of indices to be merged
-	OUTPUT: block with the merged indices and the dimensions of the merged indices"""
+	INPUT: block for index-merging and the number of indices on the left and right hand side
+	OUTPUT: block with the merged indices and the original dimensions on the left and right hand side"""
 
-	### Determining the rank of the tensor and the index-dimensions
-	num_ind = len(block.shape)
-	d1 = block.shape[0]
-	d2 = block.shape[1]
+	#Dimensions associated with the left and right hand side of the tensor
+	dL = block.shape[:NL]
+	dR = block.shape[NL:]
+	
+	#Tensor initialization
+	left_block = np.zeros(np.concatenate((np.array([np.prod(dL)]),dR)),dtype = np.complex128)
+	merged_block = np.zeros((np.prod(dL),np.prod(dR)),dtype = np.complex128)
+
+	#Index initialization
+	i1 = np.arange(0,dL[0])
+	j1 = np.arange(0,dR[0])
     
-	if num_ind == 2: # for a rank 2 tensor, there is no use of merging indices, return the original
-		merged_block = block
-		dims=None
-        
-	elif num_ind==3:
-		d3 = block.shape[2]
-		if where=="left":
-			# predefinition of the merged tensor
-			merged_block = np.zeros((d1*d2,d3),dtype=np.complex128)
-			for i in range(0,d1):
-				for j in range(0,d2):
-					merged_block[i+d1*j,:]=block[i,j,:]
-			# passing on the merged dimensions
-			dims = np.array([d1,d2])
-		elif where=="right":
-			# predefinition of the merged tensor
-			merged_block = np.zeros((d1,d2*d3),dtype=np.complex128)
-			for i in range(0,d2):
-				for j in range(0,d3):
-					merged_block[:,i+d2*j]=block[:,i,j]
-			# passing on the merged dimensions
-			dims = np.array([d2,d3])
-	elif num_ind==4:
-		d3 = block.shape[2]
-		d4 = block.shape[3]
-		if where=="both":
-			# 2 consequent merges are needed           
-			# predefinition of the first merged tensor
-			merged_block_1 = np.zeros((d1,d2,d3*d4),dtype=np.complex128)
-			for i1 in range(0,d3):
-				for j1 in range(0,d4):
-					merged_block_1[:,:,i1+d3*j1]=block[:,:,i1,j1]
-			# predefinition of the second merged tensor
-			merged_block = np.zeros((d1*d2,d3*d4),dtype=np.complex128)
-			for i2 in range(0,d1):
-				for j2 in range(0,d2):
-					merged_block[i2+d1*j2,:]=merged_block_1[i2,j2,:]
-			merged_block_1=None
-			# passing on the merged dimensions
-			dims = np.array([d1,d2,d3,d4])
-		elif where=="left":
-			# predefinition of the merged tensor
-			merged_block = np.zeros((d1*d2,d3,d4),dtype=np.complex128)
-			for i in range(0,d1):
-				for j in range(0,d2):
-					merged_block[i+d1*j,:,:]=block[i,j,:,:]
-			# passing on the merged dimensions
-			dims = np.array([d1,d2])
-		elif where=="right":
-			# predefinition of the merged tensor
-			merged_block = np.zeros((d1,d2,d3*d4),dtype=np.complex128)
-			for i in range(0,d3):
-				for j in range(0,d4):
-					merged_block[:,:,i+d3*j]=block[:,:,i,j]
-			# passing on the merged dimensions
-			dims = np.array([d3,d4])
-	return merged_block, dims
 
-#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
-#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
-#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+	#%%%%%%#
+	# LEFT #
+	#%%%%%%#
+	if NL == 1: #No merging needed
+		left_block += block
 
-###################################
-### Undo the merging of indices ###
-###################################
-def unmerge(block,dims,where):
+	elif NL == 2: 
+		for i2 in range(0,dL[1]):
+			idx_o = [slice(None)]*block.ndim
+			idx_o[0] = i1
+			idx_o[1] = i2
+			idx_n = [slice(None)]*(block.ndim-1)
+			idx_n[0] = i1+dL[0]*i2
+			
+			left_block[tuple(idx_n)] = block[tuple(idx_o)]
+
+	elif NL == 3: 
+		for i2 in range(0,dL[1]):
+			for i3 in range(0,dL[2]):
+				idx_o = [slice(None)]*block.ndim
+				idx_o[0] = i1
+				idx_o[1] = i2
+				idx_o[2] = i3
+				idx_n = [slice(None)]*(block.ndim-2)
+				idx_n[0] = i1+dL[0]*i2+dL[1]*dL[0]*i3
+				
+				left_block[tuple(idx_n)] = block[tuple(idx_o)]
+
+	elif NL == 4: 
+		for i2 in range(0,dL[1]):
+			for i3 in range(0,dL[2]):
+				for i4 in range(0,dL[3]):
+					idx_o = [slice(None)]*block.ndim
+					idx_o[0] = i1
+					idx_o[1] = i2
+					idx_o[2] = i3
+					idx_o[3] = i4
+					idx_n = [slice(None)]*(block.ndim-3)
+					idx_n[0] = i1+dL[0]*i2+dL[1]*dL[0]*i3+dL[2]*dL[1]*dL[0]*i4
+					
+					left_block[tuple(idx_n)] = block[tuple(idx_o)]
+
+	elif NL == 5: 
+		for i2 in range(0,dL[1]):
+			for i3 in range(0,dL[2]):
+				for i4 in range(0,dL[3]):
+					for i5 in range(0,dL[4]):
+						idx_o = [slice(None)]*block.ndim
+						idx_o[0] = i1
+						idx_o[1] = i2
+						idx_o[2] = i3
+						idx_o[3] = i4
+						idx_o[4] = i5
+						idx_n = [slice(None)]*(block.ndim-4)
+						idx_n[0] = i1+dL[0]*i2+dL[1]*dL[0]*i3+dL[2]*dL[1]*dL[0]*i4+dL[3]*dL[2]*dL[1]*dL[0]*i5
+						
+						left_block[tuple(idx_n)] = block[tuple(idx_o)]
+
+	#%%%%%%%#
+	# RIGHT #
+	#%%%%%%%#
+
+	if NR == 1: #No merging needed
+		merged_block += left_block
+
+	elif NR == 2:
+		for j2 in range(0,dR[1]):
+			merged_block[:,j1+dR[0]*j2] = left_block[:,j1,j2]
+
+	elif NR == 3:
+		for j2 in range(0,dR[1]):
+			for j3 in range(0,dR[2]):
+				merged_block[:,j1+dR[0]*j2+dR[1]*dR[0]*j3] = left_block[:,j1,j2,j3]
+	elif NR == 4:
+		for j2 in range(0,dR[1]):
+			for j3 in range(0,dR[2]):
+				for j4 in range(0,dR[3]):
+					merged_block[:,j1+dR[0]*j2+dR[1]*dR[0]*j3+dR[2]*dR[1]*dR[0]*j4] = left_block[:,j1,j2,j3,j4]
+
+	elif NR == 5:
+		for j2 in range(0,dR[1]):
+			for j3 in range(0,dR[2]):
+				for j4 in range(0,dR[3]):
+					for j5 in range(0,dR[4]):
+						merged_block[:,j1+dR[0]*j2+dR[1]*dR[0]*j3+dR[2]*dR[1]*dR[0]*j4+dR[3]*dR[2]*dR[1]*dR[0]*j5] = left_block[:,j1,j2,j3,j4,j5]
+
+	#Clearing the original left_block
+	left_block = None
+	
+	return merged_block, dL, dR
+
+######################################################################################################################################################################################################
+###############################
+### Undoing the index-merge ###
+###############################
+def unmerge(block,dL,dR):
 	"""Unmerging indices to provide a higher-rank tensor from block
 	INPUT: the block for which the index-merging should be undone, the dimensions of the final block indices
-	and where the merged indices are
+	on the left and the right.
 	OUTPUT: the obtained higher-rank tensor"""
 
-	# predefinition of the unmerged tensor
-	unmerged_block = np.zeros(dims,dtype=np.complex128)
-	# In case no merge has been done, no unmerge is needed -> return the original
-	if dims is None:
-		unmerged_block = block
-    
-	elif where=="left":
-		D = block.shape[0]
-		d1 = dims[0]
-		for I in range(0,D):
-			# Care should be taken about the rank of the unmerged tensor
-			if len(block.shape)==1:
-				unmerged_block[I%d1,int((I-(I%d1))/d1)]  = block[I]
-			elif len(block.shape)==2:
-				unmerged_block[I%d1,int((I-(I%d1))/d1),:]  = block[I,:]
-	elif where=="right":
-		if len(block.shape)==1:
-			D = block.shape[0]
-		elif len(block.shape)==2:
-			D = block.shape[1]
-		for I in range(0,D):
-			# Care should be taken about the rank of the unmerged tensor
-			if len(block.shape)==1:
-				d2 = dims[0]
-				unmerged_block[I%d2,int((I-(I%d2))/d2)]  = block[I]
-			elif len(block.shape)==2:
-				d2 = dims[1]
-				unmerged_block[:,I%d2,int((I-(I%d2))/d2)]  = block[:,I]
-	block = None
+	#Dimensions of the merged array
+	DL = block.shape[1]
+	DR = block.shape[2]
+	
+	#Number of unmerged dimensions on the left and the right
+	NL = len(dL)
+	NR = len(dR)
+	
+	#Initializing the left-merged and the unmerged tensor
+	right_block = np.zeros(np.concatenate((np.array([DL]),dR)),dtype=np.complex128)
+	unmerged_block = np.zeros(np.concatenate((dL,dR)),dtype=np.complex128)
+
+	#Initializing the indices	
+	j1 = np.arange(0,dR[0])
+	i1 = np.arange(0,dL[0])
+
+	#%%%%%%%#
+	# RIGHT #
+	#%%%%%%%#
+
+	if NR == 1: #No unmerge needed
+		right_block = block
+
+	elif NR == 2:
+		for J in range(0,DR):
+			right_block[:,J%dR[0],int(J/dR[0])] = block[:,J]
+
+	elif NR == 3:
+		for J in range(0,DR):
+			right_block[:,J%dR[0],int(J/dR[0])%dR[1],int(J/(dR[0]*dR[1]))] = block[:,J]
+		
+	elif NR == 4:
+		for J in range(0,DR):
+			right_block[:,J%dR[0],int(J/dR[0])%dR[1],int(J/(dR[0]*dR[1]))%dR[2],int(J/(dR[0]*dR[1]*dR[2]))] = block[:,J]
+		
+	elif NR == 5:
+		for J in range(0,DR):
+			right_block[:,J%dR[0],int(J/dR[0])%dR[1],int(J/(dR[0]*dR[1]))%dR[2],int(J/(dR[0]*dR[1]*dR[2]))%dR[3],int(J/(dR[0]*dR[1]*dR[2]*dR[3]))] = block[:,J]
+
+	#%%%%%%#
+	# LEFT #
+	#%%%%%%#
+
+	if NL == 1: #No unmerge needed
+		unmerged_block = right_block
+
+	elif NL == 2:
+		for I in range(0,DL):
+			idx_o = [slice(None)]*right_block.ndim
+			idx_o[0] = I
+			idx_n = [slice(None)]*(right_block.ndim+1)
+			idx_n[0] = I%dL[0]
+			idx_n[1] = int(I/dL[0])
+			
+			unmerged_block[tuple(idx_n)] = right_block[tuple(idx_o)]
+
+	elif NL == 3:
+		for I in range(0,DL):
+			idx_o = [slice(None)]*right_block.ndim
+			idx_o[0] = I
+			idx_n = [slice(None)]*(right_block.ndim+2)
+			idx_n[0] = I%dL[0]
+			idx_n[1] = int(I/dL[0])%dL[1]
+			idx_n[2] = int(I/(dL[0]*dL[1]))
+			
+			unmerged_block[tuple(idx_n)] = right_block[tuple(idx_o)]
+		
+	elif NL == 4:
+		for I in range(0,DL):
+			idx_o = [slice(None)]*right_block.ndim
+			idx_o[0] = I
+			idx_n = [slice(None)]*(right_block.ndim+3)
+			idx_n[0] = I%dL[0]
+			idx_n[1] = int(I/dL[0])%dL[1]
+			idx_n[2] = int(I/(dL[0]*dL[1]))%dL[2]
+			idx_n[3] = int(I/(dL[0]*dL[1]*dL[2]))
+			
+			unmerged_block[tuple(idx_n)] = right_block[tuple(idx_o)]
+
+	elif NL == 5:
+		for I in range(0,DL):
+			idx_o = [slice(None)]*right_block.ndim
+			idx_o[0] = I
+			idx_n = [slice(None)]*(right_block.ndim+4)
+			idx_n[0] = I%dL[0]
+			idx_n[1] = int(I/dL[0])%dL[1]
+			idx_n[2] = int(I/(dL[0]*dL[1]))%dL[2]
+			idx_n[3] = int(I/(dL[0]*dL[1]*dL[2]))%dL[3]
+			idx_n[4] = int(I/(dL[0]*dL[1]*dL[2]*dL[3]))
+			
+			unmerged_block[tuple(idx_n)] = right_block[tuple(idx_o)]
+	
+	right_block = None
+
 	return unmerged_block
 
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
