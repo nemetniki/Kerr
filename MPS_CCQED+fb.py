@@ -313,45 +313,27 @@ for M in range(0,N-L-1):
 	#%%%%%%%%%%%%%%%%%%%%#
 	# TIME EVOLUTION MAP #
 	#%%%%%%%%%%%%%%%%%%%%#
-	##U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele)
+	#U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele)
 	#    print("initial shapes",initenv.shape, states[ind_sys].shape, states[ind_sys-1].shape)
-	U_block = U(initenv,states[ind_sys],states[ind_sys-1],N_env,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele,thermal)
+	F_ind = M%(2*L)
+	U_block = U(M,L,statesF[F_ind],statesF[F_ind+L],statesS,statesB1[M],statesB2[M],gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele)
 	#    print("U block",U_block.shape)
 
-	# Merging of the link index on the right into a new tensor if applicable    
-	U_right_merge=False
-	if len(U_block.shape)>3:
-	U_right_merge=True
-	U_block,U_right_dims = merge(U_block,"right")
-	# Exchanging the position of the system and the present bin in the MPS state list
-	U_block  = np.einsum("ijk->jik",U_block)
-	#    print("U block merge right",U_block.shape)
-
-	# Separating the system state from the environment bins
-	states[ind_sys+1],U_small_block = cut(U_block,tol,"right")
-	#    print("tS and rest",states[ind_sys+1].shape,U_small_block.shape)
-	U_block = None
-	# Separating the present time bin from the interacting past bin
-	states[ind_sys],states[ind_sys-1] = cut(U_small_block,tol,"left")
-	#    print("tk and tl",states[ind_sys].shape,states[ind_sys-1].shape)
-	U_small_block=None
-	# Unmerging of the previously merged link index on the right if applicable
-	if U_right_merge:
-	if len(states[ind_sys-1].shape)==1:
-	    U_dims = U_right_dims
-	else:
-	    U_dims = np.concatenate((np.array([states[ind_sys-1].shape[0]]),U_right_dims),axis = 0)
-	states[ind_sys-1] = unmerge(states[ind_sys-1],U_dims,"right")
-	U_dims = None
-	#    print("tl final",states[ind_sys-1].shape)
-	#    print("U done, states done", states[ind_sys+1].shape, states[ind_sys].shape, states[ind_sys-1].shape)
+	# Merging of the link index on the right into a new tensor if applicable
+	Sdim = 3 + int(np.any(M))*2
+	U_block,U1_dim,U2_dim = merge(U_block,Sdim,Sdim)
+	U1_block,U2_block = SVD_split(U_block,tol)
+	#unmerge(block,dL,dR,which=0)
+	U1_block = unmerge(U1_block,U1_dim,1,1)
+	statesF[Find],statesB1[M],statesS[0] = split(U1_block,1)
+	U2_block = unmerge(U2_block,1,U2_dim,2)
+	statesF[Find+L],statesB2[M],statesS[1] = split(U2_block,2)
 
 	# Moving the interacting past bin's state back to its original position in the MPS
-	states[(ind_sys-L):(ind_sys)] = SWAP(states,(ind_sys-2),"past",L,tol)
-	g2_ta,NB = g2_t(states[M],N_env+1,dt,thermal)
-	NB_outa = NB_out(states[M],N_env+1,NB_outa,dt,thermal)
-	# Preparing for the next step with the system index
-	ind_sys =1+ind_sys
+	#SWAP_back(M,L,F,S,tol)
+	statesF,statesS = SWAP_back(M,L,statesF,statesS,tol)
+#	g2_ta,NB = g2_t(states[M],N_env+1,dt,thermal)
+#	NB_outa = NB_out(states[M],N_env+1,NB_outa,dt,thermal)
 
 # restoring the normalization after the time step with moving the past bin next to the system state
 # and relocating the orthogonality centre

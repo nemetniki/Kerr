@@ -57,6 +57,48 @@ def SVD_sig(block,cutoff):
 
 	return svd_final,link_dim
 
+#####################################################################################################################################################################################################
+####################################
+### SVD splitting with 2 indices ###
+####################################
+def SVD_split(block,cutoff):
+	"""Performing SVD with singular values above a certain threshold
+	INPUT: the block to split after U by performing SVD, threshold for singular values
+	OUTPUT: block 1 and block 2"""
+
+	# Predefining the list for the output
+	svd_final = [0]*3
+
+	# Performing the SVD
+	svd_init  = svd(block,full_matrices=False)
+
+	# Omitting the insignificant singular values
+	d   = 0
+	eps = 100.
+	while eps>cutoff:
+		d = d+1
+		eps = np.sqrt(np.sum(svd_init[1][d:]**2))
+
+	# Dimension of the two inner indices
+	dim = int(np.sqrt(d))+1
+	
+	# Final matrices
+	svd_final = [np.zeros((svd_init[0].shape[0],dim,dim)),np.zeros((dim,dim)),np.zeros((dim,dim,svd_init[2].shape[1]))]
+	for J in range(0,dim**2):
+		svd_final[0][:,j%dim,int(j/dim)] = svd_init[0][:,J]
+		svd_final[1][j%dim,int(j/dim)]   = svd_init[1][J]
+		svd_final[2][j%dim,int(j/dim),:] = svd_init[2][J,:]
+	
+	# Calculating block 1 and block 2 after U and the SVD
+	block_1 = np.einsum("ijk,jk->ijk",svd_final[0],svd_final[1])
+	block_2 = svd_final[2]
+	
+	# Clear unnecessary variables
+	svd_init  = None
+	svd_final = None
+
+	return block_1,block_2
+
 ######################################################################################################################################################################################################
 #######################
 ### Merging indices ###
@@ -75,8 +117,8 @@ def merge(block,NL,NR):
 	merged_block = np.zeros((np.prod(dL),np.prod(dR)),dtype = np.complex128)
 
 	#Index initialization
-	i1 = np.arange(0,dL[0])
-	j1 = np.arange(0,dR[0])
+	i1 = np.arange(0,dL[-1])
+	j1 = np.arange(0,dR[-1])
     
 
 	#%%%%%%#
@@ -86,54 +128,54 @@ def merge(block,NL,NR):
 		left_block += block
 
 	elif NL == 2: 
-		for i2 in range(0,dL[1]):
+		for i2 in range(0,dL[0]):
 			idx_o = [slice(None)]*block.ndim
 			idx_o[0] = i1
 			idx_o[1] = i2
 			idx_n = [slice(None)]*(block.ndim-1)
-			idx_n[0] = i1+dL[0]*i2
+			idx_n[0] = i1+dL[1]*i2
 			
 			left_block[tuple(idx_n)] = block[tuple(idx_o)]
 
 	elif NL == 3: 
-		for i2 in range(0,dL[1]):
-			for i3 in range(0,dL[2]):
+		for i3 in range(0,dL[0]):
+			for i2 in range(0,dL[1]):
 				idx_o = [slice(None)]*block.ndim
-				idx_o[0] = i1
+				idx_o[2] = i1
 				idx_o[1] = i2
-				idx_o[2] = i3
+				idx_o[0] = i3
 				idx_n = [slice(None)]*(block.ndim-2)
-				idx_n[0] = i1+dL[0]*i2+dL[1]*dL[0]*i3
+				idx_n[0] = i1+dL[2]*i2+dL[1]*dL[2]*i3
 				
 				left_block[tuple(idx_n)] = block[tuple(idx_o)]
 
 	elif NL == 4: 
-		for i2 in range(0,dL[1]):
-			for i3 in range(0,dL[2]):
-				for i4 in range(0,dL[3]):
+		for i4 in range(0,dL[0]):
+			for i3 in range(0,dL[1]):
+				for i2 in range(0,dL[2]):
 					idx_o = [slice(None)]*block.ndim
-					idx_o[0] = i1
-					idx_o[1] = i2
-					idx_o[2] = i3
-					idx_o[3] = i4
+					idx_o[3] = i1
+					idx_o[2] = i2
+					idx_o[1] = i3
+					idx_o[0] = i4
 					idx_n = [slice(None)]*(block.ndim-3)
-					idx_n[0] = i1+dL[0]*i2+dL[1]*dL[0]*i3+dL[2]*dL[1]*dL[0]*i4
+					idx_n[0] = i1+dL[3]*i2+dL[2]*dL[3]*i3+dL[1]*dL[2]*dL[3]*i4
 					
 					left_block[tuple(idx_n)] = block[tuple(idx_o)]
 
 	elif NL == 5: 
-		for i2 in range(0,dL[1]):
-			for i3 in range(0,dL[2]):
-				for i4 in range(0,dL[3]):
-					for i5 in range(0,dL[4]):
+		for i5 in range(0,dL[0]):
+			for i4 in range(0,dL[1]):
+				for i3 in range(0,dL[2]):
+					for i2 in range(0,dL[3]):
 						idx_o = [slice(None)]*block.ndim
-						idx_o[0] = i1
-						idx_o[1] = i2
+						idx_o[4] = i1
+						idx_o[3] = i2
 						idx_o[2] = i3
-						idx_o[3] = i4
-						idx_o[4] = i5
+						idx_o[1] = i4
+						idx_o[0] = i5
 						idx_n = [slice(None)]*(block.ndim-4)
-						idx_n[0] = i1+dL[0]*i2+dL[1]*dL[0]*i3+dL[2]*dL[1]*dL[0]*i4+dL[3]*dL[2]*dL[1]*dL[0]*i5
+						idx_n[0] = i1+dL[4]*i2+dL[3]*dL[4]*i3+dL[2]*dL[3]*dL[4]*i4+dL[1]*dL[2]*dL[3]*dL[4]*i5
 						
 						left_block[tuple(idx_n)] = block[tuple(idx_o)]
 
@@ -145,25 +187,25 @@ def merge(block,NL,NR):
 		merged_block += left_block
 
 	elif NR == 2:
-		for j2 in range(0,dR[1]):
-			merged_block[:,j1+dR[0]*j2] = left_block[:,j1,j2]
+		for j2 in range(0,dR[0]):
+			merged_block[:,j1+dR[1]*j2] = left_block[:,j2,j1]
 
 	elif NR == 3:
-		for j2 in range(0,dR[1]):
-			for j3 in range(0,dR[2]):
-				merged_block[:,j1+dR[0]*j2+dR[1]*dR[0]*j3] = left_block[:,j1,j2,j3]
+		for j3 in range(0,dR[0]):
+			for j2 in range(0,dR[1]):
+				merged_block[:,j1+dR[2]*j2+dR[1]*dR[2]*j3] = left_block[:,j3,j2,j1]
 	elif NR == 4:
-		for j2 in range(0,dR[1]):
-			for j3 in range(0,dR[2]):
-				for j4 in range(0,dR[3]):
-					merged_block[:,j1+dR[0]*j2+dR[1]*dR[0]*j3+dR[2]*dR[1]*dR[0]*j4] = left_block[:,j1,j2,j3,j4]
+		for j4 in range(0,dR[0]):
+			for j3 in range(0,dR[1]):
+				for j2 in range(0,dR[2]):
+					merged_block[:,j1+dR[3]*j2+dR[2]*dR[3]*j3+dR[1]*dR[2]*dR[3]*j4] = left_block[:,j4,j3,j2,j1]
 
 	elif NR == 5:
-		for j2 in range(0,dR[1]):
-			for j3 in range(0,dR[2]):
-				for j4 in range(0,dR[3]):
-					for j5 in range(0,dR[4]):
-						merged_block[:,j1+dR[0]*j2+dR[1]*dR[0]*j3+dR[2]*dR[1]*dR[0]*j4+dR[3]*dR[2]*dR[1]*dR[0]*j5] = left_block[:,j1,j2,j3,j4,j5]
+		for j5 in range(0,dR[0]):
+			for j4 in range(0,dR[1]):
+				for j3 in range(0,dR[2]):
+					for j2 in range(0,dR[3]):
+						merged_block[:,j1+dR[4]*j2+dR[3]*dR[4]*j3+dR[2]*dR[3]*dR[4]*j4+dR[1]*dR[2]*dR[3]*dR[4]*j5] = left_block[:,j5,j4,j3,j2,j1]
 
 	#Clearing the original left_block
 	left_block = None
@@ -174,28 +216,28 @@ def merge(block,NL,NR):
 ###############################
 ### Undoing the index-merge ###
 ###############################
-def unmerge(block,dL,dR):
+def unmerge(block,dL,dR,which=0):
 	"""Unmerging indices to provide a higher-rank tensor from block
 	INPUT: the block for which the index-merging should be undone, the dimensions of the final block indices
 	on the left and the right.
 	OUTPUT: the obtained higher-rank tensor"""
 
-	#Dimensions of the merged array
-	DL = block.shape[1]
-	DR = block.shape[2]
-	
 	#Number of unmerged dimensions on the left and the right
 	NL = len(dL)
 	NR = len(dR)
 	
+	spec = int(np.any(which))
+	#Dimensions of the merged array
+	DL = block.shape[:which]*spec+block.shape[0]*(1-spec)*np.array([1])
+	DR = block.shape[-3+which:]*spec+block.shape[1]*(1-spec)*np.array([1])
+	
+	dL = dL*int(np.any(which-2))+DL*(1-int(np.any(which-2))) #dL unless unmerge on the right
+	dR = dR*int(np.any(which-1))+DR*(1-int(np.any(which-1))) #dR unless unmerge on the left
+
 	#Initializing the left-merged and the unmerged tensor
-	right_block = np.zeros(np.concatenate((np.array([DL]),dR)),dtype=np.complex128)
+	right_block = np.zeros(np.concatenate((DL,dR)),dtype=np.complex128)
 	unmerged_block = np.zeros(np.concatenate((dL,dR)),dtype=np.complex128)
-
-	#Initializing the indices	
-	j1 = np.arange(0,dR[0])
-	i1 = np.arange(0,dL[0])
-
+		
 	#%%%%%%%#
 	# RIGHT #
 	#%%%%%%%#
@@ -204,20 +246,50 @@ def unmerge(block,dL,dR):
 		right_block = block
 
 	elif NR == 2:
-		for J in range(0,DR):
-			right_block[:,J%dR[0],int(J/dR[0])] = block[:,J]
+		for J in np.arange(0,DR):
+			idx_o = [slice(None)]*right_block.ndim
+			idx_o[-1] = J
+			idx_n = [slice(None)]*(right_block.ndim+1)
+			idx_n[-1] = J%dR[1]
+			idx_n[-2] = int(J/dR[1])
+
+			right_block[idx_n] = block[idx_o]
 
 	elif NR == 3:
-		for J in range(0,DR):
-			right_block[:,J%dR[0],int(J/dR[0])%dR[1],int(J/(dR[0]*dR[1]))] = block[:,J]
+		for J in np.arange(0,DR):
+			idx_o = [slice(None)]*right_block.ndim
+			idx_o[-1] = J
+			idx_n = [slice(None)]*(right_block.ndim+1)
+			idx_n[-1] = J%dR[2]
+			idx_n[-2] = int(J/dR[2])%dR[1]
+			idx_n[-3] = int(J/(dR[2]*dR[1]))
+
+			right_block[idx_n] = block[idx_o]
 		
 	elif NR == 4:
-		for J in range(0,DR):
-			right_block[:,J%dR[0],int(J/dR[0])%dR[1],int(J/(dR[0]*dR[1]))%dR[2],int(J/(dR[0]*dR[1]*dR[2]))] = block[:,J]
+		for J in np.arange(0,DR):
+			idx_o = [slice(None)]*right_block.ndim
+			idx_o[-1] = J
+			idx_n = [slice(None)]*(right_block.ndim+1)
+			idx_n[-1] = J%dR[3]
+			idx_n[-2] = int(J/dR[3])%dR[2]
+			idx_n[-3] = int(J/(dR[3]*dR[2]))%dR[1]
+			idx_n[-4] = int(J/(dR[3]*dR[2]*dR[1]))
+
+			right_block[idx_n] = block[idx_o]
 		
 	elif NR == 5:
-		for J in range(0,DR):
-			right_block[:,J%dR[0],int(J/dR[0])%dR[1],int(J/(dR[0]*dR[1]))%dR[2],int(J/(dR[0]*dR[1]*dR[2]))%dR[3],int(J/(dR[0]*dR[1]*dR[2]*dR[3]))] = block[:,J]
+		for J in np.arange(0,DR):
+			idx_o = [slice(None)]*right_block.ndim
+			idx_o[-1] = J
+			idx_n = [slice(None)]*(right_block.ndim+1)
+			idx_n[-1] = J%dR[4]
+			idx_n[-2] = int(J/dR[4])%dR[3]
+			idx_n[-3] = int(J/(dR[4]*dR[3]))%dR[2]
+			idx_n[-4] = int(J/(dR[4]*dR[3]*dR[2]))%dR[1]
+			idx_n[-5] = int(J/(dR[4]*dR[3]*dR[2]*dR[1]))
+
+			right_block[idx_n] = block[idx_o]
 
 	#%%%%%%#
 	# LEFT #
@@ -227,48 +299,48 @@ def unmerge(block,dL,dR):
 		unmerged_block = right_block
 
 	elif NL == 2:
-		for I in range(0,DL):
+		for I in np.arange(0,DL):
 			idx_o = [slice(None)]*right_block.ndim
 			idx_o[0] = I
 			idx_n = [slice(None)]*(right_block.ndim+1)
-			idx_n[0] = I%dL[0]
-			idx_n[1] = int(I/dL[0])
+			idx_n[1] = I%dL[1]
+			idx_n[0] = int(I/dL[1])
 			
 			unmerged_block[tuple(idx_n)] = right_block[tuple(idx_o)]
 
 	elif NL == 3:
-		for I in range(0,DL):
+		for I in np.arange(0,DL):
 			idx_o = [slice(None)]*right_block.ndim
 			idx_o[0] = I
 			idx_n = [slice(None)]*(right_block.ndim+2)
-			idx_n[0] = I%dL[0]
-			idx_n[1] = int(I/dL[0])%dL[1]
-			idx_n[2] = int(I/(dL[0]*dL[1]))
+			idx_n[2] = I%dL[2]
+			idx_n[1] = int(I/dL[2])%dL[1]
+			idx_n[0] = int(I/(dL[2]*dL[1]))
 			
 			unmerged_block[tuple(idx_n)] = right_block[tuple(idx_o)]
 		
 	elif NL == 4:
-		for I in range(0,DL):
+		for I in np.arange(0,DL):
 			idx_o = [slice(None)]*right_block.ndim
 			idx_o[0] = I
 			idx_n = [slice(None)]*(right_block.ndim+3)
-			idx_n[0] = I%dL[0]
-			idx_n[1] = int(I/dL[0])%dL[1]
-			idx_n[2] = int(I/(dL[0]*dL[1]))%dL[2]
-			idx_n[3] = int(I/(dL[0]*dL[1]*dL[2]))
+			idx_n[3] = I%dL[3]
+			idx_n[2] = int(I/dL[3])%dL[2]
+			idx_n[1] = int(I/(dL[3]*dL[2]))%dL[1]
+			idx_n[0] = int(I/(dL[3]*dL[2]*dL[1]))
 			
 			unmerged_block[tuple(idx_n)] = right_block[tuple(idx_o)]
 
 	elif NL == 5:
-		for I in range(0,DL):
+		for I in np.arange(0,DL):
 			idx_o = [slice(None)]*right_block.ndim
 			idx_o[0] = I
 			idx_n = [slice(None)]*(right_block.ndim+4)
-			idx_n[0] = I%dL[0]
-			idx_n[1] = int(I/dL[0])%dL[1]
-			idx_n[2] = int(I/(dL[0]*dL[1]))%dL[2]
-			idx_n[3] = int(I/(dL[0]*dL[1]*dL[2]))%dL[3]
-			idx_n[4] = int(I/(dL[0]*dL[1]*dL[2]*dL[3]))
+			idx_n[4] = I%dL[4]
+			idx_n[3] = int(I/dL[4])%dL[3]
+			idx_n[2] = int(I/(dL[4]*dL[3]))%dL[2]
+			idx_n[1] = int(I/(dL[4]*dL[3]*dL[2]))%dL[1]
+			idx_n[0] = int(I/(dL[4]*dL[3]*dL[2]*dL[1]))
 			
 			unmerged_block[tuple(idx_n)] = right_block[tuple(idx_o)]
 	
@@ -276,300 +348,133 @@ def unmerge(block,dL,dR):
 
 	return unmerged_block
 
-#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
-#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
-#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+######################################################################################################################################################################################################
+############################
+### Splitting the tensor ###
+############################
+def split(M,block,which,tol):
+	context = ["IJKab->IbJaK","abLMN->LaMbN","gIeJKab->IbJgaKe","abhLfMN->LaMhbNf"]
+	spec    = int(np.any(M))
 
-##########################################
-### Relocating the orthognality centre ###
-##########################################
-def OC_reloc(state_left,state_right,where,tolerance):
-	"""Relocating the orthogonality centre from either of the two adjacent timebins
-	INPUT: time bin state on the left, on the right, where the orthogonality centre should go and the allowed
-	tolerance of the SVD singular values
-	OUTPUT: the obtained time bins on the left and right"""
+	#%%%%%%%%%%%%%%%%#
+	# INDEX ORDERING #
+	#%%%%%%%%%%%%%%%%#
+	block = np.einsum(context[spec*2+which-1],block)
+	
+	#%%%%%%%%%%%%%%%%%%%%%%#
+	# SPLITTING F FROM B&S #
+	#%%%%%%%%%%%%%%%%%%%%%%#
+	# Merging the indices in block to F+SB
+	merged_FSB,dimF,dimSB = merge(block,2,3+2*spec) 
+	#indices -> AB (A=Ib/La, B=JaK/MbN or B=JgaKe/MhbNf)		
+	# Performing the SVD to split the F from SB
+	svd_FSB    = svd_sig(merged_FSB,tol) #indices->Ac/Ad,cc/dd,cB/dB
+	merged_FSB = None
+	# Reordering the indices of F
+	F = np.einsum("Ibc->cIb",unmerge(svd_FSB[0],dimF,np.array([1]))) #indices->Ibc/Lad->cIb/dLa
+	
+	#%%%%%%%%%%%%%%%%%%%%%#
+	# SEPARATING B FROM S #
+	#%%%%%%%%%%%%%%%%%%%%%#
+	# Keeping the orthognality centre in S. Unmerging the indices of S from B, but merging the indices of S and B separately
+	SB,dimS,dimB = merge(unmerge(np.dot(svd_FSB[1],svd_FSB[2]),np.array([1]),np.array([np.prod(dimSB[:spec+2]),np.prod(dimSB[spec+2:]))),2,1)
+	#indices->cB/dB->cCK/dCN or cCE/dCE (C=Ja/Mb or C=Jga/Mhb,E=Ke/Nf)->DK/DN or DE (D=cJa/dMb or D=cJga/dMhb)
+	svd_FSB = None
+	# Performing SVD to separate S from B
+	svd_SB = svd_sig(SB,tol) #indices->De/Df,ee/ff,eK/fN or eE/fE
+	# Unmerging the potential merged indices in B
+	B    = unmerge(svd_SB[2],np.array([1]),dimSB[3:]*spec+np.array([1])*(1-spec)) #indices->eK/fN or eKe/fNf
+	Sstr = ["cJae->aeJc","cJgae->aegJc"]
+	# Keeping the orthoginality centre in S, unmerging and reordering the indices of S
+	S = np.einsum(Sstr[spec],unmerge(np.dot(svd_SB[0],svd_SB[1]),
+								np.concatenate((np.array([dimS[0]]),dimSB[:2+spec])),np.array([1])))
+	#De/Df->cJae/dMbf or cJgae/dMhbf->aeJc/bfMd or aegJc/bfhMd
+	return F,B,S	
 
-	# Number of indices for each state besides the link index between them
-	left_ind = len(state_left.shape)-1
-	right_ind = len(state_right.shape)-1
-	# Number of indices left after contraction
-	num_ind = left_ind+right_ind
-
-	if left_ind==0 or right_ind==0:
-		new_left = state_left
-		new_right = state_right
-	elif num_ind==2:
-		if state_left.shape[1]>state_left.shape[0]:
-			new_left = state_left
-			new_right = state_right
-		else:
-			# Tensor after the contraction at the link index between the states
-			Combo = np.tensordot(state_left,state_right,1)
-			Combo_svd,link_dim = SVD_sig(Combo,tolerance)
-			if where=="left":
-				new_left = np.dot(Combo_svd[0],Combo_svd[1])
-				new_right = Combo_svd[2]
-			elif where=="right":
-				new_right = np.dot(Combo_svd[1],Combo_svd[2])
-				new_left = Combo_svd[0]
-			Combo_svd = None
-        
-	elif num_ind==3:
-		# Tensor after the contraction at the link index between the states
-		Combo = np.tensordot(state_left,state_right,1)
-		if left_ind ==2: # link index is located on the left
-			# Merging the indices on the left to be able to perform svd
-			Combo_merged,merge_dims = merge(Combo,"left")
-			# number of singular values that matter is in link_dim
-			Combo_merged_svd,link_dim = SVD_sig(Combo_merged,tolerance)
-			Combo_merged=None
-			# Dimensions of the indices after the OC relocation and unmerge of indices
-			dims = np.concatenate((merge_dims,np.array([link_dim])),axis=0)
-			if where=="left":
-				# OC relocation to the left
-				new_left_merged = np.dot(Combo_merged_svd[0],Combo_merged_svd[1])
-				new_left = unmerge(new_left_merged,dims,"left")
-				new_left_merged=None
-				new_right = Combo_merged_svd[2]
-				Combo_merged_svd=None
-			elif where=="right":
-				# OC relocation to the right
-				new_right = np.dot(Combo_merged_svd[1],Combo_merged_svd[2])
-				new_left = unmerge(Combo_merged_svd[0],dims,"left")
-				Combo_merged_svd=None
-		elif left_ind ==1: # link index is located on the right
-			# Merging the indices on the right to be able to perform svd
-			Combo_merged,merge_dims = merge(Combo,"right")
-			# number of singular values that matter is in link_dim
-			Combo_merged_svd, link_dim = SVD_sig(Combo_merged,tolerance)
-			Combo_merged=None
-			# Dimensions of the indices after the OC relocation and unmerge of indices
-			dims = np.concatenate((np.array([link_dim]),merge_dims),axis=0)
-			if where=="left":
-				# OC relocation to the left
-				new_left = np.dot(Combo_merged_svd[0],Combo_merged_svd[1])
-				new_right = unmerge(Combo_merged_svd[2],dims,"right")
-				Combo_merged_svd=None
-			elif where=="right":
-				# OC relocation to the right
-				new_right_merged = np.dot(Combo_merged_svd[1],Combo_merged_svd[2])
-				new_right = unmerge(new_right_merged,dims,"right")
-				new_right_merged=None
-				new_left = Combo_merged_svd[0]            
-				Combo_merged_svd=None
-                
-	elif num_ind==4:
-		# Tensor after the contraction at the link index between the states
-		Combo = np.tensordot(state_left,state_right,1)
-		# Merging the indices on both sides to be able to perform svd
-		Combo_merged,merge_dims = merge(Combo,"both")
-		# number of singular values that matter is in link_dim
-		Combo_merged_svd,link_dim = SVD_sig(Combo_merged,tolerance)
-		Combo_merged=None
-		# Dimensions of the indices on the left after the OC relocation and unmerge of indices
-		dims_left = np.array([merge_dims[0],merge_dims[1],link_dim])
-		# Dimensions of the indices on the right after the OC relocation and unmerge of indices
-		dims_right = np.array([link_dim,merge_dims[2],merge_dims[3]])
-		if where=="left":
-			# OC relocation to the left
-			new_left_merged = np.dot(Combo_merged_svd[0],Combo_merged_svd[1])
-			# unmerging the indices on the left
-			new_left = unmerge(new_left_merged,dims_left,"left")
-			new_left_merged=None
-			# unmerging the indices on the right
-			new_right = unmerge(Combo_merged_svd[2],dims_right,"right")
-		elif where=="right":
-			# OC relocation to the right
-			new_right_merged = np.dot(Combo_merged_svd[1],Combo_merged_svd[2])
-			# unmerging the indices on the right
-			new_right = unmerge(new_right_merged,dims_right,"right")
-			new_right_merged=None
-			# unmerging the indices on the left
-			new_left = unmerge(Combo_merged_svd[0],dims_left,"left")
-		Combo_merged_svd=None
-	return new_left,new_right
-
-#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
-#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
-#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
-
-####################################
-### Separate two physical blocks ###
-####################################
-def cut(block,tolerance,how,OC=None):
-	"""cutting up a block to different time bins
-	INPUT: block to be separated, the tolerance of the SVD singular values, where the link indices initially
-	are and if on both sides, then which time bin should incorporate the orthogonality centre (optional)
-	OUTPUT: the obtained time bins on the left and right"""
-
-	# merging the link indices into the physical indices
-	block_merged, dims = merge(block,how)
-	# separate the block
-	block_merged_svd,link_dim = SVD_sig(block_merged,tolerance)
-	#print(block.shape, block_merged.shape)
-	block_merged=None
-	# specifying the link dimension
-	if how=="left":
-		# specifying the final indices of the left block
-		if link_dim==0: # for separate bins
-			left_dims = dims
-		else:
-			left_dims = np.concatenate((dims,np.array([link_dim])),axis=0)
-		# unmerging the link index
-		new_left = unmerge(block_merged_svd[0],left_dims,"left")
-		if len(block_merged_svd[2].shape)>1:
-			# position the orthogonality centre to the right
-			new_right = np.einsum("ij,jk->ik",block_merged_svd[1],block_merged_svd[2])
-		elif len(block_merged_svd[2].shape)==1 & len(block_merged_svd[0].shape)==1:  # for separate bins
-			# position the orthogonality centre to the right
-			new_right = block_merged_svd[1]*block_merged_svd[2]
-		else:
-			print("something's wrong with the ranks of the tensors after svd in cut left")
-            
-	elif how=="right":
-		# specifying the final indices of the right block
-		if link_dim==0: # for separate bins
-			right_dims = dims
-		else:
-			right_dims = np.concatenate((np.array([link_dim]),dims),axis=0)
-		new_left = block_merged_svd[0]
-		if len(block_merged_svd[2].shape)>1:
-			# position the orthogonality centre to the right and unmerging the link index
-			new_right = unmerge(np.einsum("ij,jk->ik",block_merged_svd[1],block_merged_svd[2]),right_dims,"right")
-		elif len(block_merged_svd[2].shape)==1 & len(block_merged_svd[0].shape)==1: # for separate bins
-			# position the orthogonality centre to the right and unmerging the link index
-			new_right = unmerge(block_merged_svd[1]*block_merged_svd[2],right_dims,"right")
-		else:
-			print("something's wrong with the ranks of the tensors after svd in cut right")
-
-	elif how=="both":
-		if link_dim==0: # for separate bins
-			left_dims = dims[:2]
-			right_dims = dims[2:]
-			new_right = unmerge(block_merged_svd[2],right_dims,"right")
-			new_left = unmerge(block_merged_svd[0],left_dims,"left")
-		# specifying the final indices of the blocks
-		else: # for separate bins
-			left_dims = np.concatenate((dims[:2],np.array([link_dim])),axis=0)
-			right_dims = np.concatenate((np.array([link_dim]),dims[2:]),axis=0)
-			if OC=="left":
-				# positioning the orthognality centre to the left
-				new_right = unmerge(block_merged_svd[2],right_dims,"right")
-				new_left = unmerge(np.einsum("jk,kl->jl",block_merged_svd[0],block_merged_svd[1]),left_dims,"left")
-			elif OC=="right":
-				# positioning the orthognality centre to the right
-				new_right = unmerge(np.einsum("ij,jk->ik",block_merged_svd[1],block_merged_svd[2]),right_dims,"right")
-				new_left = unmerge(block_merged_svd[0],left_dims,"left")
-			elif OC== None:
-				print("Please specify where is the orthogonality centre after operation with the keywords 'left' or 'right'")
-	left_dims = None
-	right_dims = None
-	block_merged_svd = None
-	return new_left,new_right
-
-#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
-#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
-#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
-
-#########################
-### Swapping timebins ###
-#########################
-def SWAP(states,base_ind,direction,L,tol):
+######################################################################################################################################################################################################
+#######################################
+### Swapping back to original place ###
+#######################################
+def SWAP_back(M,L,F,S,tol):
 	"""Moving the interacting past bin over the length of the whole delay towards future or past bins.
 	INPUT: list of timebins, index of start, direction of SWAPs ("future" or "past") and the location of
 	the orthogonality centre (optional)
 	OUTPUT: list of states that changed"""
 
-	# Determining the direction of SWAPs
-	if direction=="future":
-		c = 1
-	elif direction=="past":
-		c = -1
-        
-	for s in range(0,L-1):
-		leg_r = len(states[base_ind+c*s].shape)
-		leg_l = len(states[base_ind+c*s+1].shape)
-#		print("before: ",len(states[base_ind+c*s+1].shape),states[base_ind+c*s+1].shape,len(states[base_ind+c*s].shape),states[base_ind+c*s].shape)
-		# if the past bin is independent, tensor product should be performed
-		if leg_r==1:
-			# if both bins are independent, swap does not need SVD, just a "shelf"
-			if leg_l==1:
-				right = states[base_ind+1+c*s]
-				states[base_ind+c*s+1] = states[base_ind+c*s]
-				states[base_ind+c*s] = right
-				right=None
-			# otherwise the cut function can be used to SWAP the bins
-			elif leg_l==2:
-				swap_block = np.tensordot(states[base_ind+c*s+1],states[base_ind+c*s],0)
-				# the physical indices should be swapped
-				states[base_ind+c*s+1],states[base_ind+c*s] = cut(np.einsum("ijk->ikj",swap_block),tol,"left")
-				# the cut function puts the OC to the right by default. In order to move the interacting past
-				# bin next to the system bin, the orthogonality centre should also shift towards the left (future).
-			else:
-				print("problem with tensor rank in swap")
-			if direction =="future":
-#				if leg_l>1 and leg_r>1:
-				states[base_ind+c*s+1],states[base_ind+c*s] = OC_reloc(states[base_ind+c*s+1],
-																		   states[base_ind+c*s],"left",tol)
-                
-		elif leg_r==2 :            
-			if leg_l==1:
-				swap_block = np.tensordot(states[base_ind+1+c*s],states[base_ind+c*s],0)
-				states[base_ind+1+c*s],states[base_ind+c*s] = cut(np.einsum("ijk->jik",swap_block),tol,"right")     
-				if direction =="future":
-	#				if leg_l>1 and leg_r>1:
-					states[base_ind+c*s+1],states[base_ind+c*s] = OC_reloc(states[base_ind+c*s+1],
-																		   states[base_ind+c*s],"left",tol)
-			elif leg_l==2:
-				if states[base_ind+1+c*s].shape[0]>states[base_ind+c*s+1].shape[1]:
-					swap_block = np.tensordot(states[base_ind+1+c*s],states[base_ind+c*s],1)
-					svd_block = svd_sig(swap_block,tol)
-					if direction=="future":
-						states[base_ind+1+c*s] = np.einsum("ij,jk",svd_block[0],svd_block[1])
-						states[base_ind+c*s] = svd_block[2]
-					elif direction=="past":
-						states[base_ind+c*s] = np.einsum("ij,jk",svd_block[1],svd_block[2])
-						states[base_ind+1+c*s] = svd_block[0]
-				else:
-					swap_block = np.einsum("ij,kl->ikjl",states[base_ind+1+c*s],states[base_ind+c*s])
-					if direction=="future":
-						states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"both","left")     
-					elif direction=="past":
-						states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"both","right")     
-			elif leg_l==3:
-			# the physical indices should be swapped while contracting the link indices
-				swap_block = np.einsum("ijk,kl->ilj",states[base_ind+1+c*s],states[base_ind+c*s])
-				states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"left")     
-			# the cut function puts the OC to the right by default. In order to move the interacting past
-			# bin next to the system bin, the orthogonality centre should also shift towards the left (future).
-				if direction =="future":
-	#				if leg_l>1 and leg_r>1:
-					states[base_ind+c*s+1],states[base_ind+c*s] = OC_reloc(states[base_ind+c*s+1],
-																		   states[base_ind+c*s],"left",tol)
-#				print("after: ",states[base_ind+1+c*s].shape,states[base_ind+c*s].shape)
-		else:            
-			# the physical indices should be swapped while contracting the link indices
-			if leg_l==2:
-				swap_block = np.einsum("ij,jlk->lik",states[base_ind+1+c*s],states[base_ind+c*s])
-				states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"right")     
-			# the physical indices should be swapped while contracting the link indices
-				if direction =="future":
-	#				if leg_l>1 and leg_r>1:
-					states[base_ind+c*s+1],states[base_ind+c*s] = OC_reloc(states[base_ind+c*s+1],
-																		   states[base_ind+c*s],"left",tol)
-			else:
-				swap_block = np.einsum("ijk,klm->iljm",states[base_ind+1+c*s],states[base_ind+c*s])
-				if direction=="future":
-					states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"both","left")     
-				elif direction=="past":
-					states[base_ind+1+c*s],states[base_ind+c*s] = cut(swap_block,tol,"both","right")     
-	# because of the different directions of operations the position of the output states are either to the left
-	# or to the right from the index of start
-	if direction =="future":
-		return states[base_ind:(base_ind+L)]
-	elif direction =="past":
-		return states[(base_ind-L+2):(base_ind+2)]
+	Ms = int(np.any(M))
+	context_up = ["O,aeJc->eJcOa","zOg,aegJc->ezJcOa","Og,aegJc->eJcOa"]
+	context_down = ["bfMd,P->bPfMd","bfhMd,hPz->bPfzMd","bfhMd,hP->bPfMd"]
+	Sstr_up = ["eJcx->xeJc","ezJcx->xezJc","eJcx->xeJc"]
+	
+	for i in range(L-1,0,-1):
+		#upper branch
+		I = (M+i)%(2*L)
+		spec = int(np.any(i))*Ms
+		combined_up      = np.einsum(context_up[Ms+spec],F[I],S[0])
+		merged,dimS,dimF = merge(combined_up,3+Ms-spec,2) #indices->AB (A=eJc or ezJc, B=Oa)
+		svded  = svd_sig(merged,tol) #indices->Ax,xx,xB
+		merged = None
+		F[I]   = unmerge(svded[2],np.array([1]),dimF) #indices->xB->xOa
+		S[0] = np.einsum(Sstr[Ms+spec],unmerge(np.dot(svded[0],svded[1]),dimS,np.array([1]))) #indices->Ax->eJcx or ezJcx->aeJc or aegJc
+		dimF  = None
+		dimS  = None
+		svded = None
+		
+		#lower branch
+		J = (2*L+M-i)%(2*L)
+		combined_down    = np.einsum(context_down[Ms+spec],S[1],F[J])
+		merged,dimF,dimS = merge(combined_down,2,3+Ms-spec) #indices->AB (A=bP, B=fMd or fzMd)
+		svded  = svd_sig(merged,tol) #indices->Ay,yy,yB
+		merged = None
+		F[J] = unmerge(svded[0],dimF,np.array([1])) #indices->Ay->bPy
+		S[1] = unmerge(np.dot(svded[1],svded[2]),np.array([1]),dimS) #indices->yB->yfMd or jfzMd
+		dimF  = None
+		dimS  = None
+		svded = None
 
+	return F,S
+
+######################################################################################################################################################################################################
+#############################
+### Swapping to perform U ###
+#############################
+def SWAP_U(M,L,F,S,tol):
+	"""Moving the interacting past bin over the length of the whole delay towards future or past bins.
+	INPUT: list of timebins, index of start, direction of SWAPs ("future" or "past") and the location of
+	the orthogonality centre (optional)
+	OUTPUT: list of states that changed"""
+
+	context_up = ["cIx,xOa->OcIa","zcIx,xOa->zOcIa"]
+	context_down = ["bPy,ydL->bdLP","bPy,ydLz->bdLPz"]
+	Sstr_up = ["eJcx->xeJc","ezJcx->xezJc","eJcx->xeJc"]
+	
+	for i in range(L-1):
+		#upper branch
+		I = (M+i+1)%(2*L)
+		spec = int(np.any(i))
+		combined_up      = np.einsum(context_up[spec],F[M%(2*L)],F[I])
+		merged,dimS,dimF = merge(combined_up,1+spec,3) #indices->AB (A=O or zO, B=cIa)
+		svded  = svd_sig(merged,tol) #indices->Ax,xx,xB
+		merged = None
+		F[I]   = unmerge(svded[0],dimF,np.array([1])) #indices->Ax->Ox or zOx
+		F[M%(2*L)] = unmerge(np.dot(svded[1],svded[2]),np.array([1]),dimS) #indices->xB->xcIa
+		dimF  = None
+		dimS  = None
+		svded = None
+		
+		#lower branch
+		J = (L+M+i+1)%(2*L)
+		combined_down    = np.einsum(context_down[spec],F[J],F[(M+L)%(2*L)])
+		merged,dimF,dimS = merge(combined_down,3,1+spec) #indices->AB (A=bdL, B=P or Pz)
+		svded  = svd_sig(merged,tol) #indices->Ay,yy,yB
+		merged = None
+		F[J] = unmerge(svded[2],np.array([1]),dimF) #indices->yB->yP or yPz
+		F[(M+L)%(2*L)] = unmerge(np.dot(svded[0],svded[1]),dimS,np.array([1])) #indices->Ay->bdLy
+		dimF  = None
+		dimS  = None
+		svded = None
+
+	return F
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#

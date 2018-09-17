@@ -11,7 +11,7 @@ es=np.einsum
 ############################
 ### Evolution operator U ###
 ############################
-def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
+def U(M,L,tF1,tF2,tS,tB1,tB2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 	"""Evolution operator up to dt^2
 	INPUT: states at the current time (t_k), the delayed time (t_l) and the system state (t_S) at timestep M
 	Remember, at M=0 the state is separable
@@ -45,7 +45,7 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 
 		ich  = (-1)**(which+1)*(int(np.any(M))*(2-which)+which)
 		iend = state.shape[ich]
-		context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,IvJKtLqrMN->IvJKtLqrMN","M,IvJKtLqrMN->IvJKtLqrMN"]
+		context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,gIeJKhLfMN->gIeJKhLfMN","M,gIeJKhLfMN->gIeJKhLfMN"]
 
 		idx=[slice(None)]*state.ndim
 		idx[ich]=slice(None,iend-2*N)
@@ -65,7 +65,7 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 
 		ich  = (-1)**(which+1)*(int(np.any(M))*(2-which)+which)
 		iend = state.shape[ich]
-		context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,IvJKtLqrMN->IvJKtLqrMN","M,IvJKtLqrMN->IvJKtLqrMN"]
+		context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,gIeJKhLfMN->gIeJKhLfMN","M,gIeJKhLfMN->gIeJKhLfMN"]
 
 		idx=[slice(None)]*state.ndim
 		idx[ich]=slice(2*N,iend)
@@ -105,7 +105,7 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 		iend = state.shape[ich]
 
 		if g[which-1] != 0:
-			context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,IvJKtLqrMN->IvJKtLqrMN","M,IvJKtLqrMN->IvJKtLqrMN"]
+			context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,gIeJKhLfMN->gIeJKhLfMN","M,gIeJKhLfMN->gIeJKhLfMN"]
 
 			idx1=[slice(None)]*state.ndim
 			idx2=[slice(None)]*state.ndim
@@ -128,7 +128,7 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 	def nc(state,which,const):
 		n=np.linspace(0,int((dim_tS)/2),dim_tS).astype(np.int64)
 		new_state = np.zeros(state.shape,complex)
-		context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,IvJKtLqrMN->IvJKtLqrMN","M,IvJKtLqrMN->IvJKtLqrMN"]
+		context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,gIeJKhLfMN->gIeJKhLfMN","M,gIeJKhLfMN->gIeJKhLfMN"]
 
 		new_state = es(context[which-1+int(np.any(M))*2],n+const,state)
 		return new_state
@@ -176,7 +176,7 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 		if gamma_B[which-1] > 0.:
 			ich  = (-1)**(which+1)*(int(np.any(M))*(2-which)+(3-which))
 			iend = state.shape[ich]
-			context = ["k,ijklmn->ijklmn","n,ijklmn->ijklmn","K,IvJKtLqrMN->IvJKtLqrMN","N,IvJKtLqrMN->IvJKtLqrMN"]
+			context = ["k,ijklmn->ijklmn","n,ijklmn->ijklmn","K,gIeJKhLfMN->gIeJKhLfMN","N,gIeJKhLfMN->gIeJKhLfMN"]
 
 			idx=[slice(None)]*new_state.ndim
 			idx[ich]=np.arange(0,iend-N)
@@ -186,7 +186,7 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 		if gamma_F[which-1] > 0:
 			ich  = (2*int(np.any(M))+3)*(1-which)
 			iend = state.shape[ich]
-			context = ["i,ijklmn->ijklmn","l,ijklmn->ijklmn","I,IvJKtLqrMN->IvJKtLqrMN","L,IvJKtLqrMN->IvJKtLqrMN"]
+			context = ["i,ijklmn->ijklmn","l,ijklmn->ijklmn","I,gIeJKhLfMN->gIeJKhLfMN","L,gIeJKhLfMN->gIeJKhLfMN"]
 
 			idx=[slice(None)]*new_state.ndim
 			idx[ich]=np.arange(0,iend-N)
@@ -210,7 +210,7 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 		if gamma_B[which-1] > 0.:
 			ich  = (-1)**(which+1)*(int(np.any(M))*(2-which)+(3-which))
 			iend = state.shape[ich]
-			context = ["k,ijklmn->ijklmn","n,ijklmn->ijklmn","K,IvJKtLqrMN->IvJKtLqrMN","N,IvJKtLqrMN->IvJKtLqrMN"]
+			context = ["k,ijklmn->ijklmn","n,ijklmn->ijklmn","K,gIeJKhLfMN->gIeJKhLfMN","N,gIeJKhLfMN->gIeJKhLfMN"]
 
 			idx=[slice(None)]*state.ndim
 			idx[ich]=slice(N,iend)
@@ -220,7 +220,7 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 		if gamma_F[which-1] > 0:
 			ich  = (2*int(np.any(M))+3)*(1-which)
 			iend = state.shape[ich]
-			context = ["i,ijklmn->ijklmn","l,ijklmn->ijklmn","I,IvJKtLqrMN->IvJKtLqrMN","L,IvJKtLqrMN->IvJKtLqrMN"]
+			context = ["i,ijklmn->ijklmn","l,ijklmn->ijklmn","I,gIeJKhLfMN->gIeJKhLfMN","L,gIeJKhLfMN->gIeJKhLfMN"]
 
 			idx=[slice(None)]*state.ndim
 			idx[ich]=slice(N,iend)
@@ -239,7 +239,7 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 			ich2 = (2*int(np.any(M))+3)*(1-which)
 			iend1 = state.shape[ich1]
 			iend2 = state.shape[ich2]
-			context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,IvJKtLqrMN->IvJKtLqrMN","L,N,IvJKtLqrMN->IvJKtLqrMN"]
+			context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
 
 			idx_n=[slice(None)]*state.ndim
 			idx_n[ich1]=slice(None,iend1-1)
@@ -263,7 +263,7 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 			ich2 = (2*int(np.any(M))+3)*(1-which)
 			iend1 = state.shape[ich1]
 			iend2 = state.shape[ich2]
-			context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,IvJKtLqrMN->IvJKtLqrMN","L,N,IvJKtLqrMN->IvJKtLqrMN"]
+			context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
 
 			idx_o=[slice(None)]*state.ndim
 			idx_o[ich1]=slice(None,iend1-1)
@@ -289,7 +289,7 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 			ich2 = (2*int(np.any(M))+3)*(1-which)
 			iend1 = state.shape[ich1]
 			iend2 = state.shape[ich2]
-			context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,IvJKtLqrMN->IvJKtLqrMN","L,N,IvJKtLqrMN->IvJKtLqrMN"]
+			context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
 
 			idx_n1=[slice(None)]*state.ndim
 			idx_n1[ich1]=slice(None,iend1-1)
@@ -323,7 +323,7 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 			ich2 = (2*int(np.any(M))+3)*(1-which)
 			iend1 = state.shape[ich1]
 			iend2 = state.shape[ich2]
-			context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,IvJKtLqrMN->IvJKtLqrMN","L,N,IvJKtLqrMN->IvJKtLqrMN"]
+			context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
 
 			idx_o1=[slice(None)]*state.ndim
 			idx_o1[ich1]=slice(None,iend1-1)
@@ -361,7 +361,7 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 			ich2 = (2*int(np.any(M))+3)*(1-which)
 			iend1 = state.shape[ich1]
 			iend2 = state.shape[ich2]
-			context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,IvJKtLqrMN->IvJKtLqrMN","L,N,IvJKtLqrMN->IvJKtLqrMN"]
+			context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
 
 			idx_o1=[slice(None)]*state.ndim
 			idx_o1[ich1]=slice(None,iend1-3)
@@ -405,7 +405,7 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 			ich2 = (2*int(np.any(M))+3)*(1-which)
 			iend1 = state.shape[ich1]
 			iend2 = state.shape[ich2]
-			context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,IvJKtLqrMN->IvJKtLqrMN","L,N,IvJKtLqrMN->IvJKtLqrMN"]
+			context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
 
 			idx_n1=[slice(None)]*state.ndim
 			idx_n1[ich1]=slice(None,iend1-3)
@@ -442,12 +442,12 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 		new_state_tFB2 = np.zeros(state.shape,complex)
 		n = np.arange(0,state.shape[0])
 		if gamma_F[which-1]>0:
-			context = ["i,ijklmn->ijklmn","l,ijklmn->ijklmn","I,IvJKtLqrMN->IvJKtLqrMN","L,IvJKtLqrMN->IvJKtLqrMN"]
+			context = ["i,ijklmn->ijklmn","l,ijklmn->ijklmn","I,gIeJKhLfMN->gIeJKhLfMN","L,gIeJKhLfMN->gIeJKhLfMN"]
 
 			new_state_tF = dt*gamma_F[which-1]*es(context[which-1+2*int(np.any(M))],n+const,state)
 
 		elif gamma_B[which-1]>0:
-			context = ["k,ijklmn->ijklmn","n,ijklmn->ijklmn","K,IvJKtLqrMN->IvJKtLqrMN","N,IvJKtLqrMN->IvJKtLqrMN"]
+			context = ["k,ijklmn->ijklmn","n,ijklmn->ijklmn","K,gIeJKhLfMN->gIeJKhLfMN","N,gIeJKhLfMN->gIeJKhLfMN"]
 
 			new_state_tB = dt*gamma_B[which-1]*es(context[which-1+2*int(np.any(M))],n+const,state)
 
@@ -456,7 +456,7 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 			if M<L:
 				phi=0.
 
-			context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,IvJKtLqrMN->IvJKtLqrMN","L,N,IvJKtLqrMN->IvJKtLqrMN"]
+			context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
 			ich1 = (-1)**(which+1)*(int(np.any(M))*(2-which)+(3-which))
 			ich2 = (2*int(np.any(M))+3)*(1-which)
 			iend1 = state.shape[ich1]
@@ -535,9 +535,9 @@ def U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
     
     #####Initial state#####
 	if M==0:
-		initial = contract("i,j,k,l,m,n->ijklmn",tF1,tS1,tB1,tF2,tS2,tB2)
+		initial = contract("i,j,k,l,m,n->ijklmn",tF1,tS[0],tB1,tF2,tS[1],tB2)
 	else:
-		initial = contract("oip,uvok,j,stun,pqrsl,m->IvJKtLqrMN",tF1,tS1,tB1,tF2,tS2,tB2)
+		initial = contract("agIc,ceJb,K,bhLd,dfMa,N->gIeJKhLfMN",tF1,tS[0],tB1,tF2,tS[1],tB2)
 #    print("init",initial[0,2,0],initial[1,0,0],initial[0,0,1],initial[0,0,0], initial.shape)
 	#legs = len(initial.shape)
 	
