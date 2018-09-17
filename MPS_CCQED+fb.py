@@ -196,15 +196,18 @@ ind_sys2 = L+1#2
 
 #g2_ta1,NB1,NB2 = g2_t(states[ind_sys-1],N_env+1,dt,thermal)
 #NB_outa = 0.
-#Initial contribution from the norm
+
+#Initial contribution for the norm
 normB1 = 1.
 
+# sigma_z construction
 z      = np.zeros(len_sys,complex)
 z[np.arange(0,len_sys,2)]=np.ones(len_env)
 sgg    = np.diag(z)
 see    = np.identity(len_sys)-sgg
 sz     = see-sgg
 
+# n_c and g2_c construction
 ncdiag = (np.linspace(0,len_sys-1,len_sys)/2.).astype(np.int64)
 nc     = np.diag(ncdiag)
 gcdiag = np.zeros(len_env,complex)
@@ -271,16 +274,15 @@ for M in range(0,N-L-1):
 	#        count=count+5
 		print("M =",M, " out of ",N-L-1)
 	sys.stdout.flush()
+	
+	#%%%%%%%%%%%%%%%#
+	# SWAP BEFORE U #
+	#%%%%%%%%%%%%%%%#
 
 	# After the first time step, bring the interacting past bin next to the system bin
-	#if M>0:
-	# Relocating the orthogonality centre to the next interacting past bin if applicable
-	#	states[M],states[M-1] = OC_reloc(states[M],states[M-1],"left",tol)
-	#	states[M:M+L] = SWAP(states,M,"future",L,tol)
-		
-	# Relocating the orthogonality centre from the past bin to the system bin before the evolution
-	# operator's action if applicable
-	states[ind_sys],states[ind_sys-1] = OC_reloc(states[ind_sys],states[ind_sys-1],"left",tol)
+	#SWAP_U(M,L,F,S,tol)
+	if M>0:
+		statesF = SWAP_U(M,L,statesF,tol)
 
 	#%%%%%%#
 	# NORM #
@@ -292,8 +294,7 @@ for M in range(0,N-L-1):
 	#%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 	# SYSTEM EXPECTATION VALUES #
 	#%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-	##exp_sys(observable,sys_state,which)
-	##return np.real(obs)
+	#exp_sys(observable,sys_state,which)
 	nc_exp1  = exp_sys(nc,sys_state,1) #photon number in cavity 1
 	nc_exp2  = exp_sys(nc,sys_state,2) #photon number in cavity 2
 	pop_exp1 = exp_sys(sz,sys_state,1) #atomic population inversion in cavity 1
@@ -307,41 +308,49 @@ for M in range(0,N-L-1):
 
 	#    # Erase the remnants of the states that will not influence the dynamics anymore:
 	#    if M>0:
-	#        states[M-1] = None
+	#        statesB[M-1] = None
 	#   It is needed for the spectral calculations
 
 	#%%%%%%%%%%%%%%%%%%%%#
 	# TIME EVOLUTION MAP #
 	#%%%%%%%%%%%%%%%%%%%%#
-	#U(M,L,tF1,tF2,tS1,tB1,tB2,tS2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele)
-	#    print("initial shapes",initenv.shape, states[ind_sys].shape, states[ind_sys-1].shape)
-	F_ind = M%(2*L)
+	
+	F_ind = M%(2*L) # current index for F, which interacts with system 1
+	
+	# Time evolution map
+	#--------------------
+	##U(M,L,tF1,tF2,tS,tB1,tB2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele)
 	U_block = U(M,L,statesF[F_ind],statesF[F_ind+L],statesS,statesB1[M],statesB2[M],gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele)
 	#    print("U block",U_block.shape)
 
-	# Merging of the link index on the right into a new tensor if applicable
-	Sdim = 3 + int(np.any(M))*2
+	# Split into original blocks
+	#----------------------------
+	Sdim = 3 + int(np.any(M))*2 # Number of indices for each side (S+F+B)
+	# Merging indices per side
 	U_block,U1_dim,U2_dim = merge(U_block,Sdim,Sdim)
+	# Separating the two sides with 2 link indices
 	U1_block,U2_block = SVD_split(U_block,tol)
-	#unmerge(block,dL,dR,which=0)
+	# Unmerging the indices of block 1 on the left
+	##unmerge(block,dL,dR,which=0)
 	U1_block = unmerge(U1_block,U1_dim,1,1)
+	# Saving the new states from block 1 in their corresponding lists
 	statesF[Find],statesB1[M],statesS[0] = split(U1_block,1)
+	# Unmerging the indices of block 2 on the right
 	U2_block = unmerge(U2_block,1,U2_dim,2)
+	# Saving the new states from block 2 in their corresponding lists
 	statesF[Find+L],statesB2[M],statesS[1] = split(U2_block,2)
 
+	# SWAP
+	#------
 	# Moving the interacting past bin's state back to its original position in the MPS
 	#SWAP_back(M,L,F,S,tol)
 	statesF,statesS = SWAP_back(M,L,statesF,statesS,tol)
 #	g2_ta,NB = g2_t(states[M],N_env+1,dt,thermal)
 #	NB_outa = NB_out(states[M],N_env+1,NB_outa,dt,thermal)
 
-# restoring the normalization after the time step with moving the past bin next to the system state
-# and relocating the orthogonality centre
-if len(states[M].shape)>1:
-    states[M+1],states[M] = OC_reloc(states[M+1],states[M],"left",tol)
 
 #Calculating the output spectra over a range of frequencies
-om = np.linspace(-20,20,5000)
+#om = np.linspace(-20,20,5000)
 #spec = spectrum(states,om,N-L-1,N_env+1,dt,N-L-1,thermal)
 #tau,g2_outa = g2_out(states,N-L-1,N_env+1,dt,N-L-1,thermal)
 #time_out = np.transpose(np.vstack((om,spec)))
@@ -358,19 +367,29 @@ om = np.linspace(-20,20,5000)
 #np.savetxt(g2tau,time_out)
 #time_out=None
 
-states[M+1:M+L+1] = SWAP(states,M+1,"future",L,tol)
-if len(states[ind_sys-1].shape)>1:
-    states[ind_sys],states[ind_sys-1] = OC_reloc(states[ind_sys],states[ind_sys-1],"left",tol)
+# SWAP back to calculate the norm and the expectation values
+statesF = SWAP_U(M,L,statesF,tol)
 
-# Calculating the last value of the norm and the excited and ground population in time
-norm,normL = normf(N-L-1,L,states,normL)
-nc_exp = exp_sys(nc,states[N-1],N-L-1)
-exc_pop = exp_sys(see,states[N-1],N-L-1)
-gr_pop  = exp_sys(sgg,states[N-1],N-L-1)
-#	file_evol = open("./Data/TLS+feedback_gL=%dp10_gR=%dp10_Om=%dp10_phi=%dp10pi.txt" % \
-#			(gamma_L*10, gamma_R*10, Om_TLS*10, args.phi*10),"a")
-g2_tac  = exp_sys(g2c,states[N-1],N-L-1)/nc_exp**2
-file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_tac,g2_ta,NB,NB_outa))
+#%%%%%%#
+# NORM #
+#%%%%%%#
+##normf(M,L,statesB1,statesB2,statesF,statesS,normB1,normB2)
+##return np.real(norm),np.real(normB1),np.real(normB2),sys_state
+norm,normB1,normB2,sys_state = normf(M,L,statesB1,statesB2,statesF,statesS,normB1,normB2)
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+# SYSTEM EXPECTATION VALUES #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#exp_sys(observable,sys_state,which)
+nc_exp1  = exp_sys(nc,sys_state,1) #photon number in cavity 1
+nc_exp2  = exp_sys(nc,sys_state,2) #photon number in cavity 2
+pop_exp1 = exp_sys(sz,sys_state,1) #atomic population inversion in cavity 1
+pop_exp2 = exp_sys(sz,sys_state,2) #atomic population inversion in cavity 2
+g2_exp1  = exp_sys(g2c,sys_state,1)/nc_exp1**2 #correlation function from the field in cavity 1 
+g2_exp2  = exp_sys(g2c,sys_state,2)/nc_exp2**2 #correlation function from the field in cavity 2 
+file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,pop_exp1,pop_exp1,nc_exp1,nc_exp2,g2_exp1,g2_exp2))
+file_evol.flush()
+file_out.close()
 
 end = time.time()-start
 h = int(end/3600)

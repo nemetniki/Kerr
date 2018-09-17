@@ -51,6 +51,7 @@ def normf(M,L,statesB1,statesB2,statesF,statesS,normB1,normB2):
 			else:
 				norm_past = contract("kmi,ij,lmj->kl",states[M-1],norm_past,np.conjugate(states[M-1]))
 		return norm_past
+		
 	def F(M,L,states,which):
 	'''Performs the contractions in the fibre reservoir that is not affected by the present interaction 
 	by contracting with past contributions.

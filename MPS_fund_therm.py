@@ -58,9 +58,9 @@ def SVD_sig(block,cutoff):
 	return svd_final,link_dim
 
 #####################################################################################################################################################################################################
-####################################
-### SVD splitting with 2 indices ###
-####################################
+###################################
+### SVD creating 2 link-indices ###
+###################################
 def SVD_split(block,cutoff):
 	"""Performing SVD with singular values above a certain threshold
 	INPUT: the block to split after U by performing SVD, threshold for singular values
@@ -396,10 +396,9 @@ def split(M,block,which,tol):
 ### Swapping back to original place ###
 #######################################
 def SWAP_back(M,L,F,S,tol):
-	"""Moving the interacting past bin over the length of the whole delay towards future or past bins.
-	INPUT: list of timebins, index of start, direction of SWAPs ("future" or "past") and the location of
-	the orthogonality centre (optional)
-	OUTPUT: list of states that changed"""
+	"""Moving the system bin back to its original place in the loop.
+	INPUT: time, delay, list of fibre bins, list of system bins, tolerance of SVD
+	OUTPUT: list of fibre states and system states"""
 
 	Ms = int(np.any(M))
 	context_up = ["O,aeJc->eJcOa","zOg,aegJc->ezJcOa","Og,aegJc->eJcOa"]
@@ -421,7 +420,7 @@ def SWAP_back(M,L,F,S,tol):
 		svded = None
 		
 		#lower branch
-		J = (2*L+M-i)%(2*L)
+		J = (L+M+i)%(2*L)
 		combined_down    = np.einsum(context_down[Ms+spec],S[1],F[J])
 		merged,dimF,dimS = merge(combined_down,2,3+Ms-spec) #indices->AB (A=bP, B=fMd or fzMd)
 		svded  = svd_sig(merged,tol) #indices->Ay,yy,yB
@@ -438,11 +437,10 @@ def SWAP_back(M,L,F,S,tol):
 #############################
 ### Swapping to perform U ###
 #############################
-def SWAP_U(M,L,F,S,tol):
-	"""Moving the interacting past bin over the length of the whole delay towards future or past bins.
-	INPUT: list of timebins, index of start, direction of SWAPs ("future" or "past") and the location of
-	the orthogonality centre (optional)
-	OUTPUT: list of states that changed"""
+def SWAP_U(M,L,F,tol):
+	"""Moving the interacting fibre and system bins next to each other.
+	INPUT: time, delay, list of fibre bins, tolerance of SVD
+	OUTPUT: list of fibre states"""
 
 	context_up = ["cIx,xOa->OcIa","zcIx,xOa->zOcIa"]
 	context_down = ["bPy,ydL->bdLP","bPy,ydLz->bdLPz"]
