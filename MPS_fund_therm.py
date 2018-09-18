@@ -39,16 +39,10 @@ def SVD_sig(block,cutoff):
 
 	# Determining the number of significant singular values and resizing the svd matrices accordingly
 	#print("link_dim",sing_num)
-	if d==1:
-		link_dim     = 0
-		svd_final[0] = svd_init[0][:,0]
-		svd_final[1] = sing[0]
-		svd_final[2] = svd_init[2][0,:]
-	else:
-		link_dim = d
-		svd_final[0] = svd_init[0][:,:link_dim]
-		svd_final[1] = np.diag(sing[:d])
-		svd_final[2] = svd_init[2][:link_dim,:]
+	link_dim = d
+	svd_final[0] = svd_init[0][:,:link_dim]
+	svd_final[1] = np.diag(sing[:d])
+	svd_final[2] = svd_init[2][:link_dim,:]
 
 	# Clear unnecessary variables
 	svd_init  = None
@@ -83,11 +77,11 @@ def SVD_split(block,cutoff):
 	dim = int(np.sqrt(d))+1
 	
 	# Final matrices
-	svd_final = [np.zeros((svd_init[0].shape[0],dim,dim)),np.zeros((dim,dim)),np.zeros((dim,dim,svd_init[2].shape[1]))]
+	svd_final = [np.zeros((svd_init[0].shape[0],dim,dim),complex),np.zeros((dim,dim),complex),np.zeros((dim,dim,svd_init[2].shape[1]),complex)]
 	for J in range(0,dim**2):
-		svd_final[0][:,j%dim,int(j/dim)] = svd_init[0][:,J]
-		svd_final[1][j%dim,int(j/dim)]   = svd_init[1][J]
-		svd_final[2][j%dim,int(j/dim),:] = svd_init[2][J,:]
+		svd_final[0][:,J%dim,int(J/dim)] = svd_init[0][:,J]
+		svd_final[1][J%dim,int(J/dim)]   = svd_init[1][J]
+		svd_final[2][J%dim,int(J/dim),:] = svd_init[2][J,:]
 	
 	# Calculating block 1 and block 2 after U and the SVD
 	block_1 = np.einsum("ijk,jk->ijk",svd_final[0],svd_final[1])
@@ -130,8 +124,8 @@ def merge(block,NL,NR):
 	elif NL == 2: 
 		for i2 in range(0,dL[0]):
 			idx_o = [slice(None)]*block.ndim
-			idx_o[0] = i1
-			idx_o[1] = i2
+			idx_o[1] = i1
+			idx_o[0] = i2
 			idx_n = [slice(None)]*(block.ndim-1)
 			idx_n[0] = i1+dL[1]*i2
 			
@@ -222,44 +216,50 @@ def unmerge(block,dL,dR,which=0):
 	on the left and the right.
 	OUTPUT: the obtained higher-rank tensor"""
 
+#	print("dL:",dL,", dR:",dR)
 	#Number of unmerged dimensions on the left and the right
 	NL = len(dL)
 	NR = len(dR)
 	
 	spec = int(np.any(which))
 	#Dimensions of the merged array
-	DL = block.shape[:which]*spec+block.shape[0]*(1-spec)*np.array([1])
-	DR = block.shape[-3+which:]*spec+block.shape[1]*(1-spec)*np.array([1])
+	DL = list(block.shape[:which])*spec+[block.shape[0]]*(1-spec)
+	DR = list(block.shape[(-3+which)*spec:])*spec+[block.shape[1]]*(1-spec)
 	
-	dL = dL*int(np.any(which-2))+DL*(1-int(np.any(which-2))) #dL unless unmerge on the right
-	dR = dR*int(np.any(which-1))+DR*(1-int(np.any(which-1))) #dR unless unmerge on the left
+	dL = list(dL)*int(np.any(which-2))+DL*(1-int(np.any(which-2))) #dL unless unmerge on the right
+	dR = list(dR)*int(np.any(which-1))+DR*(1-int(np.any(which-1))) #dR unless unmerge on the left
+	
+#	print("state shape:",block.shape," which:",which)
+#	print("DL:",DL,", DR:",DR,", dL:",dL,", dR:",dR)
+#	print("NL:",NL,", NR:",NR)
 
 	#Initializing the left-merged and the unmerged tensor
-	right_block = np.zeros(np.concatenate((DL,dR)),dtype=np.complex128)
-	unmerged_block = np.zeros(np.concatenate((dL,dR)),dtype=np.complex128)
+	right_block = np.zeros(DL+dR,dtype=np.complex128)
+	unmerged_block = np.zeros(dL+dR,dtype=np.complex128)
+#	print("right block shape:",right_block.shape,"unmerged shape:",unmerged_block.shape)
 		
 	#%%%%%%%#
 	# RIGHT #
 	#%%%%%%%#
 
 	if NR == 1: #No unmerge needed
-		right_block = block
+		right_block += block
 
 	elif NR == 2:
-		for J in np.arange(0,DR):
-			idx_o = [slice(None)]*right_block.ndim
+		for J in np.arange(0,DR[0]):
+			idx_o = [slice(None)]*block.ndim
 			idx_o[-1] = J
-			idx_n = [slice(None)]*(right_block.ndim+1)
+			idx_n = [slice(None)]*(right_block.ndim)
 			idx_n[-1] = J%dR[1]
 			idx_n[-2] = int(J/dR[1])
 
 			right_block[idx_n] = block[idx_o]
 
 	elif NR == 3:
-		for J in np.arange(0,DR):
-			idx_o = [slice(None)]*right_block.ndim
+		for J in np.arange(0,DR[0]):
+			idx_o = [slice(None)]*block.ndim
 			idx_o[-1] = J
-			idx_n = [slice(None)]*(right_block.ndim+1)
+			idx_n = [slice(None)]*(right_block.ndim)
 			idx_n[-1] = J%dR[2]
 			idx_n[-2] = int(J/dR[2])%dR[1]
 			idx_n[-3] = int(J/(dR[2]*dR[1]))
@@ -267,10 +267,10 @@ def unmerge(block,dL,dR,which=0):
 			right_block[idx_n] = block[idx_o]
 		
 	elif NR == 4:
-		for J in np.arange(0,DR):
-			idx_o = [slice(None)]*right_block.ndim
+		for J in np.arange(0,DR[0]):
+			idx_o = [slice(None)]*block.ndim
 			idx_o[-1] = J
-			idx_n = [slice(None)]*(right_block.ndim+1)
+			idx_n = [slice(None)]*(right_block.ndim)
 			idx_n[-1] = J%dR[3]
 			idx_n[-2] = int(J/dR[3])%dR[2]
 			idx_n[-3] = int(J/(dR[3]*dR[2]))%dR[1]
@@ -279,10 +279,10 @@ def unmerge(block,dL,dR,which=0):
 			right_block[idx_n] = block[idx_o]
 		
 	elif NR == 5:
-		for J in np.arange(0,DR):
-			idx_o = [slice(None)]*right_block.ndim
+		for J in np.arange(0,DR[0]):
+			idx_o = [slice(None)]*block.ndim
 			idx_o[-1] = J
-			idx_n = [slice(None)]*(right_block.ndim+1)
+			idx_n = [slice(None)]*(right_block.ndim)
 			idx_n[-1] = J%dR[4]
 			idx_n[-2] = int(J/dR[4])%dR[3]
 			idx_n[-3] = int(J/(dR[4]*dR[3]))%dR[2]
@@ -296,10 +296,10 @@ def unmerge(block,dL,dR,which=0):
 	#%%%%%%#
 
 	if NL == 1: #No unmerge needed
-		unmerged_block = right_block
+		unmerged_block += right_block
 
 	elif NL == 2:
-		for I in np.arange(0,DL):
+		for I in np.arange(0,DL[0]):
 			idx_o = [slice(None)]*right_block.ndim
 			idx_o[0] = I
 			idx_n = [slice(None)]*(right_block.ndim+1)
@@ -309,7 +309,7 @@ def unmerge(block,dL,dR,which=0):
 			unmerged_block[tuple(idx_n)] = right_block[tuple(idx_o)]
 
 	elif NL == 3:
-		for I in np.arange(0,DL):
+		for I in np.arange(0,DL[0]):
 			idx_o = [slice(None)]*right_block.ndim
 			idx_o[0] = I
 			idx_n = [slice(None)]*(right_block.ndim+2)
@@ -320,7 +320,7 @@ def unmerge(block,dL,dR,which=0):
 			unmerged_block[tuple(idx_n)] = right_block[tuple(idx_o)]
 		
 	elif NL == 4:
-		for I in np.arange(0,DL):
+		for I in np.arange(0,DL[0]):
 			idx_o = [slice(None)]*right_block.ndim
 			idx_o[0] = I
 			idx_n = [slice(None)]*(right_block.ndim+3)
@@ -332,7 +332,7 @@ def unmerge(block,dL,dR,which=0):
 			unmerged_block[tuple(idx_n)] = right_block[tuple(idx_o)]
 
 	elif NL == 5:
-		for I in np.arange(0,DL):
+		for I in np.arange(0,DL[0]):
 			idx_o = [slice(None)]*right_block.ndim
 			idx_o[0] = I
 			idx_n = [slice(None)]*(right_block.ndim+4)
@@ -359,6 +359,7 @@ def split(M,block,which,tol):
 	#%%%%%%%%%%%%%%%%#
 	# INDEX ORDERING #
 	#%%%%%%%%%%%%%%%%#
+#	print("block shape:",block.shape,", spec:", spec,", which:", which,", context:",context[spec*2+which-1])
 	block = np.einsum(context[spec*2+which-1],block)
 	
 	#%%%%%%%%%%%%%%%%%%%%%%#
@@ -366,30 +367,35 @@ def split(M,block,which,tol):
 	#%%%%%%%%%%%%%%%%%%%%%%#
 	# Merging the indices in block to F+SB
 	merged_FSB,dimF,dimSB = merge(block,2,3+2*spec) 
+	#print(merged_FSB.shape,dimF,dimSB)
 	#indices -> AB (A=Ib/La, B=JaK/MbN or B=JgaKe/MhbNf)		
 	# Performing the SVD to split the F from SB
-	svd_FSB    = svd_sig(merged_FSB,tol) #indices->Ac/Ad,cc/dd,cB/dB
+	svd_FSB,link_dim1    = SVD_sig(merged_FSB,tol) #indices->Ac/Ad,cc/dd,cB/dB
+	#print(svd_FSB[0].shape,svd_FSB[1].shape,svd_FSB[2].shape,link_dim1)
 	merged_FSB = None
 	# Reordering the indices of F
-	F = np.einsum("Ibc->cIb",unmerge(svd_FSB[0],dimF,np.array([1]))) #indices->Ibc/Lad->cIb/dLa
+	Fstr = ["Ibc->cIb","Lad->aLd"]
+	F = np.einsum(Fstr[which-1],unmerge(svd_FSB[0],dimF,np.array([link_dim1]))) #indices->Ac/Ad->Ibc/Lad->cIb/dLa
+	#print(F.shape)
 	
 	#%%%%%%%%%%%%%%%%%%%%%#
 	# SEPARATING B FROM S #
 	#%%%%%%%%%%%%%%%%%%%%%#
 	# Keeping the orthognality centre in S. Unmerging the indices of S from B, but merging the indices of S and B separately
-	SB,dimS,dimB = merge(unmerge(np.dot(svd_FSB[1],svd_FSB[2]),np.array([1]),np.array([np.prod(dimSB[:spec+2]),np.prod(dimSB[spec+2:]))),2,1)
+	SB,dimS,dimB = merge(unmerge(np.dot(svd_FSB[1],svd_FSB[2]),np.array([link_dim1]),np.array([np.prod(dimSB[:spec+2]),np.prod(dimSB[spec+2:])])),2,1)
 	#indices->cB/dB->cCK/dCN or cCE/dCE (C=Ja/Mb or C=Jga/Mhb,E=Ke/Nf)->DK/DN or DE (D=cJa/dMb or D=cJga/dMhb)
 	svd_FSB = None
 	# Performing SVD to separate S from B
-	svd_SB = svd_sig(SB,tol) #indices->De/Df,ee/ff,eK/fN or eE/fE
+	svd_SB,link_dim2 = SVD_sig(SB,tol) #indices->De/Df,ee/ff,eK/fN or eE/fE
 	# Unmerging the potential merged indices in B
-	B    = unmerge(svd_SB[2],np.array([1]),dimSB[3:]*spec+np.array([1])*(1-spec)) #indices->eK/fN or eKe/fNf
+	B    = unmerge(svd_SB[2],np.array([link_dim2]),dimSB[2+spec:]) #indices->eK/fN or eKe/fNf
 	Sstr = ["cJae->aeJc","cJgae->aegJc"]
 	# Keeping the orthoginality centre in S, unmerging and reordering the indices of S
 	S = np.einsum(Sstr[spec],unmerge(np.dot(svd_SB[0],svd_SB[1]),
-								np.concatenate((np.array([dimS[0]]),dimSB[:2+spec])),np.array([1])))
+								np.concatenate((np.array([dimS[0]]),dimSB[:2+spec])),np.array([link_dim2])))
 	#De/Df->cJae/dMbf or cJgae/dMhbf->aeJc/bfMd or aegJc/bfhMd
 	return F,B,S	
+	#cIb/dLa, eK/fN or eKe/fNf, aeJc/bfMd or aegJc/bfhMd
 
 ######################################################################################################################################################################################################
 #######################################
@@ -408,30 +414,35 @@ def SWAP_back(M,L,F,S,tol):
 	for i in range(L-1,0,-1):
 		#upper branch
 		I = (M+i)%(2*L)
-		spec = int(np.any(i))*Ms
+		spec = (1-int(np.any(i-1)))*Ms
+		#print("before back",I,F[I].shape,S[0].shape,context_up[Ms+spec],Ms+spec)#+spec)
 		combined_up      = np.einsum(context_up[Ms+spec],F[I],S[0])
 		merged,dimS,dimF = merge(combined_up,3+Ms-spec,2) #indices->AB (A=eJc or ezJc, B=Oa)
-		svded  = svd_sig(merged,tol) #indices->Ax,xx,xB
+		svded,link_dim  = SVD_sig(merged,tol) #indices->Ax,xx,xB
 		merged = None
-		F[I]   = unmerge(svded[2],np.array([1]),dimF) #indices->xB->xOa
-		S[0] = np.einsum(Sstr[Ms+spec],unmerge(np.dot(svded[0],svded[1]),dimS,np.array([1]))) #indices->Ax->eJcx or ezJcx->aeJc or aegJc
+		F[I]   = unmerge(svded[2],np.array([link_dim]),dimF) #indices->xB->xOa
+		S[0] = np.einsum(Sstr_up[Ms+spec],unmerge(np.dot(svded[0],svded[1]),dimS,np.array([link_dim]))) #indices->Ax->eJcx or ezJcx->aeJc or aegJc
+		#print("after back",I,F[I].shape,S[0].shape,context_up[Ms+spec],Ms+spec)#+spec)
 		dimF  = None
 		dimS  = None
 		svded = None
 		
 		#lower branch
 		J = (L+M+i)%(2*L)
+#		print("before back",J,F[J].shape,S[1].shape,context_down[Ms+spec],Ms+spec)#+spec)
 		combined_down    = np.einsum(context_down[Ms+spec],S[1],F[J])
 		merged,dimF,dimS = merge(combined_down,2,3+Ms-spec) #indices->AB (A=bP, B=fMd or fzMd)
-		svded  = svd_sig(merged,tol) #indices->Ay,yy,yB
+		svded,link_dim  = SVD_sig(merged,tol) #indices->Ay,yy,yB
 		merged = None
-		F[J] = unmerge(svded[0],dimF,np.array([1])) #indices->Ay->bPy
-		S[1] = unmerge(np.dot(svded[1],svded[2]),np.array([1]),dimS) #indices->yB->yfMd or jfzMd
+		F[J] = unmerge(svded[0],dimF,np.array([link_dim])) #indices->Ay->bPy
+		S[1] = unmerge(np.dot(svded[1],svded[2]),np.array([link_dim]),dimS) #indices->yB->yfMd or yfzMd
+#		print("after back",J,F[J].shape,S[1].shape,context_down[Ms+spec],Ms+spec)#+spec)
 		dimF  = None
 		dimS  = None
 		svded = None
 
 	return F,S
+	#xOa and bPy, aeJc or aegJc and yfMd or yfzMd
 
 ######################################################################################################################################################################################################
 #############################
@@ -443,31 +454,33 @@ def SWAP_U(M,L,F,tol):
 	OUTPUT: list of fibre states"""
 
 	context_up = ["cIx,xOa->OcIa","zcIx,xOa->zOcIa"]
-	context_down = ["bPy,ydL->bdLP","bPy,ydLz->bdLPz"]
-	Sstr_up = ["eJcx->xeJc","ezJcx->xezJc","eJcx->xeJc"]
+	context_down = ["bPy,yLd->bdLP","bPy,ydLz->bdLPz"]
 	
 	for i in range(L-1):
 		#upper branch
 		I = (M+i+1)%(2*L)
 		spec = int(np.any(i))
+		print("before",I, F[M%(2*L)].shape,F[I].shape,context_up[spec])
 		combined_up      = np.einsum(context_up[spec],F[M%(2*L)],F[I])
-		merged,dimS,dimF = merge(combined_up,1+spec,3) #indices->AB (A=O or zO, B=cIa)
-		svded  = svd_sig(merged,tol) #indices->Ax,xx,xB
+		merged,dimF,dimFO = merge(combined_up,1+spec,3) #indices->AB (A=O or zO, B=cIa)
+		svded,link_dim  = SVD_sig(merged,tol) #indices->Ax,xx,xB
 		merged = None
-		F[I]   = unmerge(svded[0],dimF,np.array([1])) #indices->Ax->Ox or zOx
-		F[M%(2*L)] = unmerge(np.dot(svded[1],svded[2]),np.array([1]),dimS) #indices->xB->xcIa
+		F[I]   = unmerge(svded[0],dimF,np.array([link_dim])) #indices->Ax->Ox or zOx
+		F[M%(2*L)] = unmerge(np.dot(svded[1],svded[2]),np.array([link_dim]),dimFO) #indices->xB->xcIa
+		print("after",I, F[M%(2*L)].shape,F[I].shape)
 		dimF  = None
 		dimS  = None
 		svded = None
 		
 		#lower branch
 		J = (L+M+i+1)%(2*L)
+#		print("F shape",F[J].shape,F[(M+L)%(2*L)].shape,F[(J-1)%(2*L)].shape)
 		combined_down    = np.einsum(context_down[spec],F[J],F[(M+L)%(2*L)])
-		merged,dimF,dimS = merge(combined_down,3,1+spec) #indices->AB (A=bdL, B=P or Pz)
-		svded  = svd_sig(merged,tol) #indices->Ay,yy,yB
+		merged,dimFO,dimF = merge(combined_down,3,1+spec) #indices->AB (A=bdL, B=P or Pz)
+		svded,link_dim  = SVD_sig(merged,tol) #indices->Ay,yy,yB
 		merged = None
-		F[J] = unmerge(svded[2],np.array([1]),dimF) #indices->yB->yP or yPz
-		F[(M+L)%(2*L)] = unmerge(np.dot(svded[0],svded[1]),dimS,np.array([1])) #indices->Ay->bdLy
+		F[J] = unmerge(svded[2],np.array([link_dim]),dimF) #indices->yB->yP or yPz
+		F[(M+L)%(2*L)] = unmerge(np.dot(svded[0],svded[1]),dimFO,np.array([link_dim])) #indices->Ay->bdLy
 		dimF  = None
 		dimS  = None
 		svded = None

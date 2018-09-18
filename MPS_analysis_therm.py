@@ -29,9 +29,10 @@ def normf(M,L,statesB1,statesB2,statesF,statesS,normB1,normB2):
 	#and non-Markovian, that is the connecting fibre. 
 	
 	def B(M,states,norm_past):
-	'''Performs the contractions in one Markovian reservoir up to the present bin by contracting with past contributions.
-	INPUT: Time step, Markovian reservoir list, previously saved contributions.
-	OUTPUT: Present contribution to the norm.'''
+		'''Performs the contractions in one Markovian reservoir up to the present bin by contracting with past contributions.
+		INPUT: Time step, Markovian reservoir list, previously saved contributions.
+		OUTPUT: Present contribution to the norm.'''
+		#print("B states",states[M-1].shape,states[M].shape)		
 		if len(states[M-1].shape)==1:
 			norm_past = es("i,i",states[M-1],np.conjugate(states[M-1]))*norm_past
 		elif len(states[M-1].shape)==2:
@@ -53,38 +54,20 @@ def normf(M,L,statesB1,statesB2,statesF,statesS,normB1,normB2):
 		return norm_past
 		
 	def F(M,L,states,which):
-	'''Performs the contractions in the fibre reservoir that is not affected by the present interaction 
-	by contracting with past contributions.
-	INPUT: Time step, length of the delay, fibre reservoir list, index that specifies which end
-	OUTPUT: Present contribution to the norm.'''
+		'''Performs the contractions in the fibre reservoir that is not affected by the present interaction 
+		by contracting with past contributions.
+		INPUT: Time step, length of the delay, fibre reservoir list, index that specifies which end
+		OUTPUT: Present contribution to the norm.'''
 		normF   = 1.
-		context = ["imk,iml->kl","kmi,lmi->kl","imk,ij,jml->kl","kmi,ij,lmj->kl"]
-		for i in range(0,L-2):
-			index = abs(-(which-1)*(2*L-1)+i)
-			if len(states[index].shape)==1:
-				temp = es("i,i",state[index],np.conjugate(state[index]))
-				if np.isscalar(normF) or len(normF)==1:
-					normF = temp*normF
-				else:
-					normF = temp*es("ii",normF)
-			elif len(states[index].shape)==2:
-				if state[index].shape[which-1]<state[index].shape[which%2]:
-					temp = es("ji,jk->ik",states[index],np.conjugate(states[index]))
-					if np.isscalar(normF) or len(normF)==1:
-						normF = es("ii",temp)*normF
-					else:
-						normF = es("ij,ij",temp,normF)
-				elif state[index].shape[which-1]>state[index].shape[which%2]:
-					temp = es("ij,kj->ik",states[ind+i],np.conjugate(states[ind+i]))
-					if np.isscalar(normF) or len(normF)==1:
-						normF = temp*normF
-					else:
-						normF = temp*es("ii",normF)
+		context1 = ["ij,ik->jk","ij,kj->ik","ijk,ijl->kl","ijk,ljk->il"]
+		context2 = ["ijk,im,mjl->kl","ijk,km,ljm->il"]
+		for i in range(0,L-1):
+			index = (M+1+i+(which-1)*L)%(2*L)
+			#print(states[index].shape,normF,index)
+			if np.isscalar(normF) or len(normF)==1:
+				normF = es(context1[which-1+2*int(np.any(i))],states[index],np.conjugate(states[index]))*normF
 			else:
-				if np.isscalar(normF) or len(normF)==1:
-					normF = es(context[which-1],states[index],np.conjugate(states[index]))*normF
-				else:
-					normF = contract(context[which+1],states[index],normF,np.conjugate(states[index]))
+				normF = contract(context2[which-1],states[index],normF,np.conjugate(states[index]))
 		return normF
 
 	#Putting everything together. In the first time step there are no link indices, the states are normalized.
@@ -106,12 +89,15 @@ def normf(M,L,statesB1,statesB2,statesF,statesS,normB1,normB2):
 		# Contracting the system part of the MPS 
 		# capital letters: physical indices, small letters: link indices
 		# order for systemFS: S1,F1,S2,F2 -> final: F1,S1,(B1),F2,S2,(B2)
-		# indices: I(F1 phys)v(B1 past link)J(S1 phys)K(B1 phys)t(F lower link)
-		#	   L(F2 phys)q(F upper link)r(B2 past link)M(S2 phys)N(B2 phys)
-		sys_state = contract("opI,wvoJ,tswL,pqrsM->IvJtLqrM",statesF[L-1],statesS[0],statesF[L],statesS[1])
-		normS = contract("IvJtLqrM,IaJbLcdM->vatbqcrd",sys_state,np.conjugate(sys_state))
-		
-		norm = contract("ij,kl,mn,op,ijklmnop",normB1,normF2,normB2,normF1,normS)
+		# indices: g(F upper link)I(F1 phys)e(B1 link)J(S1 phys)
+		#	   h(F lower link)L(F2 phys)f(B2 link)M(S2 phys)
+		sys_state = contract("agIc,ceJb,bhLd,dfMa->gIeJhLfM",statesF[M%(2*L)],statesS[0],statesF[(M+L)%(2*L)],statesS[1])
+		normS = contract("gIeJhLfM,aIbJcLdM->gaebhcfd",sys_state,np.conjugate(sys_state))
+		#print(normF1.shape,normB1.shape,normF2.shape,normB2.shape)
+		#print(normF1,normB1,normF2,normB2)
+
+#		if len(normB1)==		
+		norm = contract("ga,eb,hc,fd,gaebhcfd",normF1,normB1,normF2,normB2,normS)
 	
 	return np.real(norm),np.real(normB1),np.real(normB2),sys_state
 
@@ -322,8 +308,8 @@ def g2_out(states,taumax,N_env,dt,index,thermal):
 		elif legs==3:
 			new_state[:,0:(-iend),:] = es("i,jik->jik",np.sqrt(n),state[:,iend:,:])
 		return new_state
-	g2_out = np.zeros(taumax)
-	tau = np.zeros(taumax)
+	g2_out = np.zeros(taumax,complex)
+	tau = np.zeros(taumax,complex)
 	temp      = dB(dB(states[index]))
 	temp2     = dB(states[index])
 	if len(states[index].shape)==1:

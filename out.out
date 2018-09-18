@@ -1,0 +1,24 @@
+M = 0  out of  20
+31 31 0 20 0 10
+0 (2, 5, 2) (2, 5) (2, 2, 9, 2)
+0 (2, 5, 8) (4, 5) (2, 4, 9, 8)
+system (2, 2, 9, 2) (2, 4, 9, 8)
+fibre (2, 5, 2) (2, 5, 2) (2, 5, 8) (2, 5, 2)
+before 2 (2, 5, 2) (2, 5, 2) cIx,xOa->OcIa
+after 2 (1, 2, 5, 2) (5, 1)
+before 3 (1, 2, 5, 2) (2, 5, 2) zcIx,xOa->zOcIa
+after 3 (1, 2, 5, 2) (1, 5, 1)
+before 4 (1, 2, 5, 2) (2, 5, 2) zcIx,xOa->zOcIa
+after 4 (1, 2, 5, 2) (1, 5, 1)
+before 5 (1, 2, 5, 2) (2, 5, 2) zcIx,xOa->zOcIa
+after 5 (1, 2, 5, 2) (1, 5, 1)
+before 6 (1, 2, 5, 2) (2, 5, 2) zcIx,xOa->zOcIa
+after 6 (1, 2, 5, 2) (1, 5, 1)
+before 7 (1, 2, 5, 2) (2, 5, 2) zcIx,xOa->zOcIa
+after 7 (1, 2, 5, 2) (1, 5, 1)
+before 8 (1, 2, 5, 2) (2, 5, 2) zcIx,xOa->zOcIa
+after 8 (1, 2, 5, 2) (1, 5, 1)
+before 9 (1, 2, 5, 2) (2, 5, 2) zcIx,xOa->zOcIa
+after 9 (1, 2, 5, 2) (1, 5, 1)
+before 10 (1, 2, 5, 2) (2, 5, 8) zcIx,xOa->zOcIa
+after 10 (4, 2, 5, 8) (1, 5, 4)

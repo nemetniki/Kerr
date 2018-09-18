@@ -18,7 +18,7 @@ import argparse
 from decimal import Decimal
 from math import factorial
 from MPS_fund_therm import *
-from U_JC_therm import *
+from U_CCQED import *
 from MPS_analysis_therm import *
 
 mpl.rcParams['mathtext.fontset'] = 'cm'
@@ -78,10 +78,10 @@ parser.add_argument("-Ome2",type=float,default = 0,help='Omega_e2: direct drivin
 parser.add_argument("-Omc1",type=float,default = 0,help='Omega_c1: driving strength for the cavity on the left')
 parser.add_argument("-Omc2",type=float,default = 0,help='Omega_c2: driving strength for the cavity on the right')
 parser.add_argument("-tol",type=float,default = -3,help='tolerance')
-parser.add_argument("-Nphot",type=int,default = 50,help='maximal boson number')
+parser.add_argument("-Nphot",type=int,default = 4,help='maximal boson number')
 parser.add_argument("-L",type=int,default = 10,help='delay as number of dt')
-parser.add_argument("-endt",type=float, default = 10, help ='end of time evolution')
-parser.add_argument("-dt",type=float,default = 0.005, help ='dt')
+parser.add_argument("-endt",type=float, default = 10., help ='end of time evolution')
+parser.add_argument("-dt",type=float,default = 0.5, help ='dt')
 parser.add_argument("-cohC1",type=float, default = 0.,help='coherent initial state for cavity 1')
 parser.add_argument("-cohC2",type=float, default = 0.,help='coherent initial state for cavity 2')
 parser.add_argument("-cohB1",type=float, default = 0.,help='coherent initial state for the environment on the left')
@@ -199,6 +199,7 @@ ind_sys2 = L+1#2
 
 #Initial contribution for the norm
 normB1 = 1.
+normB2 = 1.
 
 # sigma_z construction
 z      = np.zeros(len_sys,complex)
@@ -266,9 +267,9 @@ file_evol = open(filename,"a")
 ### Time evolution ###
 ######################
 
-for M in range(0,N-L-1):
+for M in range(0,N):
 	#    print(M*dt)
-	percent10 = (N-L-1)/10.
+	percent10 = (N)/10.
 	count = 0
 	if M%(int(percent10))==0:
 	#        count=count+5
@@ -315,12 +316,13 @@ for M in range(0,N-L-1):
 	# TIME EVOLUTION MAP #
 	#%%%%%%%%%%%%%%%%%%%%#
 	
-	F_ind = M%(2*L) # current index for F, which interacts with system 1
+	F_ind = M # current index for F, which interacts with system 1
 	
 	# Time evolution map
 	#--------------------
 	##U(M,L,tF1,tF2,tS,tB1,tB2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele)
-	U_block = U(M,L,statesF[F_ind],statesF[F_ind+L],statesS,statesB1[M],statesB2[M],gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele)
+	print(len(statesB1),len(statesB2),M,len(statesF),F_ind,F_ind+L)
+	U_block = U(M,L,statesF[F_ind%(2*L)],statesF[(F_ind+L)%(2*L)],statesS,statesB1[M],statesB2[M],gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele)
 	#    print("U block",U_block.shape)
 
 	# Split into original blocks
@@ -332,19 +334,26 @@ for M in range(0,N-L-1):
 	U1_block,U2_block = SVD_split(U_block,tol)
 	# Unmerging the indices of block 1 on the left
 	##unmerge(block,dL,dR,which=0)
-	U1_block = unmerge(U1_block,U1_dim,1,1)
+#	print("u1_block dim:",U1_dim,", u1 block:", U1_block.shape)
+	U1_block = unmerge(U1_block,U1_dim,np.array([1]),1)
+#	print("u1 block:", U1_block.shape)
 	# Saving the new states from block 1 in their corresponding lists
-	statesF[Find],statesB1[M],statesS[0] = split(U1_block,1)
+	##split(M,block,which,tol)
+	statesF[(F_ind)%(2*L)],statesB1[M],statesS[0] = split(M,U1_block,1,tol)
+	print(M,statesF[F_ind%(2*L)].shape,statesB1[M].shape,statesS[0].shape)
 	# Unmerging the indices of block 2 on the right
-	U2_block = unmerge(U2_block,1,U2_dim,2)
+	U2_block = unmerge(U2_block,np.array([1]),U2_dim,2)
 	# Saving the new states from block 2 in their corresponding lists
-	statesF[Find+L],statesB2[M],statesS[1] = split(U2_block,2)
+	statesF[(F_ind+L)%(2*L)],statesB2[M],statesS[1] = split(M,U2_block,2,tol)
+	print(M,statesF[(F_ind+L)%(2*L)].shape,statesB2[M].shape,statesS[1].shape)
 
 	# SWAP
 	#------
 	# Moving the interacting past bin's state back to its original position in the MPS
 	#SWAP_back(M,L,F,S,tol)
 	statesF,statesS = SWAP_back(M,L,statesF,statesS,tol)
+	print("system",statesS[0].shape,statesS[1].shape)
+	print("fibre",statesF[(M)%(2*L)].shape,statesF[(M+1)%(2*L)].shape,statesF[(M+L)%(2*L)].shape,statesF[(M+L+1)%(2*L)].shape)
 #	g2_ta,NB = g2_t(states[M],N_env+1,dt,thermal)
 #	NB_outa = NB_out(states[M],N_env+1,NB_outa,dt,thermal)
 
