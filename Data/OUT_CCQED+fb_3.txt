@@ -1,8 +1,8 @@
-Data file index: 1
+Data file index: 3
 
-System1 parameters: g1 = 0.000000, Delta_e1 = 0.000000, Delta_c1 = 0.000000, initial index: 1, Omega_e1 = 0.000000, Omega_c1 = 0.000000
+System1 parameters: g1 = 6.000000, Delta_e1 = 0.000000, Delta_c1 = 0.000000, initial index: 1, Omega_e1 = 0.000000, Omega_c1 = 0.000000
 
-System 2 parameters: g2 = 0.000000, Delta_e2 = 0.000000, Delta_c2 = 0.000000, initial index: 0, Omega_e2 = 0.000000, Omega_c2 = 0.000000
+System 2 parameters: g2 = 6.000000, Delta_e2 = 0.000000, Delta_c2 = 0.000000, initial index: 0, Omega_e2 = 0.000000, Omega_c2 = 0.000000
 
 Environment parameters: gamma_B1 = 1.340000, gamma_B2 = 0.890000
 
@@ -15,5 +15,3 @@ Coherent initial state amplitude for cavity1: 0.000000, cavity2: 0.000000, the e
 thermal photon number: 0.000000
 
 Data file: M*dt,norm,pop1,pop2,nc1_exp,nc2_exp,g2_1_exp,g2_2_exp
-
-finished in: 00:00:04

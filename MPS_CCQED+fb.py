@@ -190,9 +190,7 @@ statesB2 = [initB2]*N
 #Non-Markovian environment+system list
 statesF  = 2*L*[initF]
 statesS  = [initJC1]+[initJC2]
-#Initial index of system 1 and 2
-ind_sys1 = 0
-ind_sys2 = L+1#2
+print("statesS",statesS)
 
 #g2_ta1,NB1,NB2 = g2_t(states[ind_sys-1],N_env+1,dt,thermal)
 #NB_outa = 0.
@@ -207,10 +205,12 @@ z[np.arange(0,len_sys,2)]=np.ones(len_env)
 sgg    = np.diag(z)
 see    = np.identity(len_sys)-sgg
 sz     = see-sgg
+print("sigmaz",sz)
 
 # n_c and g2_c construction
 ncdiag = (np.linspace(0,len_sys-1,len_sys)/2.).astype(np.int64)
 nc     = np.diag(ncdiag)
+print("nc",nc)
 gcdiag = np.zeros(len_env,complex)
 for i in range(1,len_env):
 	gcdiag[i] = gcdiag[i-1]+2*(i-1)
@@ -302,7 +302,7 @@ for M in range(0,N):
 	pop_exp2 = exp_sys(sz,sys_state,2) #atomic population inversion in cavity 2
 	g2_exp1  = exp_sys(g2c,sys_state,1)/nc_exp1**2 #correlation function from the field in cavity 1 
 	g2_exp2  = exp_sys(g2c,sys_state,2)/nc_exp2**2 #correlation function from the field in cavity 2 
-	file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,pop_exp1,pop_exp1,nc_exp1,nc_exp2,g2_exp1,g2_exp2))
+	file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,pop_exp1,pop_exp2,nc_exp1,nc_exp2,g2_exp1,g2_exp2))
 	file_evol.flush()
 	file_out.close()
 
@@ -321,7 +321,7 @@ for M in range(0,N):
 	# Time evolution map
 	#--------------------
 	##U(M,L,tF1,tF2,tS,tB1,tB2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele)
-	print(len(statesB1),len(statesB2),M,len(statesF),F_ind,F_ind+L)
+#	print(len(statesB1),len(statesB2),M,len(statesF),F_ind,F_ind+L)
 	U_block = U(M,L,statesF[F_ind%(2*L)],statesF[(F_ind+L)%(2*L)],statesS,statesB1[M],statesB2[M],gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele)
 	#    print("U block",U_block.shape)
 
@@ -340,20 +340,20 @@ for M in range(0,N):
 	# Saving the new states from block 1 in their corresponding lists
 	##split(M,block,which,tol)
 	statesF[(F_ind)%(2*L)],statesB1[M],statesS[0] = split(M,U1_block,1,tol)
-	print(M,statesF[F_ind%(2*L)].shape,statesB1[M].shape,statesS[0].shape)
+	print("M=",M,", F1:",statesF[(F_ind)%(2*L)].shape,", B1:",statesB1[M].shape,", S1:",statesS[0].shape)
 	# Unmerging the indices of block 2 on the right
 	U2_block = unmerge(U2_block,np.array([1]),U2_dim,2)
 	# Saving the new states from block 2 in their corresponding lists
 	statesF[(F_ind+L)%(2*L)],statesB2[M],statesS[1] = split(M,U2_block,2,tol)
-	print(M,statesF[(F_ind+L)%(2*L)].shape,statesB2[M].shape,statesS[1].shape)
+	print("M=",M,", F2:",statesF[(F_ind+L)%(2*L)].shape,", B2:",statesB2[M].shape,", S2:",statesS[1].shape)
 
 	# SWAP
 	#------
 	# Moving the interacting past bin's state back to its original position in the MPS
 	#SWAP_back(M,L,F,S,tol)
 	statesF,statesS = SWAP_back(M,L,statesF,statesS,tol)
-	print("system",statesS[0].shape,statesS[1].shape)
-	print("fibre",statesF[(M)%(2*L)].shape,statesF[(M+1)%(2*L)].shape,statesF[(M+L)%(2*L)].shape,statesF[(M+L+1)%(2*L)].shape)
+#	print("system",statesS[0].shape,statesS[1].shape)
+#	print("fibre",statesF[(M)%(2*L)].shape,statesF[(M+1)%(2*L)].shape,statesF[(M+L)%(2*L)].shape,statesF[(M+L+1)%(2*L)].shape)
 #	g2_ta,NB = g2_t(states[M],N_env+1,dt,thermal)
 #	NB_outa = NB_out(states[M],N_env+1,NB_outa,dt,thermal)
 
@@ -377,14 +377,14 @@ for M in range(0,N):
 #time_out=None
 
 # SWAP back to calculate the norm and the expectation values
-statesF = SWAP_U(M,L,statesF,tol)
+statesF = SWAP_U(M+1,L,statesF,tol)
 
 #%%%%%%#
 # NORM #
 #%%%%%%#
 ##normf(M,L,statesB1,statesB2,statesF,statesS,normB1,normB2)
 ##return np.real(norm),np.real(normB1),np.real(normB2),sys_state
-norm,normB1,normB2,sys_state = normf(M,L,statesB1,statesB2,statesF,statesS,normB1,normB2)
+norm,normB1,normB2,sys_state = normf(M+1,L,statesB1,statesB2,statesF,statesS,normB1,normB2)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 # SYSTEM EXPECTATION VALUES #
@@ -396,7 +396,7 @@ pop_exp1 = exp_sys(sz,sys_state,1) #atomic population inversion in cavity 1
 pop_exp2 = exp_sys(sz,sys_state,2) #atomic population inversion in cavity 2
 g2_exp1  = exp_sys(g2c,sys_state,1)/nc_exp1**2 #correlation function from the field in cavity 1 
 g2_exp2  = exp_sys(g2c,sys_state,2)/nc_exp2**2 #correlation function from the field in cavity 2 
-file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,pop_exp1,pop_exp1,nc_exp1,nc_exp2,g2_exp1,g2_exp2))
+file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %((M+1)*dt,norm,pop_exp1,pop_exp2,nc_exp1,nc_exp2,g2_exp1,g2_exp2))
 file_evol.flush()
 file_out.close()
 

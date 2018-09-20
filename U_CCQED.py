@@ -37,41 +37,43 @@ def U(M,L,tF1,tF2,tS,tB1,tB2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
     #####Frequently used operators#####
 	def a(state,which,N):
 		new_state = np.zeros(state.shape,complex)
-		n=np.linspace(N,int((dim_tS)/2),dim_tS-2*N).astype(np.int64)
-		nprod = 1.
-		i = 0
-		while i<N:
-			nprod *= np.sqrt(n-i)
-			i+=1
+		if dim_tS>2*N:
+			n=np.linspace(N,int((dim_tS)/2),dim_tS-2*N).astype(np.int64)
+			nprod = 1.
+			i = 0
+			while i<N:
+				nprod *= np.sqrt(n-i)
+				i+=1
 
-		ich  = (-1)**(which+1)*(2*int(np.any(M))*(2-which)+which)#which=1->1/3, which=2->-2/-2
-		iend = state.shape[ich]
-		context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,gIeJKhLfMN->gIeJKhLfMN","M,gIeJKhLfMN->gIeJKhLfMN"]
+			ich  = (-1)**(which+1)*(2*int(np.any(M))*(2-which)+which)#which=1->1/3, which=2->-2/-2
+			iend = state.shape[ich]
+			context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,gIeJKhLfMN->gIeJKhLfMN","M,gIeJKhLfMN->gIeJKhLfMN"]
 
-		idx=[slice(None)]*state.ndim
-		idx[ich]=slice(None,iend-2*N)
-		
-		new_state[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod,np.take(state,np.arange(2*N,iend),axis=ich))
+			idx=[slice(None)]*state.ndim
+			idx[ich]=slice(None,iend-2*N)
+			
+			new_state[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod,np.take(state,np.arange(2*N,iend),axis=ich))
 
 		return new_state
 
 	def ad(state,which,N):
 		new_state = np.zeros(state.shape,complex)
-		n=np.linspace(N,int((dim_tS)/2),dim_tS-2*N).astype(np.int64)
-		nprod = 1.
-		i = 0
-		while i<N:
-			nprod *= np.sqrt(n-i)
-			i+=1
+		if dim_tS>2*N:
+			n=np.linspace(N,int((dim_tS)/2),dim_tS-2*N).astype(np.int64)
+			nprod = 1.
+			i = 0
+			while i<N:
+				nprod *= np.sqrt(n-i)
+				i+=1
 
-		ich  = (-1)**(which+1)*(2*int(np.any(M))*(2-which)+which)#which=1->1/3, which=2->-2/-2
-		iend = state.shape[ich]
-		context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,gIeJKhLfMN->gIeJKhLfMN","M,gIeJKhLfMN->gIeJKhLfMN"]
+			ich  = (-1)**(which+1)*(2*int(np.any(M))*(2-which)+which)#which=1->1/3, which=2->-2/-2
+			iend = state.shape[ich]
+			context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,gIeJKhLfMN->gIeJKhLfMN","M,gIeJKhLfMN->gIeJKhLfMN"]
 
-		idx=[slice(None)]*state.ndim
-		idx[ich]=slice(2*N,iend)
-		
-		new_state[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod,np.take(state,np.arange(iend-2*N),axis=ich))
+			idx=[slice(None)]*state.ndim
+			idx[ich]=slice(2*N,iend)
+			
+			new_state[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod,np.take(state,np.arange(iend-2*N),axis=ich))
 		return new_state
 
 	def sm(state,which):
@@ -165,292 +167,308 @@ def U(M,L,tF1,tF2,tS,tB1,tB2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 	def E(state,which,N):
 		new_state_tB = np.zeros(state.shape,complex)
 		new_state_tF = np.zeros(state.shape,complex)
-		n = np.arange(N,state.shape[int(np.any(M)*2+2)])
-		nprod = 1.
-		i = 0
-		if M<L:
-			phip=0.
-		else:
-			phip=phi
-		while i<N:
-			nprod *= np.sqrt(n-i)
-			i+=1
+		if N<state.shape[int(np.any(M)*2+2)]:
+			n = np.arange(N,state.shape[int(np.any(M)*2+2)])
+			nprod = 1.
+			i = 0
+			if M<L:
+				phip=0.
+			else:
+				phip=phi
+			while i<N:
+				nprod *= np.sqrt(n-i)
+				i+=1
 
-		if gamma_B[which-1] > 0.:
-			ich = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
-			iend = state.shape[ich]
-			context = ["k,ijklmn->ijklmn","n,ijklmn->ijklmn","K,gIeJKhLfMN->gIeJKhLfMN","N,gIeJKhLfMN->gIeJKhLfMN"]
+			if gamma_B[which-1] > 0.:
+				ich = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+				iend = state.shape[ich]
+				context = ["k,ijklmn->ijklmn","n,ijklmn->ijklmn","K,gIeJKhLfMN->gIeJKhLfMN","N,gIeJKhLfMN->gIeJKhLfMN"]
 
-			idx=[slice(None)]*state.ndim
-			idx[ich]=np.arange(0,iend-N)
-			
-#			print(new_state_tB[tuple(idx)].shape,np.take(state,np.arange(N,iend),axis=ich).shape,nprod.shape,N)
-			new_state_tB[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod*np.sqrt(gamma_B[which-1]*dt)**N,np.take(state,np.arange(N,iend),axis=ich))
+				idx=[slice(None)]*state.ndim
+				idx[ich]=np.arange(0,iend-N)
+				
+	#			print(new_state_tB[tuple(idx)].shape,np.take(state,np.arange(N,iend),axis=ich).shape,nprod.shape,N)
+				new_state_tB[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod*np.sqrt(gamma_B[which-1]*dt)**N,np.take(state,np.arange(N,iend),axis=ich))
 
-		if gamma_F[which-1] > 0:
-			ich = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
-			iend = state.shape[ich]
-			context = ["i,ijklmn->ijklmn","l,ijklmn->ijklmn","I,gIeJKhLfMN->gIeJKhLfMN","L,gIeJKhLfMN->gIeJKhLfMN"]
+			if gamma_F[which-1] > 0:
+				ich = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+				iend = state.shape[ich]
+				context = ["i,ijklmn->ijklmn","l,ijklmn->ijklmn","I,gIeJKhLfMN->gIeJKhLfMN","L,gIeJKhLfMN->gIeJKhLfMN"]
 
-			idx=[slice(None)]*state.ndim
-			idx[ich]=np.arange(0,iend-N)
-			
-#			print(new_state_tF[tuple(idx)].shape,np.take(state,np.arange(N,iend),axis=ich).shape,nprod.shape,N)
-			new_state_tF[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod*np.sqrt(gamma_F[which-1]*dt)**N,np.take(state,np.arange(N,iend),axis=ich))*np.exp(-1j*N*phip)
+				idx=[slice(None)]*state.ndim
+				idx[ich]=np.arange(0,iend-N)
+				
+	#			print(new_state_tF[tuple(idx)].shape,np.take(state,np.arange(N,iend),axis=ich).shape,nprod.shape,N)
+				new_state_tF[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod*np.sqrt(gamma_F[which-1]*dt)**N,np.take(state,np.arange(N,iend),axis=ich))*np.exp(-1j*N*phip)
 
 		return new_state_tB+new_state_tF
 
 	def Ed(state,which,N):
 		new_state_tB = np.zeros(state.shape,complex)
 		new_state_tF = np.zeros(state.shape,complex)
-		n = np.arange(N,state.shape[int(np.any(M)*2+2)])
-		nprod = 1.
-		i = 0
-		if M<L:
-			phip=0.
-		else:
-			phip=phi
-		while i<N:
-			nprod *= np.sqrt(n-i)
-			i+=1
+		if N<state.shape[int(np.any(M)*2+2)]:
+			n = np.arange(N,state.shape[int(np.any(M)*2+2)])
+			nprod = 1.
+			i = 0
+			if M<L:
+				phip=0.
+			else:
+				phip=phi
+			while i<N:
+				nprod *= np.sqrt(n-i)
+				i+=1
 
-		if gamma_B[which-1] > 0.:
-			ich = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
-			iend = state.shape[ich]
-			context = ["k,ijklmn->ijklmn","n,ijklmn->ijklmn","K,gIeJKhLfMN->gIeJKhLfMN","N,gIeJKhLfMN->gIeJKhLfMN"]
+			if gamma_B[which-1] > 0.:
+				ich = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+				iend = state.shape[ich]
+				context = ["k,ijklmn->ijklmn","n,ijklmn->ijklmn","K,gIeJKhLfMN->gIeJKhLfMN","N,gIeJKhLfMN->gIeJKhLfMN"]
 
-			idx=[slice(None)]*state.ndim
-			idx[ich]=slice(N,iend)
-#			print("context:", context[which-1+int(np.any(M))*2],", which:", which,", M:", M)
-			new_state_tB[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod*np.sqrt(gamma_B[which-1]*dt)**N,np.take(state,np.arange(0,iend-N),axis=ich))
+				idx=[slice(None)]*state.ndim
+				idx[ich]=slice(N,iend)
+	#			print("context:", context[which-1+int(np.any(M))*2],", which:", which,", M:", M)
+				new_state_tB[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod*np.sqrt(gamma_B[which-1]*dt)**N,np.take(state,np.arange(0,iend-N),axis=ich))
 
-		if gamma_F[which-1] > 0:
-			ich = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
-			iend = state.shape[ich]
-			context = ["i,ijklmn->ijklmn","l,ijklmn->ijklmn","I,gIeJKhLfMN->gIeJKhLfMN","L,gIeJKhLfMN->gIeJKhLfMN"]
+			if gamma_F[which-1] > 0:
+				ich = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+				iend = state.shape[ich]
+				context = ["i,ijklmn->ijklmn","l,ijklmn->ijklmn","I,gIeJKhLfMN->gIeJKhLfMN","L,gIeJKhLfMN->gIeJKhLfMN"]
 
-			idx=[slice(None)]*state.ndim
-			idx[ich]=slice(N,iend)
-			
-			new_state_tF[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod*np.sqrt(gamma_F[which-1]*dt)**N,np.take(state,np.arange(0,iend-N),axis=ich))*np.exp(1j*N*phip)
+				idx=[slice(None)]*state.ndim
+				idx[ich]=slice(N,iend)
+				
+				new_state_tF[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod*np.sqrt(gamma_F[which-1]*dt)**N,np.take(state,np.arange(0,iend-N),axis=ich))*np.exp(1j*N*phip)
 
 		return new_state_tB+new_state_tF
 
 	def E2mix(state,which):
-		if M<L:
-			phip=0.
-		else:
-			phip=phi
-		n = np.sqrt(np.arange(1,state.shape[int(np.any(M)*2+2)]))
 		new_state_mix = np.zeros(state.shape,complex)
-		if gamma_B[which-1]>0 and gamma_F[which-1]>0:
-			ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
-			ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
-			iend1 = state.shape[ich1]
-			iend2 = state.shape[ich2]
-			context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
+		if 2<state.shape[int(np.any(M)*2+2)]:
+			if M<L:
+				phip=0.
+			else:
+				phip=phi
+			n = np.sqrt(np.arange(1,state.shape[int(np.any(M)*2+2)]))
+			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
+				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+				iend1 = state.shape[ich1]
+				iend2 = state.shape[ich2]
+				context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
 
-			idx_n=[slice(None)]*state.ndim
-			idx_n[ich1]=slice(None,iend1-1)
-			idx_n[ich2]=slice(None,iend2-1)
-			idx_o=[slice(None)]*state.ndim
-			idx_o[ich1]=slice(1,iend1)
-			idx_o[ich2]=slice(1,iend2)
-			
-			new_state_mix[tuple(idx_n)] = (np.sqrt(gamma_B[which-1]*gamma_F[which-1])*np.exp(-1j*phip)*dt*
-							contract(context[which-1+int(np.any(M))*2],n,n,state[tuple(idx_o)]))
+				idx_n=[slice(None)]*state.ndim
+				idx_n[ich1]=slice(None,iend1-1)
+				idx_n[ich2]=slice(None,iend2-1)
+				idx_o=[slice(None)]*state.ndim
+				idx_o[ich1]=slice(1,iend1)
+				idx_o[ich2]=slice(1,iend2)
+				
+				new_state_mix[tuple(idx_n)] = (np.sqrt(gamma_B[which-1]*gamma_F[which-1])*np.exp(-1j*phip)*dt*
+								contract(context[which-1+int(np.any(M))*2],n,n,state[tuple(idx_o)]))
 		return 2*new_state_mix
 
 	def Ed2mix(state,which):
-		if M<L:
-			phip=0.
-		else:
-			phip=phi
-		n = np.sqrt(np.arange(1,state.shape[int(np.any(M)*2+2)]))
 		new_state_mix = np.zeros(state.shape,complex)
-		if gamma_B[which-1]>0 and gamma_F[which-1]>0:
+		if 2<state.shape[int(np.any(M)*2+2)]:
+			if M<L:
+				phip=0.
+			else:
+				phip=phi
+			n = np.sqrt(np.arange(1,state.shape[int(np.any(M)*2+2)]))
+			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
 
-			ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
-			ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
-			iend1 = state.shape[ich1]
-			iend2 = state.shape[ich2]
-			context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
+				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+				iend1 = state.shape[ich1]
+				iend2 = state.shape[ich2]
+				context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
 
-			idx_o=[slice(None)]*state.ndim
-			idx_o[ich1]=slice(None,iend1-1)
-			idx_o[ich2]=slice(None,iend2-1)
-			idx_n=[slice(None)]*state.ndim
-			idx_n[ich1]=slice(1,iend1)
-			idx_n[ich2]=slice(1,iend2)
-			
-			new_state_mix[tuple(idx_n)] = (np.sqrt(gamma_B[which-1]*gamma_F[which-1])*np.exp(1j*phip)*dt*
-							contract(context[which-1+int(np.any(M))*2],n,n,state[tuple(idx_o)]))
+				idx_o=[slice(None)]*state.ndim
+				idx_o[ich1]=slice(None,iend1-1)
+				idx_o[ich2]=slice(None,iend2-1)
+				idx_n=[slice(None)]*state.ndim
+				idx_n[ich1]=slice(1,iend1)
+				idx_n[ich2]=slice(1,iend2)
+				
+				new_state_mix[tuple(idx_n)] = (np.sqrt(gamma_B[which-1]*gamma_F[which-1])*np.exp(1j*phip)*dt*
+								contract(context[which-1+int(np.any(M))*2],n,n,state[tuple(idx_o)]))
 		return 2*new_state_mix
 
 	def E3mix(state,which):
-		if M<L:
-			phip=0.
-		else:
-			phip=phi
-		n = np.arange(1,state.shape[int(np.any(M)*2+2)])
-		n2 = np.sqrt(n[1:]*(n[1:]-1))
-		n = np.sqrt(n)
+
 		new_state_mix1 = np.zeros(state.shape,complex)
 		new_state_mix2 = np.zeros(state.shape,complex)
-		if gamma_B[which-1]>0 and gamma_F[which-1]>0:
-			ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
-			ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
-			iend1 = state.shape[ich1]
-			iend2 = state.shape[ich2]
-			context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
+		if 2<state.shape[int(np.any(M)*2+2)]:
+			if M<L:
+				phip=0.
+			else:
+				phip=phi
+			n = np.arange(1,state.shape[int(np.any(M)*2+2)])
+			n2 = np.sqrt(n[1:]*(n[1:]-1))
+			n = np.sqrt(n)
+			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
+				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+				iend1 = state.shape[ich1]
+				iend2 = state.shape[ich2]
+				context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
 
-			idx_n1=[slice(None)]*state.ndim
-			idx_n1[ich1]=slice(None,iend1-1)
-			idx_n1[ich2]=slice(None,iend2-2)
-			idx_n2=[slice(None)]*state.ndim
-			idx_n2[ich1]=slice(None,iend1-2)
-			idx_n2[ich2]=slice(None,iend2-1)
-			idx_o1=[slice(None)]*state.ndim
-			idx_o1[ich1]=slice(1,iend1)
-			idx_o1[ich2]=slice(2,iend2)
-			idx_o2=[slice(None)]*state.ndim
-			idx_o2[ich1]=slice(2,iend1)
-			idx_o2[ich2]=slice(1,iend2)
-			
-			new_state_mix1[tuple(idx_n1)] = (gamma_F[which-1]*np.sqrt(gamma_B[which-1])*dt**1.5*np.exp(-2j*phip)*
-							contract(context[which-1+int(np.any(M))*2],n2,n,state[tuple(idx_o1)]))
-			new_state_mix2[tuple(idx_n2)] = (gamma_B[which-1]*np.sqrt(gamma_F[which-1])*dt**1.5*np.exp(-1j*phip)*
-							contract(context[which-1+int(np.any(M))*2],n,n2,state[tuple(idx_o2)]))
+				idx_n1=[slice(None)]*state.ndim
+				idx_n1[ich1]=slice(None,iend1-1)
+				idx_n1[ich2]=slice(None,iend2-2)
+				idx_n2=[slice(None)]*state.ndim
+				idx_n2[ich1]=slice(None,iend1-2)
+				idx_n2[ich2]=slice(None,iend2-1)
+				idx_o1=[slice(None)]*state.ndim
+				idx_o1[ich1]=slice(1,iend1)
+				idx_o1[ich2]=slice(2,iend2)
+				idx_o2=[slice(None)]*state.ndim
+				idx_o2[ich1]=slice(2,iend1)
+				idx_o2[ich2]=slice(1,iend2)
+				
+				new_state_mix1[tuple(idx_n1)] = (gamma_F[which-1]*np.sqrt(gamma_B[which-1])*dt**1.5*np.exp(-2j*phip)*
+								contract(context[which-1+int(np.any(M))*2],n2,n,state[tuple(idx_o1)]))
+				new_state_mix2[tuple(idx_n2)] = (gamma_B[which-1]*np.sqrt(gamma_F[which-1])*dt**1.5*np.exp(-1j*phip)*
+								contract(context[which-1+int(np.any(M))*2],n,n2,state[tuple(idx_o2)]))
 		return 3*(new_state_mix1+new_state_mix2)
 
 	def Ed3mix(state,which):
-		if M<L:
-			phip=0.
-		else:
-			phip=phi
-		n = np.arange(1,state.shape[int(np.any(M)*2+2)])
-		n2 = np.sqrt(n[1:]*(n[1:]-1))
-		n = np.sqrt(n)
+
 		new_state_mix1 = np.zeros(state.shape,complex)
 		new_state_mix2 = np.zeros(state.shape,complex)
-		if gamma_B[which-1]>0 and gamma_F[which-1]>0:
-			ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
-			ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
-			iend1 = state.shape[ich1]
-			iend2 = state.shape[ich2]
-			context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
+		if 2<state.shape[int(np.any(M)*2+2)]:
+			if M<L:
+				phip=0.
+			else:
+				phip=phi
+			n = np.arange(1,state.shape[int(np.any(M)*2+2)])
+			n2 = np.sqrt(n[1:]*(n[1:]-1))
+			n = np.sqrt(n)
+			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
+				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+				iend1 = state.shape[ich1]
+				iend2 = state.shape[ich2]
+				context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
 
-			idx_o1=[slice(None)]*state.ndim
-			idx_o1[ich1]=slice(None,iend1-1)
-			idx_o1[ich2]=slice(None,iend2-2)
-			idx_o2=[slice(None)]*state.ndim
-			idx_o2[ich1]=slice(None,iend1-2)
-			idx_o2[ich2]=slice(None,iend2-1)
-			idx_n1=[slice(None)]*state.ndim
-			idx_n1[ich1]=slice(1,iend1)
-			idx_n1[ich2]=slice(2,iend2)
-			idx_n2=[slice(None)]*state.ndim
-			idx_n2[ich1]=slice(2,iend1)
-			idx_n2[ich2]=slice(1,iend2)
-			
-			new_state_mix1[tuple(idx_n1)] = (gamma_F[which-1]*np.sqrt(gamma_B[which-1])*dt**1.5*np.exp(2j*phip)*
-							contract(context[which-1+int(np.any(M))*2],n2,n,state[tuple(idx_o1)]))
-			new_state_mix2[tuple(idx_n2)] = (gamma_B[which-1]*np.sqrt(gamma_F[which-1])*dt**1.5*np.exp(1j*phip)*
-							contract(context[which-1+int(np.any(M))*2],n,n2,state[tuple(idx_o2)]))
+				idx_o1=[slice(None)]*state.ndim
+				idx_o1[ich1]=slice(None,iend1-1)
+				idx_o1[ich2]=slice(None,iend2-2)
+				idx_o2=[slice(None)]*state.ndim
+				idx_o2[ich1]=slice(None,iend1-2)
+				idx_o2[ich2]=slice(None,iend2-1)
+				idx_n1=[slice(None)]*state.ndim
+				idx_n1[ich1]=slice(1,iend1)
+				idx_n1[ich2]=slice(2,iend2)
+				idx_n2=[slice(None)]*state.ndim
+				idx_n2[ich1]=slice(2,iend1)
+				idx_n2[ich2]=slice(1,iend2)
+				
+				new_state_mix1[tuple(idx_n1)] = (gamma_F[which-1]*np.sqrt(gamma_B[which-1])*dt**1.5*np.exp(2j*phip)*
+								contract(context[which-1+int(np.any(M))*2],n2,n,state[tuple(idx_o1)]))
+				new_state_mix2[tuple(idx_n2)] = (gamma_B[which-1]*np.sqrt(gamma_F[which-1])*dt**1.5*np.exp(1j*phip)*
+								contract(context[which-1+int(np.any(M))*2],n,n2,state[tuple(idx_o2)]))
 
 		return 3*(new_state_mix1+new_state_mix2)
 
 	def E4mix(state,which):
-		if M<L:
-			phip=0.
-		else:
-			phip=phi
-		n = np.arange(1,state.shape[int(np.any(M)*2+2)])
-		n2 = np.sqrt(n[1:]*(n[1:]-1))
-		n3 = np.sqrt(n[2:]*(n[2:]-1)*(n[2:]-2))
-		n = np.sqrt(n)
+
 		new_state_mix1 = np.zeros(state.shape,complex)
 		new_state_mix2 = np.zeros(state.shape,complex)
 		new_state_mix3 = np.zeros(state.shape,complex)
 
-		if gamma_B[which-1]>0 and gamma_F[which-1]>0:
-			ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
-			ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
-			iend1 = state.shape[ich1]
-			iend2 = state.shape[ich2]
-			context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
+		if 2<state.shape[int(np.any(M)*2+2)]:
+			if M<L:
+				phip=0.
+			else:
+				phip=phi
+			n = np.arange(1,state.shape[int(np.any(M)*2+2)])
+			n2 = np.sqrt(n[1:]*(n[1:]-1))
+			if 3<state.shape[int(np.any(M)*2+2)]:
+				n3 = np.sqrt(n[2:]*(n[2:]-1)*(n[2:]-2))
+			n = np.sqrt(n)
+			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
+				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+				iend1 = state.shape[ich1]
+				iend2 = state.shape[ich2]
+				context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
 
-			idx_o1=[slice(None)]*state.ndim
-			idx_o1[ich1]=slice(None,iend1-3)
-			idx_o1[ich2]=slice(None,iend2-1)
-			idx_o2=[slice(None)]*state.ndim
-			idx_o2[ich1]=slice(None,iend1-1)
-			idx_o2[ich2]=slice(None,iend2-3)
-			idx_o3=[slice(None)]*state.ndim
-			idx_o3[ich1]=slice(None,iend1-2)
-			idx_o3[ich2]=slice(None,iend2-2)
-			idx_n1=[slice(None)]*state.ndim
-			idx_n1[ich1]=slice(3,iend1)
-			idx_n1[ich2]=slice(1,iend2)
-			idx_n2=[slice(None)]*state.ndim
-			idx_n2[ich1]=slice(1,iend1)
-			idx_n2[ich2]=slice(3,iend2)
-			idx_n3=[slice(None)]*state.ndim
-			idx_n3[ich1]=slice(2,iend1)
-			idx_n3[ich2]=slice(2,iend2)
-			
-			new_state_mix1[tuple(idx_n1)] = (gamma_B[which-1]*np.sqrt(gamma_B[which-1]*gamma_F[which-1])*dt**2*np.exp(-1j*phip)*
-							contract(context[which-1+int(np.any(M))*2],n,n3,state[tuple(idx_o1)]))
-			new_state_mix2[tuple(idx_n2)] = (gamma_F[which-1]*np.sqrt(gamma_F[which-1]*gamma_B[which-1])*dt**2*np.exp(-3j*phip)*
-							contract(context[which-1+int(np.any(M))*2],n3,n,state[tuple(idx_o2)]))
-			new_state_mix3[tuple(idx_n3)] = (gamma_B[which-1]*gamma_F[which-1]*dt**2*np.exp(-2j*phip)*
-							contract(context[which-1+int(np.any(M))*2],n2,n2,state[tuple(idx_o3)]))
+				if 3<state.shape[int(np.any(M)*2+2)]:
+					idx_n1=[slice(None)]*state.ndim
+					idx_n1[ich1]=slice(None,iend1-3)
+					idx_n1[ich2]=slice(None,iend2-1)
+					idx_n2=[slice(None)]*state.ndim
+					idx_n2[ich1]=slice(None,iend1-1)
+					idx_n2[ich2]=slice(None,iend2-3)
+					idx_o1=[slice(None)]*state.ndim
+					idx_o1[ich1]=slice(3,iend1)
+					idx_o1[ich2]=slice(1,iend2)
+					idx_o2=[slice(None)]*state.ndim
+					idx_o2[ich1]=slice(1,iend1)
+					idx_o2[ich2]=slice(3,iend2)
+					new_state_mix1[tuple(idx_n1)] = (gamma_B[which-1]*np.sqrt(gamma_B[which-1]*gamma_F[which-1])*dt**2*np.exp(-1j*phip)*
+									contract(context[which-1+int(np.any(M))*2],n,n3,state[tuple(idx_o1)]))
+					new_state_mix2[tuple(idx_n2)] = (gamma_F[which-1]*np.sqrt(gamma_F[which-1]*gamma_B[which-1])*dt**2*np.exp(-3j*phip)*
+									contract(context[which-1+int(np.any(M))*2],n3,n,state[tuple(idx_o2)]))
+				idx_n3=[slice(None)]*state.ndim
+				idx_n3[ich1]=slice(None,iend1-2)
+				idx_n3[ich2]=slice(None,iend2-2)
+				idx_o3=[slice(None)]*state.ndim
+				idx_o3[ich1]=slice(2,iend1)
+				idx_o3[ich2]=slice(2,iend2)
+				
+				new_state_mix3[tuple(idx_n3)] = (gamma_B[which-1]*gamma_F[which-1]*dt**2*np.exp(-2j*phip)*
+								contract(context[which-1+int(np.any(M))*2],n2,n2,state[tuple(idx_o3)]))
 
 		return 4*(new_state_mix1+new_state_mix2)+6*new_state_mix3
 
 	def Ed4mix(state,which):
-		if M<L:
-			phip=0.
-		else:
-			phip=phi
-		n = np.arange(1,state.shape[int(np.any(M)*2+2)])
-		n2 = n[1:]*(n[1:]-1)
-		n3 = n[2:]*(n[2:]-1)*(n[2:]-2)
 		new_state_mix1 = np.zeros(state.shape,complex)
 		new_state_mix2 = np.zeros(state.shape,complex)
 		new_state_mix3 = np.zeros(state.shape,complex)
-		if gamma_B[which-1]>0 and gamma_F[which-1]>0:
-			ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
-			ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
-			iend1 = state.shape[ich1]
-			iend2 = state.shape[ich2]
-			context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
+		if 2<state.shape[int(np.any(M)*2+2)]:
+			if M<L:
+				phip=0.
+			else:
+				phip=phi
+			n = np.arange(1,state.shape[int(np.any(M)*2+2)])
+			n2 = np.sqrt(n[1:]*(n[1:]-1))
+			if 3<state.shape[int(np.any(M)*2+2)]:
+				n3 = np.sqrt(n[2:]*(n[2:]-1)*(n[2:]-2))
+			n = np.sqrt(n)
+			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
+				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+				iend1 = state.shape[ich1]
+				iend2 = state.shape[ich2]
+				context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
 
-			idx_n1=[slice(None)]*state.ndim
-			idx_n1[ich1]=slice(None,iend1-3)
-			idx_n1[ich2]=slice(None,iend2-1)
-			idx_n2=[slice(None)]*state.ndim
-			idx_n2[ich1]=slice(None,iend1-1)
-			idx_n2[ich2]=slice(None,iend2-3)
-			idx_n3=[slice(None)]*state.ndim
-			idx_n3[ich1]=slice(None,iend1-2)
-			idx_n3[ich2]=slice(None,iend2-2)
-			idx_o1=[slice(None)]*state.ndim
-			idx_o1[ich1]=slice(3,iend1)
-			idx_o1[ich2]=slice(1,iend2)
-			idx_o2=[slice(None)]*state.ndim
-			idx_o2[ich1]=slice(1,iend1)
-			idx_o2[ich2]=slice(3,iend2)
-			idx_o3=[slice(None)]*state.ndim
-			idx_o3[ich1]=slice(2,iend1)
-			idx_o3[ich2]=slice(2,iend2)
-			
-			new_state_mix1[tuple(idx_n1)] = (gamma_B[which-1]*np.sqrt(gamma_B[which-1]*gamma_F[which-1])*dt**2*np.exp(1j*phip)*
-							contract(context[which-1+int(np.any(M))*2],n,n3,state[tuple(idx_o1)]))
-			new_state_mix2[tuple(idx_n2)] = (gamma_F[which-1]*np.sqrt(gamma_F[which-1]*gamma_B[which-1])*dt**2*np.exp(3j*phip)*
-							contract(context[which-1+int(np.any(M))*2],n3,n,state[tuple(idx_o2)]))
-			new_state_mix3[tuple(idx_n3)] = (gamma_B[which-1]*gamma_F[which-1]*dt**2*np.exp(2j*phip)*
-							contract(context[which-1+int(np.any(M))*2],n2,n2,state[tuple(idx_o3)]))
+				if 3<state.shape[int(np.any(M)*2+2)]:
+					idx_o1=[slice(None)]*state.ndim
+					idx_o1[ich1]=slice(None,iend1-3)
+					idx_o1[ich2]=slice(None,iend2-1)
+					idx_o2=[slice(None)]*state.ndim
+					idx_o2[ich1]=slice(None,iend1-1)
+					idx_o2[ich2]=slice(None,iend2-3)
+					idx_n1=[slice(None)]*state.ndim
+					idx_n1[ich1]=slice(3,iend1)
+					idx_n1[ich2]=slice(1,iend2)
+					idx_n2=[slice(None)]*state.ndim
+					idx_n2[ich1]=slice(1,iend1)
+					idx_n2[ich2]=slice(3,iend2)
+					new_state_mix1[tuple(idx_n1)] = (gamma_B[which-1]*np.sqrt(gamma_B[which-1]*gamma_F[which-1])*dt**2*np.exp(1j*phip)*
+									contract(context[which-1+int(np.any(M))*2],n,n3,state[tuple(idx_o1)]))
+					new_state_mix2[tuple(idx_n2)] = (gamma_F[which-1]*np.sqrt(gamma_F[which-1]*gamma_B[which-1])*dt**2*np.exp(3j*phip)*
+									contract(context[which-1+int(np.any(M))*2],n3,n,state[tuple(idx_o2)]))
+				idx_o3=[slice(None)]*state.ndim
+				idx_o3[ich1]=slice(None,iend1-2)
+				idx_o3[ich2]=slice(None,iend2-2)
+				idx_n3=[slice(None)]*state.ndim
+				idx_n3[ich1]=slice(2,iend1)
+				idx_n3[ich2]=slice(2,iend2)
+				
+				new_state_mix3[tuple(idx_n3)] = (gamma_B[which-1]*gamma_F[which-1]*dt**2*np.exp(2j*phip)*
+								contract(context[which-1+int(np.any(M))*2],n2,n2,state[tuple(idx_o3)]))
 
 		return 4*(new_state_mix1+new_state_mix2)+6*new_state_mix3
 						
@@ -465,12 +483,12 @@ def U(M,L,tF1,tF2,tS,tB1,tB2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 
 			new_state_tF = dt*gamma_F[which-1]*es(context[which-1+2*int(np.any(M))],n+const,state)
 
-		elif gamma_B[which-1]>0:
+		if gamma_B[which-1]>0:
 			context = ["k,ijklmn->ijklmn","n,ijklmn->ijklmn","K,gIeJKhLfMN->gIeJKhLfMN","N,gIeJKhLfMN->gIeJKhLfMN"]
 
 			new_state_tB = dt*gamma_B[which-1]*es(context[which-1+2*int(np.any(M))],n+const,state)
 
-		elif gamma_B[which-1]>0 and gamma_F[which-1]>0:
+		if gamma_B[which-1]>0 and gamma_F[which-1]>0:
 
 			if M<L:
 				phip=0.
@@ -497,9 +515,9 @@ def U(M,L,tF1,tF2,tS,tB1,tB2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 			idx_o2[ich1]=slice(None,iend1-1)
 			idx_o2[ich2]=slice(1,iend2)
 			
-			new_state_mix1[tuple(idx_n1)] = (np.sqrt(gamma_F[which-1]*gamma_B[which-1])*dt*np.exp(1j*phip)*
+			new_state_tFB1[tuple(idx_n1)] = (np.sqrt(gamma_F[which-1]*gamma_B[which-1])*dt*np.exp(1j*phip)*
 							contract(context[which-1+int(np.any(M))*2],n,n,state[tuple(idx_o1)]))
-			new_state_mix1[tuple(idx_n2)] = (np.sqrt(gamma_F[which-1]*gamma_B[which-1])*dt*np.exp(-1j*phip)*
+			new_state_tFB2[tuple(idx_n2)] = (np.sqrt(gamma_F[which-1]*gamma_B[which-1])*dt*np.exp(-1j*phip)*
 							contract(context[which-1+int(np.any(M))*2],n,n,state[tuple(idx_o2)]))
 
 		return new_state_tF+new_state_tB+new_state_tFB1+new_state_tFB2
@@ -559,7 +577,7 @@ def U(M,L,tF1,tF2,tS,tB1,tB2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 	if M==0:
 		initial = contract("i,j,k,l,m,n->ijklmn",tF1,tS[0],tB1,tF2,tS[1],tB2)
 	else:
-		initial = contract("agIc,ceJb,K,bhLd,dfMa,N->gIeJKhLfMN",tF1,tS[0],tB1,tF2,tS[1],tB2)
+		initial = contract("gcIa,beJc,K,bLdh,dfMa,N->gIeJKhLfMN",tF1,tS[0],tB1,tF2,tS[1],tB2)
 #	print("initial",initial.shape)
 	#legs = len(initial.shape)
 	

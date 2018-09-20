@@ -1,15 +1,1 @@
 nohup: ignoring input
-MPS_CCQED+fb.py:303: RuntimeWarning: invalid value encountered in true_divide
-  g2_exp1  = exp_sys(g2c,sys_state,1)/nc_exp1**2 #correlation function from the field in cavity 1
-MPS_CCQED+fb.py:304: RuntimeWarning: invalid value encountered in true_divide
-  g2_exp2  = exp_sys(g2c,sys_state,2)/nc_exp2**2 #correlation function from the field in cavity 2
-Traceback (most recent call last):
-  File "MPS_CCQED+fb.py", line 293, in <module>
-    norm,normB1,normB2,sys_state = normf(M,L,statesB1,statesB2,statesF,statesS,normB1,normB2)
-  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis_therm.py", line 94, in normf
-    sys_state = contract("agIc,ceJb,bhLd,dfMa->gIeJhLfM",statesF[M%(2*L)],statesS[0],statesF[(M+L)%(2*L)],statesS[1])
-  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/opt_einsum/contract.py", line 417, in contract
-    *operands, path=optimize_arg, memory_limit=memory_limit, einsum_call=True, use_blas=use_blas)
-  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/opt_einsum/contract.py", line 151, in contract_path
-    "does not match previous terms (%d)." % (char, tnum, dimension_dict[char], dim))
-ValueError: Size of label 'c' for operand 1 (8) does not match previous terms (2).

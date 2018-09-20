@@ -32,11 +32,11 @@ def normf(M,L,statesB1,statesB2,statesF,statesS,normB1,normB2):
 		'''Performs the contractions in one Markovian reservoir up to the present bin by contracting with past contributions.
 		INPUT: Time step, Markovian reservoir list, previously saved contributions.
 		OUTPUT: Present contribution to the norm.'''
-		#print("B states",states[M-1].shape,states[M].shape)		
+#		print("B states",states[M-1].shape,", norm_past=", norm_past)		
 		if len(states[M-1].shape)==1:
 			norm_past = es("i,i",states[M-1],np.conjugate(states[M-1]))*norm_past
 		elif len(states[M-1].shape)==2:
-			if states[M-1].shape[1]>states[M-1].shape[0]:
+			if states[M-1].shape[1]>=states[M-1].shape[0]:
 				if np.isscalar(norm_past) or len(norm_past)==1:
 					norm_past = es("ik,jk->ij",states[M-1],np.conjugate(states[M-1]))*norm_past
 				else:
@@ -63,6 +63,7 @@ def normf(M,L,statesB1,statesB2,statesF,statesS,normB1,normB2):
 		context2 = ["ijk,im,mjl->kl","ijk,km,ljm->il"]
 		for i in range(0,L-1):
 			index = (M+1+i+(which-1)*L)%(2*L)
+#			print(index,states[index].shape,context1[which-1+2*int(np.any(i))],context2[which-1],normF)
 			#print(states[index].shape,normF,index)
 			if np.isscalar(normF) or len(normF)==1:
 				normF = es(context1[which-1+2*int(np.any(i))],states[index],np.conjugate(states[index]))*normF
@@ -91,12 +92,17 @@ def normf(M,L,statesB1,statesB2,statesF,statesS,normB1,normB2):
 		# order for systemFS: S1,F1,S2,F2 -> final: F1,S1,(B1),F2,S2,(B2)
 		# indices: g(F upper link)I(F1 phys)e(B1 link)J(S1 phys)
 		#	   h(F lower link)L(F2 phys)f(B2 link)M(S2 phys)
-		sys_state = contract("agIc,ceJb,bhLd,dfMa->gIeJhLfM",statesF[M%(2*L)],statesS[0],statesF[(M+L)%(2*L)],statesS[1])
+		sys_state = contract("gcIa,beJc,bLdh,dfMa->gIeJhLfM",statesF[M%(2*L)],statesS[0],statesF[(M+L)%(2*L)],statesS[1])
+#		print("gcIa,beJc,bLdh,dfMa->gIeJhLfM\n",statesF[M%(2*L)].shape,statesS[0].shape,statesF[(M+L)%(2*L)].shape,statesS[1].shape)
+		print("sys_state", sys_state.shape, "F1",np.einsum("gcIa,gcIa",statesF[M%(2*L)],np.conjugate(statesF[M%(2*L)])),
+			"F2", np.einsum("bLdh,bLdh",statesF[(M+L)%(2*L)],np.conjugate(statesF[(M+L)%(2*L)])),
+			"S1", np.einsum("beJc,beJc",statesS[0],np.conjugate(statesS[0])),
+			"S2", np.einsum("dfMa,dfMa",statesS[1],np.conjugate(statesS[1])))
 		normS = contract("gIeJhLfM,aIbJcLdM->gaebhcfd",sys_state,np.conjugate(sys_state))
 		#print(normF1.shape,normB1.shape,normF2.shape,normB2.shape)
 		#print(normF1,normB1,normF2,normB2)
 
-#		if len(normB1)==		
+#		print(normF1.shape,normB1.shape,normF2.shape,normB2.shape,normS.shape)
 		norm = contract("ga,eb,hc,fd,gaebhcfd",normF1,normB1,normF2,normB2,normS)
 	
 	return np.real(norm),np.real(normB1),np.real(normB2),sys_state
@@ -113,7 +119,7 @@ def exp_sys(observable,sys_state,which):
 	INPUT: observable of interest, the combined system state from the norm function, which system
 	OUTPUT: expectation value of the observable"""
 	
-	context = ["IvJtLqrM,JK,IvKtLqrM","IvJtLqrM,MK,IvJtLqrK","JM,JK,KM","JM,MK,JK"]
+	context = ["gIeJhLfM,JP,gIePhLfM","gIeJhLfM,MP,gIeJhLfP","JM,JK,KM","JM,MK,JK"]
 	#Links between bins
 	if len(sys_state.shape)>2:
 		obs = contract(context[which-1],sys_state,observable,np.conjugate(sys_state))
