@@ -94,10 +94,10 @@ def normf(M,L,statesB1,statesB2,statesF,statesS,normB1,normB2):
 		#	   h(F lower link)L(F2 phys)f(B2 link)M(S2 phys)
 		sys_state = contract("gcIa,beJc,bLdh,dfMa->gIeJhLfM",statesF[M%(2*L)],statesS[0],statesF[(M+L)%(2*L)],statesS[1])
 #		print("gcIa,beJc,bLdh,dfMa->gIeJhLfM\n",statesF[M%(2*L)].shape,statesS[0].shape,statesF[(M+L)%(2*L)].shape,statesS[1].shape)
-		print("sys_state", sys_state.shape, "F1",np.einsum("gcIa,gcIa",statesF[M%(2*L)],np.conjugate(statesF[M%(2*L)])),
-			"F2", np.einsum("bLdh,bLdh",statesF[(M+L)%(2*L)],np.conjugate(statesF[(M+L)%(2*L)])),
-			"S1", np.einsum("beJc,beJc",statesS[0],np.conjugate(statesS[0])),
-			"S2", np.einsum("dfMa,dfMa",statesS[1],np.conjugate(statesS[1])))
+#		print("sys_state", sys_state.shape, "F1",np.einsum("gcIa,gcIa",statesF[M%(2*L)],np.conjugate(statesF[M%(2*L)])),
+#			"F2", np.einsum("bLdh,bLdh",statesF[(M+L)%(2*L)],np.conjugate(statesF[(M+L)%(2*L)])),
+#			"S1", np.einsum("beJc,beJc",statesS[0],np.conjugate(statesS[0])),
+#			"S2", np.einsum("dfMa,dfMa",statesS[1],np.conjugate(statesS[1])))
 		normS = contract("gIeJhLfM,aIbJcLdM->gaebhcfd",sys_state,np.conjugate(sys_state))
 		#print(normF1.shape,normB1.shape,normF2.shape,normB2.shape)
 		#print(normF1,normB1,normF2,normB2)

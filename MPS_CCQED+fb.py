@@ -100,7 +100,7 @@ tol     = 10**(args.tol)
 endt    = args.endt
 dt      = args.dt
 L       = args.L#50
-N       = int(endt/dt)+L+1
+N       = int(endt/dt)
 len_env = args.Nphot+1
 len_sys = 2*args.Nphot+1
 
@@ -190,7 +190,7 @@ statesB2 = [initB2]*N
 #Non-Markovian environment+system list
 statesF  = 2*L*[initF]
 statesS  = [initJC1]+[initJC2]
-print("statesS",statesS)
+#print("statesS",statesS)
 
 #g2_ta1,NB1,NB2 = g2_t(states[ind_sys-1],N_env+1,dt,thermal)
 #NB_outa = 0.
@@ -205,12 +205,12 @@ z[np.arange(0,len_sys,2)]=np.ones(len_env)
 sgg    = np.diag(z)
 see    = np.identity(len_sys)-sgg
 sz     = see-sgg
-print("sigmaz",sz)
+#print("sigmaz",sz)
 
 # n_c and g2_c construction
 ncdiag = (np.linspace(0,len_sys-1,len_sys)/2.).astype(np.int64)
 nc     = np.diag(ncdiag)
-print("nc",nc)
+#print("nc",nc)
 gcdiag = np.zeros(len_env,complex)
 for i in range(1,len_env):
 	gcdiag[i] = gcdiag[i-1]+2*(i-1)
@@ -273,7 +273,7 @@ for M in range(0,N):
 	count = 0
 	if M%(int(percent10))==0:
 	#        count=count+5
-		print("M =",M, " out of ",N-L-1)
+		print("M =",M, " out of ",N)
 	sys.stdout.flush()
 	
 	#%%%%%%%%%%%%%%%#
@@ -340,12 +340,12 @@ for M in range(0,N):
 	# Saving the new states from block 1 in their corresponding lists
 	##split(M,block,which,tol)
 	statesF[(F_ind)%(2*L)],statesB1[M],statesS[0] = split(M,U1_block,1,tol)
-	print("M=",M,", F1:",statesF[(F_ind)%(2*L)].shape,", B1:",statesB1[M].shape,", S1:",statesS[0].shape)
+#	print("M=",M,", F1:",statesF[(F_ind)%(2*L)].shape,", B1:",statesB1[M].shape,", S1:",statesS[0].shape)
 	# Unmerging the indices of block 2 on the right
 	U2_block = unmerge(U2_block,np.array([1]),U2_dim,2)
 	# Saving the new states from block 2 in their corresponding lists
 	statesF[(F_ind+L)%(2*L)],statesB2[M],statesS[1] = split(M,U2_block,2,tol)
-	print("M=",M,", F2:",statesF[(F_ind+L)%(2*L)].shape,", B2:",statesB2[M].shape,", S2:",statesS[1].shape)
+#	print("M=",M,", F2:",statesF[(F_ind+L)%(2*L)].shape,", B2:",statesB2[M].shape,", S2:",statesS[1].shape)
 
 	# SWAP
 	#------

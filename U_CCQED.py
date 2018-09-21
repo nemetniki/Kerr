@@ -158,7 +158,7 @@ def U(M,L,tF1,tF2,tS,tB1,tB2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 			idx=[slice(None)]*new_state.ndim
 			idx[ich]=slice(0,dim_tS,2)
 			
-			new_state[tuple(idx)] = 0
+			new_tS[tuple(idx)] = 0
 			return -1j*dt*(C(state,which)+JC(state,which)+Dele[which-1]*new_tS)
 
 	def MStot(state):
@@ -552,10 +552,10 @@ def U(M,L,tF1,tF2,tS,tB1,tB2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 			if Delc[which-1] !=0:
 				new_state += Delc[which-1]*(E(ad(state,which,1),which,1)+Ed(a(state,which,1),which,1))
 			if g[which-1] != 0:
-				new_state += g[which-1]*(sm(Ed(state,which,1),which)+sm(Ed(state,which,1),which))
+				new_state += g[which-1]*(sm(Ed(state,which,1),which)+sp(E(state,which,1),which))
 			if Ome[which-1] != 0:
 				new_state += Ome[which-1]*(Ed(state,which,1)+E(state,which,1))
-		return -1j*new_state
+		return -1j*new_state*dt
 
 	def D2(state):
 		new_state = np.zeros(state.shape,complex)
@@ -566,7 +566,7 @@ def U(M,L,tF1,tF2,tS,tB1,tB2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 				new_state += g[which-1]*(gamma_B[which-1]+gamma_F[which-1])*dt*(a(sp(state,which),which,1)-ad(sm(state,which),which,1))
 			if Omc[which-1] !=0:
 				new_state += Omc[which-1]*(gamma_B[which-1]+gamma_F[which-1])*dt*(a(state,which,1)-ad(state,which,1))
-		return -1j*new_state
+		return -1j*new_state*dt
 
     ####----------------------####
     #### Different terms in U ####
