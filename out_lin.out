@@ -1,0 +1,1348 @@
+M = 0  out of  100
+M = 10  out of  100
+M = 20  out of  100
+M = 30  out of  100
+M = 40  out of  100
+M = 50  out of  100
+M = 60  out of  100
+M = 70  out of  100
+M = 80  out of  100
+Wrote profile results to MPS_CCQED+fb.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 34.3328 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: U at line 15
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    15                                           @profile
+    16                                           def U(M,L,tF1,tF2,tS,tB1,tB2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
+    17                                           	"""Evolution operator up to dt^2
+    18                                           	INPUT: states at the current time (t_k), the delayed time (t_l) and the system state (t_S) at timestep M
+    19                                           	Remember, at M=0 the state is separable
+    20                                           	OUTPUT: combined block of states at t_k, for the system and at t_l"""
+    21                                               
+    22                                               #print(tk.shape,tS.shape,tl.shape,M)
+    23                                               
+    24                                               ####--------------------------####
+    25                                               #### Parameters and operators ####
+    26                                               ####--------------------------####
+    27                                               
+    28                                               #####Dimensions of the physical indices#####
+    29        82       8603.0    104.9      0.0  	dim_tB = tB1.shape[0]
+    30        82       1017.0     12.4      0.0  	if M==0:
+    31         1         13.0     13.0      0.0  		dim_tS = tS[0].shape[0]
+    32         1         12.0     12.0      0.0  		dim_tF = tF1.shape[0]
+    33                                           	else:
+    34        81       1000.0     12.3      0.0  		dim_tS = tS[0].shape[2]
+    35        81        965.0     11.9      0.0  		dim_tF = tF1.shape[1]
+    36                                           
+    37                                           	#print("dims",dim_tF,dim_tS,dim_tB)
+    38                                           
+    39                                               #####Frequently used operators#####
+    40        82     189021.0   2305.1      0.6  	@profile
+    41                                           	def a(state,which,N):
+    42                                           		new_state = np.zeros(state.shape,complex)
+    43                                           		if dim_tS>2*N:
+    44                                           			n=np.linspace(N,int((dim_tS)/2),dim_tS-2*N).astype(np.int64)
+    45                                           			nprod = 1.
+    46                                           			i = 0
+    47                                           			while i<N:
+    48                                           				nprod *= np.sqrt(n-i)
+    49                                           				i+=1
+    50                                           
+    51                                           			ich  = (-1)**(which+1)*(2*int(np.any(M))*(2-which)+which)#which=1->1/3, which=2->-2/-2
+    52                                           			iend = state.shape[ich]
+    53                                           			context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,gIeJKhLfMN->gIeJKhLfMN","M,gIeJKhLfMN->gIeJKhLfMN"]
+    54                                           
+    55                                           			idx=[slice(None)]*state.ndim
+    56                                           			idx[ich]=slice(None,iend-2*N)
+    57                                           			
+    58                                           			new_state[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod,np.take(state,np.arange(2*N,iend),axis=ich))
+    59                                           
+    60                                           		return new_state
+    61                                           	
+    62        82       2334.0     28.5      0.0  	@profile
+    63                                           	def ad(state,which,N):
+    64                                           		new_state = np.zeros(state.shape,complex)
+    65                                           		if dim_tS>2*N:
+    66                                           			n=np.linspace(N,int((dim_tS)/2),dim_tS-2*N).astype(np.int64)
+    67                                           			nprod = 1.
+    68                                           			i = 0
+    69                                           			while i<N:
+    70                                           				nprod *= np.sqrt(n-i)
+    71                                           				i+=1
+    72                                           
+    73                                           			ich  = (-1)**(which+1)*(2*int(np.any(M))*(2-which)+which)#which=1->1/3, which=2->-2/-2
+    74                                           			iend = state.shape[ich]
+    75                                           			context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,gIeJKhLfMN->gIeJKhLfMN","M,gIeJKhLfMN->gIeJKhLfMN"]
+    76                                           
+    77                                           			idx=[slice(None)]*state.ndim
+    78                                           			idx[ich]=slice(2*N,iend)
+    79                                           			
+    80                                           			new_state[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod,np.take(state,np.arange(iend-2*N),axis=ich))
+    81                                           		return new_state
+    82                                           
+    83        82       8387.0    102.3      0.0  	@profile
+    84                                           	def sm(state,which):
+    85                                           		new_state = np.zeros(state.shape,complex)
+    86                                           		ich  = (-1)**(which+1)*(2*int(np.any(M))*(2-which)+which)#which=1->1/3, which=2->-2/-2
+    87                                           		iend = state.shape[ich]
+    88                                           
+    89                                           		idx=[slice(None)]*state.ndim
+    90                                           		idx[ich]=slice(0,dim_tS-1,2)
+    91                                           		
+    92                                           		new_state[tuple(idx)] = np.take(state,np.arange(1,dim_tS,2),axis=ich)
+    93                                           		return new_state
+    94                                           
+    95        82       2005.0     24.5      0.0  	@profile
+    96                                           	def sp(state,which):
+    97                                           		new_state = np.zeros(state.shape,complex)
+    98                                           		ich  = (-1)**(which+1)*(2*int(np.any(M))*(2-which)+which)#which=1->1/3, which=2->-2/-2
+    99                                           		iend = state.shape[ich]
+   100                                           
+   101                                           		idx=[slice(None)]*state.ndim
+   102                                           		idx[ich]=slice(1,dim_tS,2)
+   103                                           		
+   104                                           		new_state[tuple(idx)] = np.take(state,np.arange(0,dim_tS-1,2),axis=ich)
+   105                                           		return new_state
+   106                                           
+   107        82       1957.0     23.9      0.0  	@profile
+   108                                           	def JC(state,which):
+   109                                           		new_tS_g = np.zeros(state.shape,complex)
+   110                                           		new_tS_Ome = np.zeros(state.shape,complex)
+   111                                           		n = np.linspace(1,int((dim_tS)/2),dim_tS-2).astype(np.int64)
+   112                                           		n = np.sqrt(n[0:dim_tS-1:2])
+   113                                           
+   114                                           		ich  = (-1)**(which+1)*(2*int(np.any(M))*(2-which)+which)#which=1->1/3, which=2->-2/-2
+   115                                           		iend = state.shape[ich]
+   116                                           
+   117                                           		if g[which-1] != 0:
+   118                                           			context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,gIeJKhLfMN->gIeJKhLfMN","M,gIeJKhLfMN->gIeJKhLfMN"]
+   119                                           
+   120                                           			idx1=[slice(None)]*state.ndim
+   121                                           			idx2=[slice(None)]*state.ndim
+   122                                           			idx1[ich]=slice(1,dim_tS-1,2)
+   123                                           			idx2[ich]=slice(2,dim_tS,2)
+   124                                           			
+   125                                           			new_tS_g[tuple(idx1)] = es(context[which-1+int(np.any(M))*2],n*g[which-1],np.take(state,np.arange(2,dim_tS,2),axis=ich))
+   126                                           			new_tS_g[tuple(idx2)] = es(context[which-1+int(np.any(M))*2],n*g[which-1],np.take(state,np.arange(1,dim_tS-1,2),axis=ich))
+   127                                           
+   128                                           		if Ome[which-1] != 0:
+   129                                           			idx1=[slice(None)]*state.ndim
+   130                                           			idx2=[slice(None)]*state.ndim
+   131                                           			idx1[ich]=slice(0,dim_tS-2,2)
+   132                                           			idx2[ich]=slice(1,dim_tS-1,2)
+   133                                           
+   134                                           			new_tS_Ome[tuple(idx1)] = np.take(state,np.arange(1,dim_tS-1,2),axis=ich)
+   135                                           			new_tS_Ome[tuple(idx2)] = np.take(state,np.arange(0,dim_tS-2,2),axis=ich)
+   136                                           		return new_tS_g+new_tS_Ome
+   137                                           
+   138        82       1938.0     23.6      0.0  	@profile
+   139                                           	def nc(state,which,const):
+   140                                           		n=np.linspace(0,int((dim_tS)/2),dim_tS).astype(np.int64)
+   141                                           		new_state = np.zeros(state.shape,complex)
+   142                                           		context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,gIeJKhLfMN->gIeJKhLfMN","M,gIeJKhLfMN->gIeJKhLfMN"]
+   143                                           
+   144                                           		new_state = es(context[which-1+int(np.any(M))*2],n+const,state)
+   145                                           		return new_state
+   146                                           
+   147        82       1928.0     23.5      0.0  	@profile
+   148                                           	def C(state,which):
+   149                                           		if Delc[which-1] == 0 and Omc[which-1] == 0:
+   150                                           			return 0.*state
+   151                                           		elif Delc[which-1] == 0 and Omc[which-1] != 0:
+   152                                           			return Omc[which-1]*(c(state,which)+cd(state,which))
+   153                                           		elif Delc[which-1] != 0 and Omc[which-1] == 0:
+   154                                           			return Delc[which-1]*nc(state,which,0)
+   155                                           		else:
+   156                                           			return Delc[which-1]*nc(state,which,0)+Omc[which-1]*(c(state,which)+cd(state,which))
+   157                                           
+   158        82       1933.0     23.6      0.0  	@profile
+   159                                           	def MS(state,which):
+   160                                           		new_tS = np.zeros(state.shape,complex)
+   161                                           		new_tS += state
+   162                                           		if Dele[which-1] == 0:
+   163                                           			return -1j*dt*(C(state,which)+JC(state,which))
+   164                                           		else:
+   165                                           			ich  = (-1)**(which+1)*(2*int(np.any(M))*(2-which)+which)#which=1->1/3, which=2->-2/-2
+   166                                           			iend = state.shape[ich]
+   167                                           
+   168                                           			idx=[slice(None)]*new_state.ndim
+   169                                           			idx[ich]=slice(0,dim_tS,2)
+   170                                           			
+   171                                           			new_tS[tuple(idx)] = 0
+   172                                           			return -1j*dt*(C(state,which)+JC(state,which)+Dele[which-1]*new_tS)
+   173                                           
+   174        82       1915.0     23.4      0.0  	@profile
+   175                                           	def MStot(state):
+   176                                           		return MS(state,1)+MS(state,2)
+   177                                           
+   178        82       1928.0     23.5      0.0  	@profile
+   179                                           	def E(state,which,N):
+   180                                           		new_state_tB = np.zeros(state.shape,complex)
+   181                                           		new_state_tF = np.zeros(state.shape,complex)
+   182                                           		if N<state.shape[int(np.any(M)*2+2)]:
+   183                                           			n = np.arange(N,state.shape[int(np.any(M)*2+2)])
+   184                                           			nprod = 1.
+   185                                           			i = 0
+   186                                           			if M<L:
+   187                                           				phip=0.
+   188                                           			else:
+   189                                           				phip=phi
+   190                                           			while i<N:
+   191                                           				nprod *= np.sqrt(n-i)
+   192                                           				i+=1
+   193                                           
+   194                                           			if gamma_B[which-1] > 0.:
+   195                                           				ich = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+   196                                           				iend = state.shape[ich]
+   197                                           				context = ["k,ijklmn->ijklmn","n,ijklmn->ijklmn","K,gIeJKhLfMN->gIeJKhLfMN","N,gIeJKhLfMN->gIeJKhLfMN"]
+   198                                           
+   199                                           				idx=[slice(None)]*state.ndim
+   200                                           				idx[ich]=np.arange(0,iend-N)
+   201                                           				
+   202                                           	#			print(new_state_tB[tuple(idx)].shape,np.take(state,np.arange(N,iend),axis=ich).shape,nprod.shape,N)
+   203                                           				new_state_tB[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod*np.sqrt(gamma_B[which-1]*dt)**N,np.take(state,np.arange(N,iend),axis=ich))
+   204                                           
+   205                                           			if gamma_F[which-1] > 0:
+   206                                           				ich = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+   207                                           				iend = state.shape[ich]
+   208                                           				context = ["i,ijklmn->ijklmn","l,ijklmn->ijklmn","I,gIeJKhLfMN->gIeJKhLfMN","L,gIeJKhLfMN->gIeJKhLfMN"]
+   209                                           
+   210                                           				idx=[slice(None)]*state.ndim
+   211                                           				idx[ich]=np.arange(0,iend-N)
+   212                                           				
+   213                                           	#			print(new_state_tF[tuple(idx)].shape,np.take(state,np.arange(N,iend),axis=ich).shape,nprod.shape,N)
+   214                                           				new_state_tF[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod*np.sqrt(gamma_F[which-1]*dt)**N,np.take(state,np.arange(N,iend),axis=ich))*np.exp(-1j*N*phip)
+   215                                           
+   216                                           		return new_state_tB+new_state_tF
+   217                                           
+   218        82       1924.0     23.5      0.0  	@profile
+   219                                           	def Ed(state,which,N):
+   220                                           		new_state_tB = np.zeros(state.shape,complex)
+   221                                           		new_state_tF = np.zeros(state.shape,complex)
+   222                                           		if N<state.shape[int(np.any(M)*2+2)]:
+   223                                           			n = np.arange(N,state.shape[int(np.any(M)*2+2)])
+   224                                           			nprod = 1.
+   225                                           			i = 0
+   226                                           			if M<L:
+   227                                           				phip=0.
+   228                                           			else:
+   229                                           				phip=phi
+   230                                           			while i<N:
+   231                                           				nprod *= np.sqrt(n-i)
+   232                                           				i+=1
+   233                                           
+   234                                           			if gamma_B[which-1] > 0.:
+   235                                           				ich = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+   236                                           				iend = state.shape[ich]
+   237                                           				context = ["k,ijklmn->ijklmn","n,ijklmn->ijklmn","K,gIeJKhLfMN->gIeJKhLfMN","N,gIeJKhLfMN->gIeJKhLfMN"]
+   238                                           
+   239                                           				idx=[slice(None)]*state.ndim
+   240                                           				idx[ich]=slice(N,iend)
+   241                                           	#			print("context:", context[which-1+int(np.any(M))*2],", which:", which,", M:", M)
+   242                                           				new_state_tB[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod*np.sqrt(gamma_B[which-1]*dt)**N,np.take(state,np.arange(0,iend-N),axis=ich))
+   243                                           
+   244                                           			if gamma_F[which-1] > 0:
+   245                                           				ich = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+   246                                           				iend = state.shape[ich]
+   247                                           				context = ["i,ijklmn->ijklmn","l,ijklmn->ijklmn","I,gIeJKhLfMN->gIeJKhLfMN","L,gIeJKhLfMN->gIeJKhLfMN"]
+   248                                           
+   249                                           				idx=[slice(None)]*state.ndim
+   250                                           				idx[ich]=slice(N,iend)
+   251                                           				
+   252                                           				new_state_tF[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod*np.sqrt(gamma_F[which-1]*dt)**N,np.take(state,np.arange(0,iend-N),axis=ich))*np.exp(1j*N*phip)
+   253                                           
+   254                                           		return new_state_tB+new_state_tF
+   255                                           
+   256        82       1921.0     23.4      0.0  	@profile
+   257                                           	def E2mix(state,which):
+   258                                           		new_state_mix = np.zeros(state.shape,complex)
+   259                                           		if 2<state.shape[int(np.any(M)*2+2)]:
+   260                                           			if M<L:
+   261                                           				phip=0.
+   262                                           			else:
+   263                                           				phip=phi
+   264                                           			n = np.sqrt(np.arange(1,state.shape[int(np.any(M)*2+2)]))
+   265                                           			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
+   266                                           				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+   267                                           				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+   268                                           				iend1 = state.shape[ich1]
+   269                                           				iend2 = state.shape[ich2]
+   270                                           				context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
+   271                                           
+   272                                           				idx_n=[slice(None)]*state.ndim
+   273                                           				idx_n[ich1]=slice(None,iend1-1)
+   274                                           				idx_n[ich2]=slice(None,iend2-1)
+   275                                           				idx_o=[slice(None)]*state.ndim
+   276                                           				idx_o[ich1]=slice(1,iend1)
+   277                                           				idx_o[ich2]=slice(1,iend2)
+   278                                           				
+   279                                           				new_state_mix[tuple(idx_n)] = (np.sqrt(gamma_B[which-1]*gamma_F[which-1])*np.exp(-1j*phip)*dt*
+   280                                           								contract(context[which-1+int(np.any(M))*2],n,n,state[tuple(idx_o)]))
+   281                                           		return 2*new_state_mix
+   282                                           
+   283        82       1917.0     23.4      0.0  	@profile
+   284                                           	def Ed2mix(state,which):
+   285                                           		new_state_mix = np.zeros(state.shape,complex)
+   286                                           		if 2<state.shape[int(np.any(M)*2+2)]:
+   287                                           			if M<L:
+   288                                           				phip=0.
+   289                                           			else:
+   290                                           				phip=phi
+   291                                           			n = np.sqrt(np.arange(1,state.shape[int(np.any(M)*2+2)]))
+   292                                           			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
+   293                                           
+   294                                           				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+   295                                           				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+   296                                           				iend1 = state.shape[ich1]
+   297                                           				iend2 = state.shape[ich2]
+   298                                           				context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
+   299                                           
+   300                                           				idx_o=[slice(None)]*state.ndim
+   301                                           				idx_o[ich1]=slice(None,iend1-1)
+   302                                           				idx_o[ich2]=slice(None,iend2-1)
+   303                                           				idx_n=[slice(None)]*state.ndim
+   304                                           				idx_n[ich1]=slice(1,iend1)
+   305                                           				idx_n[ich2]=slice(1,iend2)
+   306                                           				
+   307                                           				new_state_mix[tuple(idx_n)] = (np.sqrt(gamma_B[which-1]*gamma_F[which-1])*np.exp(1j*phip)*dt*
+   308                                           								contract(context[which-1+int(np.any(M))*2],n,n,state[tuple(idx_o)]))
+   309                                           		return 2*new_state_mix
+   310                                           
+   311        82       1927.0     23.5      0.0  	@profile
+   312                                           	def E3mix(state,which):
+   313                                           
+   314                                           		new_state_mix1 = np.zeros(state.shape,complex)
+   315                                           		new_state_mix2 = np.zeros(state.shape,complex)
+   316                                           		if 2<state.shape[int(np.any(M)*2+2)]:
+   317                                           			if M<L:
+   318                                           				phip=0.
+   319                                           			else:
+   320                                           				phip=phi
+   321                                           			n = np.arange(1,state.shape[int(np.any(M)*2+2)])
+   322                                           			n2 = np.sqrt(n[1:]*(n[1:]-1))
+   323                                           			n = np.sqrt(n)
+   324                                           			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
+   325                                           				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+   326                                           				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+   327                                           				iend1 = state.shape[ich1]
+   328                                           				iend2 = state.shape[ich2]
+   329                                           				context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
+   330                                           
+   331                                           				idx_n1=[slice(None)]*state.ndim
+   332                                           				idx_n1[ich1]=slice(None,iend1-1)
+   333                                           				idx_n1[ich2]=slice(None,iend2-2)
+   334                                           				idx_n2=[slice(None)]*state.ndim
+   335                                           				idx_n2[ich1]=slice(None,iend1-2)
+   336                                           				idx_n2[ich2]=slice(None,iend2-1)
+   337                                           				idx_o1=[slice(None)]*state.ndim
+   338                                           				idx_o1[ich1]=slice(1,iend1)
+   339                                           				idx_o1[ich2]=slice(2,iend2)
+   340                                           				idx_o2=[slice(None)]*state.ndim
+   341                                           				idx_o2[ich1]=slice(2,iend1)
+   342                                           				idx_o2[ich2]=slice(1,iend2)
+   343                                           				
+   344                                           				new_state_mix1[tuple(idx_n1)] = (gamma_F[which-1]*np.sqrt(gamma_B[which-1])*dt**1.5*np.exp(-2j*phip)*
+   345                                           								contract(context[which-1+int(np.any(M))*2],n2,n,state[tuple(idx_o1)]))
+   346                                           				new_state_mix2[tuple(idx_n2)] = (gamma_B[which-1]*np.sqrt(gamma_F[which-1])*dt**1.5*np.exp(-1j*phip)*
+   347                                           								contract(context[which-1+int(np.any(M))*2],n,n2,state[tuple(idx_o2)]))
+   348                                           		return 3*(new_state_mix1+new_state_mix2)
+   349                                           
+   350        82       1917.0     23.4      0.0  	@profile
+   351                                           	def Ed3mix(state,which):
+   352                                           
+   353                                           		new_state_mix1 = np.zeros(state.shape,complex)
+   354                                           		new_state_mix2 = np.zeros(state.shape,complex)
+   355                                           		if 2<state.shape[int(np.any(M)*2+2)]:
+   356                                           			if M<L:
+   357                                           				phip=0.
+   358                                           			else:
+   359                                           				phip=phi
+   360                                           			n = np.arange(1,state.shape[int(np.any(M)*2+2)])
+   361                                           			n2 = np.sqrt(n[1:]*(n[1:]-1))
+   362                                           			n = np.sqrt(n)
+   363                                           			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
+   364                                           				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+   365                                           				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+   366                                           				iend1 = state.shape[ich1]
+   367                                           				iend2 = state.shape[ich2]
+   368                                           				context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
+   369                                           
+   370                                           				idx_o1=[slice(None)]*state.ndim
+   371                                           				idx_o1[ich1]=slice(None,iend1-1)
+   372                                           				idx_o1[ich2]=slice(None,iend2-2)
+   373                                           				idx_o2=[slice(None)]*state.ndim
+   374                                           				idx_o2[ich1]=slice(None,iend1-2)
+   375                                           				idx_o2[ich2]=slice(None,iend2-1)
+   376                                           				idx_n1=[slice(None)]*state.ndim
+   377                                           				idx_n1[ich1]=slice(1,iend1)
+   378                                           				idx_n1[ich2]=slice(2,iend2)
+   379                                           				idx_n2=[slice(None)]*state.ndim
+   380                                           				idx_n2[ich1]=slice(2,iend1)
+   381                                           				idx_n2[ich2]=slice(1,iend2)
+   382                                           				
+   383                                           				new_state_mix1[tuple(idx_n1)] = (gamma_F[which-1]*np.sqrt(gamma_B[which-1])*dt**1.5*np.exp(2j*phip)*
+   384                                           								contract(context[which-1+int(np.any(M))*2],n2,n,state[tuple(idx_o1)]))
+   385                                           				new_state_mix2[tuple(idx_n2)] = (gamma_B[which-1]*np.sqrt(gamma_F[which-1])*dt**1.5*np.exp(1j*phip)*
+   386                                           								contract(context[which-1+int(np.any(M))*2],n,n2,state[tuple(idx_o2)]))
+   387                                           
+   388                                           		return 3*(new_state_mix1+new_state_mix2)
+   389                                           
+   390        82       1928.0     23.5      0.0  	@profile
+   391                                           	def E4mix(state,which):
+   392                                           
+   393                                           		new_state_mix1 = np.zeros(state.shape,complex)
+   394                                           		new_state_mix2 = np.zeros(state.shape,complex)
+   395                                           		new_state_mix3 = np.zeros(state.shape,complex)
+   396                                           
+   397                                           		if 2<state.shape[int(np.any(M)*2+2)]:
+   398                                           			if M<L:
+   399                                           				phip=0.
+   400                                           			else:
+   401                                           				phip=phi
+   402                                           			n = np.arange(1,state.shape[int(np.any(M)*2+2)])
+   403                                           			n2 = np.sqrt(n[1:]*(n[1:]-1))
+   404                                           			if 3<state.shape[int(np.any(M)*2+2)]:
+   405                                           				n3 = np.sqrt(n[2:]*(n[2:]-1)*(n[2:]-2))
+   406                                           			n = np.sqrt(n)
+   407                                           			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
+   408                                           				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+   409                                           				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+   410                                           				iend1 = state.shape[ich1]
+   411                                           				iend2 = state.shape[ich2]
+   412                                           				context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
+   413                                           
+   414                                           				if 3<state.shape[int(np.any(M)*2+2)]:
+   415                                           					idx_n1=[slice(None)]*state.ndim
+   416                                           					idx_n1[ich1]=slice(None,iend1-3)
+   417                                           					idx_n1[ich2]=slice(None,iend2-1)
+   418                                           					idx_n2=[slice(None)]*state.ndim
+   419                                           					idx_n2[ich1]=slice(None,iend1-1)
+   420                                           					idx_n2[ich2]=slice(None,iend2-3)
+   421                                           					idx_o1=[slice(None)]*state.ndim
+   422                                           					idx_o1[ich1]=slice(3,iend1)
+   423                                           					idx_o1[ich2]=slice(1,iend2)
+   424                                           					idx_o2=[slice(None)]*state.ndim
+   425                                           					idx_o2[ich1]=slice(1,iend1)
+   426                                           					idx_o2[ich2]=slice(3,iend2)
+   427                                           					new_state_mix1[tuple(idx_n1)] = (gamma_B[which-1]*np.sqrt(gamma_B[which-1]*gamma_F[which-1])*dt**2*np.exp(-1j*phip)*
+   428                                           									contract(context[which-1+int(np.any(M))*2],n,n3,state[tuple(idx_o1)]))
+   429                                           					new_state_mix2[tuple(idx_n2)] = (gamma_F[which-1]*np.sqrt(gamma_F[which-1]*gamma_B[which-1])*dt**2*np.exp(-3j*phip)*
+   430                                           									contract(context[which-1+int(np.any(M))*2],n3,n,state[tuple(idx_o2)]))
+   431                                           				idx_n3=[slice(None)]*state.ndim
+   432                                           				idx_n3[ich1]=slice(None,iend1-2)
+   433                                           				idx_n3[ich2]=slice(None,iend2-2)
+   434                                           				idx_o3=[slice(None)]*state.ndim
+   435                                           				idx_o3[ich1]=slice(2,iend1)
+   436                                           				idx_o3[ich2]=slice(2,iend2)
+   437                                           				
+   438                                           				new_state_mix3[tuple(idx_n3)] = (gamma_B[which-1]*gamma_F[which-1]*dt**2*np.exp(-2j*phip)*
+   439                                           								contract(context[which-1+int(np.any(M))*2],n2,n2,state[tuple(idx_o3)]))
+   440                                           
+   441                                           		return 4*(new_state_mix1+new_state_mix2)+6*new_state_mix3
+   442                                           
+   443        82       1912.0     23.3      0.0  	@profile
+   444                                           	def Ed4mix(state,which):
+   445                                           		new_state_mix1 = np.zeros(state.shape,complex)
+   446                                           		new_state_mix2 = np.zeros(state.shape,complex)
+   447                                           		new_state_mix3 = np.zeros(state.shape,complex)
+   448                                           		if 2<state.shape[int(np.any(M)*2+2)]:
+   449                                           			if M<L:
+   450                                           				phip=0.
+   451                                           			else:
+   452                                           				phip=phi
+   453                                           			n = np.arange(1,state.shape[int(np.any(M)*2+2)])
+   454                                           			n2 = np.sqrt(n[1:]*(n[1:]-1))
+   455                                           			if 3<state.shape[int(np.any(M)*2+2)]:
+   456                                           				n3 = np.sqrt(n[2:]*(n[2:]-1)*(n[2:]-2))
+   457                                           			n = np.sqrt(n)
+   458                                           			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
+   459                                           				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+   460                                           				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+   461                                           				iend1 = state.shape[ich1]
+   462                                           				iend2 = state.shape[ich2]
+   463                                           				context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
+   464                                           
+   465                                           				if 3<state.shape[int(np.any(M)*2+2)]:
+   466                                           					idx_o1=[slice(None)]*state.ndim
+   467                                           					idx_o1[ich1]=slice(None,iend1-3)
+   468                                           					idx_o1[ich2]=slice(None,iend2-1)
+   469                                           					idx_o2=[slice(None)]*state.ndim
+   470                                           					idx_o2[ich1]=slice(None,iend1-1)
+   471                                           					idx_o2[ich2]=slice(None,iend2-3)
+   472                                           					idx_n1=[slice(None)]*state.ndim
+   473                                           					idx_n1[ich1]=slice(3,iend1)
+   474                                           					idx_n1[ich2]=slice(1,iend2)
+   475                                           					idx_n2=[slice(None)]*state.ndim
+   476                                           					idx_n2[ich1]=slice(1,iend1)
+   477                                           					idx_n2[ich2]=slice(3,iend2)
+   478                                           					new_state_mix1[tuple(idx_n1)] = (gamma_B[which-1]*np.sqrt(gamma_B[which-1]*gamma_F[which-1])*dt**2*np.exp(1j*phip)*
+   479                                           									contract(context[which-1+int(np.any(M))*2],n,n3,state[tuple(idx_o1)]))
+   480                                           					new_state_mix2[tuple(idx_n2)] = (gamma_F[which-1]*np.sqrt(gamma_F[which-1]*gamma_B[which-1])*dt**2*np.exp(3j*phip)*
+   481                                           									contract(context[which-1+int(np.any(M))*2],n3,n,state[tuple(idx_o2)]))
+   482                                           				idx_o3=[slice(None)]*state.ndim
+   483                                           				idx_o3[ich1]=slice(None,iend1-2)
+   484                                           				idx_o3[ich2]=slice(None,iend2-2)
+   485                                           				idx_n3=[slice(None)]*state.ndim
+   486                                           				idx_n3[ich1]=slice(2,iend1)
+   487                                           				idx_n3[ich2]=slice(2,iend2)
+   488                                           				
+   489                                           				new_state_mix3[tuple(idx_n3)] = (gamma_B[which-1]*gamma_F[which-1]*dt**2*np.exp(2j*phip)*
+   490                                           								contract(context[which-1+int(np.any(M))*2],n2,n2,state[tuple(idx_o3)]))
+   491                                           
+   492                                           		return 4*(new_state_mix1+new_state_mix2)+6*new_state_mix3
+   493                                           						
+   494        82       2209.0     26.9      0.0  	@profile
+   495                                           	def nE(state,which,const):
+   496                                           		new_state_tF = np.zeros(state.shape,complex)
+   497                                           		new_state_tB = np.zeros(state.shape,complex)
+   498                                           		new_state_tFB1 = np.zeros(state.shape,complex)
+   499                                           		new_state_tFB2 = np.zeros(state.shape,complex)
+   500                                           		n = np.arange(0,state.shape[int(np.any(M)*2+2)])
+   501                                           		if gamma_F[which-1]>0:
+   502                                           			context = ["i,ijklmn->ijklmn","l,ijklmn->ijklmn","I,gIeJKhLfMN->gIeJKhLfMN","L,gIeJKhLfMN->gIeJKhLfMN"]
+   503                                           
+   504                                           			new_state_tF = dt*gamma_F[which-1]*es(context[which-1+2*int(np.any(M))],n+const,state)
+   505                                           
+   506                                           		if gamma_B[which-1]>0:
+   507                                           			context = ["k,ijklmn->ijklmn","n,ijklmn->ijklmn","K,gIeJKhLfMN->gIeJKhLfMN","N,gIeJKhLfMN->gIeJKhLfMN"]
+   508                                           
+   509                                           			new_state_tB = dt*gamma_B[which-1]*es(context[which-1+2*int(np.any(M))],n+const,state)
+   510                                           
+   511                                           		if gamma_B[which-1]>0 and gamma_F[which-1]>0:
+   512                                           
+   513                                           			if M<L:
+   514                                           				phip=0.
+   515                                           			else:
+   516                                           				phip=phi
+   517                                           
+   518                                           			context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
+   519                                           			ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+   520                                           			ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+   521                                           			iend1 = state.shape[ich1]
+   522                                           			iend2 = state.shape[ich2]
+   523                                           			n = np.sqrt(n[1:])
+   524                                           
+   525                                           			idx_n1=[slice(None)]*state.ndim
+   526                                           			idx_n1[ich1]=slice(None,iend1-1)
+   527                                           			idx_n1[ich2]=slice(1,iend2)
+   528                                           			idx_n2=[slice(None)]*state.ndim
+   529                                           			idx_n2[ich1]=slice(1,iend1)
+   530                                           			idx_n2[ich2]=slice(None,iend2-1)
+   531                                           			idx_o1=[slice(None)]*state.ndim
+   532                                           			idx_o1[ich1]=slice(1,iend1)
+   533                                           			idx_o1[ich2]=slice(None,iend2-1)
+   534                                           			idx_o2=[slice(None)]*state.ndim
+   535                                           			idx_o2[ich1]=slice(None,iend1-1)
+   536                                           			idx_o2[ich2]=slice(1,iend2)
+   537                                           			
+   538                                           			new_state_tFB1[tuple(idx_n1)] = (np.sqrt(gamma_F[which-1]*gamma_B[which-1])*dt*np.exp(1j*phip)*
+   539                                           							contract(context[which-1+int(np.any(M))*2],n,n,state[tuple(idx_o1)]))
+   540                                           			new_state_tFB2[tuple(idx_n2)] = (np.sqrt(gamma_F[which-1]*gamma_B[which-1])*dt*np.exp(-1j*phip)*
+   541                                           							contract(context[which-1+int(np.any(M))*2],n,n,state[tuple(idx_o2)]))
+   542                                           
+   543                                           		return new_state_tF+new_state_tB+new_state_tFB1+new_state_tFB2
+   544                                           
+   545        82       1922.0     23.4      0.0  	@profile
+   546                                           	def nEda(state,which):
+   547                                           		return nE(nc(state,which,1),which,0)+nE(nc(state,which,0),which,1)+nE(nc(state,which,-1),which,2)
+   548                                           
+   549        82       2216.0     27.0      0.0  	@profile
+   550                                           	def nEad(state,which):
+   551                                           		return nE(nc(state,which,2),which,-1)+nE(nc(state,which,1),which,0)+nE(nc(state,which,0),which,1)
+   552                                           		
+   553        82      10457.0    127.5      0.0  	@profile
+   554                                           	def ME1(state,which):
+   555                                           		return ad(E(state,which,1),which,1)-a(Ed(state,which,1),which,1)
+   556                                           
+   557        82       1944.0     23.7      0.0  	@profile
+   558                                           	def ME2(state,which):
+   559                                           		return (ad(E(state,which,2)+E2mix(state,which),which,2)+a(Ed(state,which,2)+Ed2mix(state,which),which,2)-
+   560                                           				nE(2*nc(state,which,0.5),which,0)-(gamma_F[which-1]+gamma_B[which-1])*dt*nc(state,which,0))
+   561                                           
+   562        82       1906.0     23.2      0.0  	@profile
+   563                                           	def ME3(state,which):
+   564                                           		return (ad(E(state,which,3)+E3mix(state,which),which,3) - a(Ed(state,which,3)+Ed3mix(state,which),which,3)-
+   565                                           				E(ad(nEad(state,which),which,1),which,1)+Ed(a(nEda(state,which),which,1),which,1))
+   566                                           
+   567        82       9078.0    110.7      0.0  	@profile
+   568                                           	def ME4(state,which):
+   569                                           		return (ad(E(state,which,4)+E4mix(state,which),which,4) + a(Ed(state,which,4)+Ed4mix(state,which),which,4)-
+   570                                           				nE(nc(ad(E(state,which,2)+E2mix(state,which),which,2),which,-2),which,3)-
+   571                                           				nE(nc(a(Ed(state,which,2)+Ed2mix(state,which),which,2),which,3),which,-2)-
+   572                                           				nEad(nE(nc(state,which,1),which,0)-a(Ed(state,which,2)+Ed2mix(state,which),which,2),which)+
+   573                                           				nEda(nE(nc(state,which,0),which,1)-ad(E(state,which,2)+E2mix(state,which),which,2),which))
+   574                                           
+   575        82       1844.0     22.5      0.0  	@profile
+   576                                           	def D1(state):
+   577                                           		new_state = np.zeros(state.shape,complex)
+   578                                           		for which in range(1,3):
+   579                                           			if Delc[which-1] !=0:
+   580                                           				new_state += Delc[which-1]*(E(ad(state,which,1),which,1)+Ed(a(state,which,1),which,1))
+   581                                           			if g[which-1] != 0:
+   582                                           				new_state += g[which-1]*(sm(Ed(state,which,1),which)+sp(E(state,which,1),which))
+   583                                           			if Ome[which-1] != 0:
+   584                                           				new_state += Ome[which-1]*(Ed(state,which,1)+E(state,which,1))
+   585                                           		return -1j*new_state*dt
+   586                                           
+   587        82       1839.0     22.4      0.0  	@profile
+   588                                           	def D2(state):
+   589                                           		new_state = np.zeros(state.shape,complex)
+   590                                           		for which in range(1,3):
+   591                                           			if Delc[which-1] !=0:
+   592                                           				new_state += 2*Delc[which-1]*(nE(state,which,0)-(gamma_B[which-1]+gamma_F[which-1])*dt*nc(state,which,0))
+   593                                           			if g[which-1] !=0:
+   594                                           				new_state += g[which-1]*(gamma_B[which-1]+gamma_F[which-1])*dt*(a(sp(state,which),which,1)-ad(sm(state,which),which,1))
+   595                                           			if Omc[which-1] !=0:
+   596                                           				new_state += Omc[which-1]*(gamma_B[which-1]+gamma_F[which-1])*dt*(a(state,which,1)-ad(state,which,1))
+   597                                           		return -1j*new_state*dt
+   598                                           
+   599                                               ####----------------------####
+   600                                               #### Different terms in U ####
+   601                                               ####----------------------####
+   602                                               
+   603                                               #####Initial state#####
+   604                                           #	print("shapes", tF1.shape,tS[0].shape,tB1.shape,tF2.shape,tS[1].shape,tB2.shape)
+   605        82        922.0     11.2      0.0  	if M==0:
+   606         1        486.0    486.0      0.0  		initial = contract("i,j,k,l,m,n->ijklmn",tF1,tS[0],tB1,tF2,tS[1],tB2)
+   607                                           	else:
+   608        81     644431.0   7955.9      1.9  		initial = contract("gcIa,beJc,K,bLdh,dfMa,N->gIeJKhLfMN",tF1,tS[0],tB1,tF2,tS[1],tB2)
+   609                                           #	print("initial",initial.shape)
+   610                                           	#legs = len(initial.shape)
+   611                                           	
+   612                                           	#####System#####
+   613        82    1711559.0  20872.7      5.0  	s1 = MStot(initial)
+   614        82    1051283.0  12820.5      3.1  	sys = s1+MStot(s1)*.5
+   615                                           	
+   616                                           	#####Environment#####
+   617        82    3297269.0  40210.6      9.6  	env = ME1(ME1(initial,2),1)+.25*ME2(ME2(initial,2),1)
+   618       246      11400.0     46.3      0.0  	for i in range(1,3):
+   619       164   20577865.0 125474.8     59.9  		env += .5*ME2(initial,i)+ME3(initial,i)/6.+ME4(initial,i)/24.+ME1(initial+.5*ME2(initial,3-i)+ME3(initial,3-i)/6.,i)
+   620                                           			
+   621                                           	#####System+environment#####
+   622        82    2396473.0  29225.3      7.0  	sys_env = .5*D1(initial)+D2(initial)/6.+ME1(ME1(s1,2),1)
+   623       246       3449.0     14.0      0.0  	for i in range(1,3):
+   624       164    4176175.0  25464.5     12.2  		sys_env += ME1(s1+.5*D1(initial),i)+.5*ME2(s1,i)
+   625                                           				
+   626                                           #    print("sysenv",sys_env[0,2,0])
+   627                                           
+   628        82     189650.0   2312.8      0.6  	return initial + sys + env + sys_env
+
+Total time: 1.30472 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: a at line 40
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    40                                           	@profile
+    41                                           	def a(state,which,N):
+    42      2624     151406.0     57.7     11.6  		new_state = np.zeros(state.shape,complex)
+    43      2624       3654.0      1.4      0.3  		if dim_tS>2*N:
+    44      2132     122737.0     57.6      9.4  			n=np.linspace(N,int((dim_tS)/2),dim_tS-2*N).astype(np.int64)
+    45      2132       1839.0      0.9      0.1  			nprod = 1.
+    46      2132       1185.0      0.6      0.1  			i = 0
+    47      5248       3686.0      0.7      0.3  			while i<N:
+    48      3116      37260.0     12.0      2.9  				nprod *= np.sqrt(n-i)
+    49      3116       2454.0      0.8      0.2  				i+=1
+    50                                           
+    51      2132      32563.0     15.3      2.5  			ich  = (-1)**(which+1)*(2*int(np.any(M))*(2-which)+which)#which=1->1/3, which=2->-2/-2
+    52      2132       2707.0      1.3      0.2  			iend = state.shape[ich]
+    53      2132       1849.0      0.9      0.1  			context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,gIeJKhLfMN->gIeJKhLfMN","M,gIeJKhLfMN->gIeJKhLfMN"]
+    54                                           
+    55      2132       4676.0      2.2      0.4  			idx=[slice(None)]*state.ndim
+    56      2132       2635.0      1.2      0.2  			idx[ich]=slice(None,iend-2*N)
+    57                                           			
+    58      2132     933069.0    437.6     71.5  			new_state[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod,np.take(state,np.arange(2*N,iend),axis=ich))
+    59                                           
+    60      2624       2997.0      1.1      0.2  		return new_state
+
+Total time: 1.26376 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: ad at line 62
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    62                                           	@profile
+    63                                           	def ad(state,which,N):
+    64      2624     145568.0     55.5     11.5  		new_state = np.zeros(state.shape,complex)
+    65      2624       3761.0      1.4      0.3  		if dim_tS>2*N:
+    66      2132     128710.0     60.4     10.2  			n=np.linspace(N,int((dim_tS)/2),dim_tS-2*N).astype(np.int64)
+    67      2132       1846.0      0.9      0.1  			nprod = 1.
+    68      2132       1255.0      0.6      0.1  			i = 0
+    69      5248       3651.0      0.7      0.3  			while i<N:
+    70      3116      18278.0      5.9      1.4  				nprod *= np.sqrt(n-i)
+    71      3116      14471.0      4.6      1.1  				i+=1
+    72                                           
+    73      2132      32747.0     15.4      2.6  			ich  = (-1)**(which+1)*(2*int(np.any(M))*(2-which)+which)#which=1->1/3, which=2->-2/-2
+    74      2132       2690.0      1.3      0.2  			iend = state.shape[ich]
+    75      2132       1829.0      0.9      0.1  			context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,gIeJKhLfMN->gIeJKhLfMN","M,gIeJKhLfMN->gIeJKhLfMN"]
+    76                                           
+    77      2132       4689.0      2.2      0.4  			idx=[slice(None)]*state.ndim
+    78      2132       2530.0      1.2      0.2  			idx[ich]=slice(2*N,iend)
+    79                                           			
+    80      2132     898757.0    421.6     71.1  			new_state[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod,np.take(state,np.arange(iend-2*N),axis=ich))
+    81      2624       2982.0      1.1      0.2  		return new_state
+
+Total time: 0.304809 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: sm at line 83
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    83                                           	@profile
+    84                                           	def sm(state,which):
+    85       656      43946.0     67.0     14.4  		new_state = np.zeros(state.shape,complex)
+    86       656      14546.0     22.2      4.8  		ich  = (-1)**(which+1)*(2*int(np.any(M))*(2-which)+which)#which=1->1/3, which=2->-2/-2
+    87       656        790.0      1.2      0.3  		iend = state.shape[ich]
+    88                                           
+    89       656       1406.0      2.1      0.5  		idx=[slice(None)]*state.ndim
+    90       656        750.0      1.1      0.2  		idx[ich]=slice(0,dim_tS-1,2)
+    91                                           		
+    92       656     242801.0    370.1     79.7  		new_state[tuple(idx)] = np.take(state,np.arange(1,dim_tS,2),axis=ich)
+    93       656        570.0      0.9      0.2  		return new_state
+
+Total time: 0.29641 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: sp at line 95
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    95                                           	@profile
+    96                                           	def sp(state,which):
+    97       656      33213.0     50.6     11.2  		new_state = np.zeros(state.shape,complex)
+    98       656      15149.0     23.1      5.1  		ich  = (-1)**(which+1)*(2*int(np.any(M))*(2-which)+which)#which=1->1/3, which=2->-2/-2
+    99       656        805.0      1.2      0.3  		iend = state.shape[ich]
+   100                                           
+   101       656       1404.0      2.1      0.5  		idx=[slice(None)]*state.ndim
+   102       656        746.0      1.1      0.3  		idx[ich]=slice(1,dim_tS,2)
+   103                                           		
+   104       656     244510.0    372.7     82.5  		new_state[tuple(idx)] = np.take(state,np.arange(0,dim_tS-1,2),axis=ich)
+   105       656        583.0      0.9      0.2  		return new_state
+
+Total time: 1.08311 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: JC at line 107
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   107                                           	@profile
+   108                                           	def JC(state,which):
+   109       328      31017.0     94.6      2.9  		new_tS_g = np.zeros(state.shape,complex)
+   110       328      17923.0     54.6      1.7  		new_tS_Ome = np.zeros(state.shape,complex)
+   111       328      88326.0    269.3      8.2  		n = np.linspace(1,int((dim_tS)/2),dim_tS-2).astype(np.int64)
+   112       328       1800.0      5.5      0.2  		n = np.sqrt(n[0:dim_tS-1:2])
+   113                                           
+   114       328      18973.0     57.8      1.8  		ich  = (-1)**(which+1)*(2*int(np.any(M))*(2-which)+which)#which=1->1/3, which=2->-2/-2
+   115       328        431.0      1.3      0.0  		iend = state.shape[ich]
+   116                                           
+   117       328       1396.0      4.3      0.1  		if g[which-1] != 0:
+   118       328        293.0      0.9      0.0  			context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,gIeJKhLfMN->gIeJKhLfMN","M,gIeJKhLfMN->gIeJKhLfMN"]
+   119                                           
+   120       328        744.0      2.3      0.1  			idx1=[slice(None)]*state.ndim
+   121       328        323.0      1.0      0.0  			idx2=[slice(None)]*state.ndim
+   122       328        394.0      1.2      0.0  			idx1[ich]=slice(1,dim_tS-1,2)
+   123       328        262.0      0.8      0.0  			idx2[ich]=slice(2,dim_tS,2)
+   124                                           			
+   125       328     397511.0   1211.9     36.7  			new_tS_g[tuple(idx1)] = es(context[which-1+int(np.any(M))*2],n*g[which-1],np.take(state,np.arange(2,dim_tS,2),axis=ich))
+   126       328     407391.0   1242.0     37.6  			new_tS_g[tuple(idx2)] = es(context[which-1+int(np.any(M))*2],n*g[which-1],np.take(state,np.arange(1,dim_tS-1,2),axis=ich))
+   127                                           
+   128       328       9306.0     28.4      0.9  		if Ome[which-1] != 0:
+   129                                           			idx1=[slice(None)]*state.ndim
+   130                                           			idx2=[slice(None)]*state.ndim
+   131                                           			idx1[ich]=slice(0,dim_tS-2,2)
+   132                                           			idx2[ich]=slice(1,dim_tS-1,2)
+   133                                           
+   134                                           			new_tS_Ome[tuple(idx1)] = np.take(state,np.arange(1,dim_tS-1,2),axis=ich)
+   135                                           			new_tS_Ome[tuple(idx2)] = np.take(state,np.arange(0,dim_tS-2,2),axis=ich)
+   136       328     107016.0    326.3      9.9  		return new_tS_g+new_tS_Ome
+
+Total time: 2.99751 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: nc at line 138
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   138                                           	@profile
+   139                                           	def nc(state,which,const):
+   140      4920     281402.0     57.2      9.4  		n=np.linspace(0,int((dim_tS)/2),dim_tS).astype(np.int64)
+   141      4920     289794.0     58.9      9.7  		new_state = np.zeros(state.shape,complex)
+   142      4920       4457.0      0.9      0.1  		context = ["j,ijklmn->ijklmn","m,ijklmn->ijklmn","J,gIeJKhLfMN->gIeJKhLfMN","M,gIeJKhLfMN->gIeJKhLfMN"]
+   143                                           
+   144      4920    2406355.0    489.1     80.3  		new_state = es(context[which-1+int(np.any(M))*2],n+const,state)
+   145      4920      15502.0      3.2      0.5  		return new_state
+
+Total time: 0.113922 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: C at line 147
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   147                                           	@profile
+   148                                           	def C(state,which):
+   149       328      44770.0    136.5     39.3  		if Delc[which-1] == 0 and Omc[which-1] == 0:
+   150       328      69152.0    210.8     60.7  			return 0.*state
+   151                                           		elif Delc[which-1] == 0 and Omc[which-1] != 0:
+   152                                           			return Omc[which-1]*(c(state,which)+cd(state,which))
+   153                                           		elif Delc[which-1] != 0 and Omc[which-1] == 0:
+   154                                           			return Delc[which-1]*nc(state,which,0)
+   155                                           		else:
+   156                                           			return Delc[which-1]*nc(state,which,0)+Omc[which-1]*(c(state,which)+cd(state,which))
+
+Total time: 2.60414 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: MS at line 158
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   158                                           	@profile
+   159                                           	def MS(state,which):
+   160       328      30810.0     93.9      1.2  		new_tS = np.zeros(state.shape,complex)
+   161       328     262718.0    801.0     10.1  		new_tS += state
+   162       328      18937.0     57.7      0.7  		if Dele[which-1] == 0:
+   163       328    2291675.0   6986.8     88.0  			return -1j*dt*(C(state,which)+JC(state,which))
+   164                                           		else:
+   165                                           			ich  = (-1)**(which+1)*(2*int(np.any(M))*(2-which)+which)#which=1->1/3, which=2->-2/-2
+   166                                           			iend = state.shape[ich]
+   167                                           
+   168                                           			idx=[slice(None)]*new_state.ndim
+   169                                           			idx[ich]=slice(0,dim_tS,2)
+   170                                           			
+   171                                           			new_tS[tuple(idx)] = 0
+   172                                           			return -1j*dt*(C(state,which)+JC(state,which)+Dele[which-1]*new_tS)
+
+Total time: 2.67061 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: MStot at line 174
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   174                                           	@profile
+   175                                           	def MStot(state):
+   176       164    2670608.0  16284.2    100.0  		return MS(state,1)+MS(state,2)
+
+Total time: 4.29111 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: E at line 178
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   178                                           	@profile
+   179                                           	def E(state,which,N):
+   180      2952     167936.0     56.9      3.9  		new_state_tB = np.zeros(state.shape,complex)
+   181      2952     199205.0     67.5      4.6  		new_state_tF = np.zeros(state.shape,complex)
+   182      2952     103672.0     35.1      2.4  		if N<state.shape[int(np.any(M)*2+2)]:
+   183      2460      31983.0     13.0      0.7  			n = np.arange(N,state.shape[int(np.any(M)*2+2)])
+   184      2460       2399.0      1.0      0.1  			nprod = 1.
+   185      2460       1990.0      0.8      0.0  			i = 0
+   186      2460       2353.0      1.0      0.1  			if M<L:
+   187       900        746.0      0.8      0.0  				phip=0.
+   188                                           			else:
+   189      1560       1355.0      0.9      0.0  				phip=phi
+   190      5904      15290.0      2.6      0.4  			while i<N:
+   191      3444      34787.0     10.1      0.8  				nprod *= np.sqrt(n-i)
+   192      3444       3858.0      1.1      0.1  				i+=1
+   193                                           
+   194      2460       6452.0      2.6      0.2  			if gamma_B[which-1] > 0.:
+   195                                           				ich = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+   196                                           				iend = state.shape[ich]
+   197                                           				context = ["k,ijklmn->ijklmn","n,ijklmn->ijklmn","K,gIeJKhLfMN->gIeJKhLfMN","N,gIeJKhLfMN->gIeJKhLfMN"]
+   198                                           
+   199                                           				idx=[slice(None)]*state.ndim
+   200                                           				idx[ich]=np.arange(0,iend-N)
+   201                                           				
+   202                                           	#			print(new_state_tB[tuple(idx)].shape,np.take(state,np.arange(N,iend),axis=ich).shape,nprod.shape,N)
+   203                                           				new_state_tB[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod*np.sqrt(gamma_B[which-1]*dt)**N,np.take(state,np.arange(N,iend),axis=ich))
+   204                                           
+   205      2460      37478.0     15.2      0.9  			if gamma_F[which-1] > 0:
+   206      2460      34272.0     13.9      0.8  				ich = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+   207      2460       3146.0      1.3      0.1  				iend = state.shape[ich]
+   208      2460       2778.0      1.1      0.1  				context = ["i,ijklmn->ijklmn","l,ijklmn->ijklmn","I,gIeJKhLfMN->gIeJKhLfMN","L,gIeJKhLfMN->gIeJKhLfMN"]
+   209                                           
+   210      2460       5977.0      2.4      0.1  				idx=[slice(None)]*state.ndim
+   211      2460       5756.0      2.3      0.1  				idx[ich]=np.arange(0,iend-N)
+   212                                           				
+   213                                           	#			print(new_state_tF[tuple(idx)].shape,np.take(state,np.arange(N,iend),axis=ich).shape,nprod.shape,N)
+   214      2460    2751809.0   1118.6     64.1  				new_state_tF[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod*np.sqrt(gamma_F[which-1]*dt)**N,np.take(state,np.arange(N,iend),axis=ich))*np.exp(-1j*N*phip)
+   215                                           
+   216      2952     877864.0    297.4     20.5  		return new_state_tB+new_state_tF
+
+Total time: 4.06673 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: Ed at line 218
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   218                                           	@profile
+   219                                           	def Ed(state,which,N):
+   220      2952     178060.0     60.3      4.4  		new_state_tB = np.zeros(state.shape,complex)
+   221      2952     187194.0     63.4      4.6  		new_state_tF = np.zeros(state.shape,complex)
+   222      2952     112947.0     38.3      2.8  		if N<state.shape[int(np.any(M)*2+2)]:
+   223      2460      38786.0     15.8      1.0  			n = np.arange(N,state.shape[int(np.any(M)*2+2)])
+   224      2460       2212.0      0.9      0.1  			nprod = 1.
+   225      2460      10464.0      4.3      0.3  			i = 0
+   226      2460       2173.0      0.9      0.1  			if M<L:
+   227       900        703.0      0.8      0.0  				phip=0.
+   228                                           			else:
+   229      1560       1268.0      0.8      0.0  				phip=phi
+   230      5904       5192.0      0.9      0.1  			while i<N:
+   231      3444      31129.0      9.0      0.8  				nprod *= np.sqrt(n-i)
+   232      3444       3396.0      1.0      0.1  				i+=1
+   233                                           
+   234      2460       5595.0      2.3      0.1  			if gamma_B[which-1] > 0.:
+   235                                           				ich = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+   236                                           				iend = state.shape[ich]
+   237                                           				context = ["k,ijklmn->ijklmn","n,ijklmn->ijklmn","K,gIeJKhLfMN->gIeJKhLfMN","N,gIeJKhLfMN->gIeJKhLfMN"]
+   238                                           
+   239                                           				idx=[slice(None)]*state.ndim
+   240                                           				idx[ich]=slice(N,iend)
+   241                                           	#			print("context:", context[which-1+int(np.any(M))*2],", which:", which,", M:", M)
+   242                                           				new_state_tB[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod*np.sqrt(gamma_B[which-1]*dt)**N,np.take(state,np.arange(0,iend-N),axis=ich))
+   243                                           
+   244      2460       4388.0      1.8      0.1  			if gamma_F[which-1] > 0:
+   245      2460      40285.0     16.4      1.0  				ich = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+   246      2460       3029.0      1.2      0.1  				iend = state.shape[ich]
+   247      2460       2580.0      1.0      0.1  				context = ["i,ijklmn->ijklmn","l,ijklmn->ijklmn","I,gIeJKhLfMN->gIeJKhLfMN","L,gIeJKhLfMN->gIeJKhLfMN"]
+   248                                           
+   249      2460       5398.0      2.2      0.1  				idx=[slice(None)]*state.ndim
+   250      2460       3217.0      1.3      0.1  				idx[ich]=slice(N,iend)
+   251                                           				
+   252      2460    2564140.0   1042.3     63.1  				new_state_tF[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod*np.sqrt(gamma_F[which-1]*dt)**N,np.take(state,np.arange(0,iend-N),axis=ich))*np.exp(1j*N*phip)
+   253                                           
+   254      2952     864576.0    292.9     21.3  		return new_state_tB+new_state_tF
+
+Total time: 0.342038 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: E2mix at line 256
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   256                                           	@profile
+   257                                           	def E2mix(state,which):
+   258       984      53988.0     54.9     15.8  		new_state_mix = np.zeros(state.shape,complex)
+   259       984      29281.0     29.8      8.6  		if 2<state.shape[int(np.any(M)*2+2)]:
+   260       984       1042.0      1.1      0.3  			if M<L:
+   261       360        271.0      0.8      0.1  				phip=0.
+   262                                           			else:
+   263       624        459.0      0.7      0.1  				phip=phi
+   264       984      24231.0     24.6      7.1  			n = np.sqrt(np.arange(1,state.shape[int(np.any(M)*2+2)]))
+   265       984       2970.0      3.0      0.9  			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
+   266                                           				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+   267                                           				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+   268                                           				iend1 = state.shape[ich1]
+   269                                           				iend2 = state.shape[ich2]
+   270                                           				context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
+   271                                           
+   272                                           				idx_n=[slice(None)]*state.ndim
+   273                                           				idx_n[ich1]=slice(None,iend1-1)
+   274                                           				idx_n[ich2]=slice(None,iend2-1)
+   275                                           				idx_o=[slice(None)]*state.ndim
+   276                                           				idx_o[ich1]=slice(1,iend1)
+   277                                           				idx_o[ich2]=slice(1,iend2)
+   278                                           				
+   279                                           				new_state_mix[tuple(idx_n)] = (np.sqrt(gamma_B[which-1]*gamma_F[which-1])*np.exp(-1j*phip)*dt*
+   280                                           								contract(context[which-1+int(np.any(M))*2],n,n,state[tuple(idx_o)]))
+   281       984     229796.0    233.5     67.2  		return 2*new_state_mix
+
+Total time: 0.308354 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: Ed2mix at line 283
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   283                                           	@profile
+   284                                           	def Ed2mix(state,which):
+   285       984      63992.0     65.0     20.8  		new_state_mix = np.zeros(state.shape,complex)
+   286       984      28320.0     28.8      9.2  		if 2<state.shape[int(np.any(M)*2+2)]:
+   287       984        998.0      1.0      0.3  			if M<L:
+   288       360        271.0      0.8      0.1  				phip=0.
+   289                                           			else:
+   290       624        430.0      0.7      0.1  				phip=phi
+   291       984      14758.0     15.0      4.8  			n = np.sqrt(np.arange(1,state.shape[int(np.any(M)*2+2)]))
+   292       984       2903.0      3.0      0.9  			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
+   293                                           
+   294                                           				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+   295                                           				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+   296                                           				iend1 = state.shape[ich1]
+   297                                           				iend2 = state.shape[ich2]
+   298                                           				context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
+   299                                           
+   300                                           				idx_o=[slice(None)]*state.ndim
+   301                                           				idx_o[ich1]=slice(None,iend1-1)
+   302                                           				idx_o[ich2]=slice(None,iend2-1)
+   303                                           				idx_n=[slice(None)]*state.ndim
+   304                                           				idx_n[ich1]=slice(1,iend1)
+   305                                           				idx_n[ich2]=slice(1,iend2)
+   306                                           				
+   307                                           				new_state_mix[tuple(idx_n)] = (np.sqrt(gamma_B[which-1]*gamma_F[which-1])*np.exp(1j*phip)*dt*
+   308                                           								contract(context[which-1+int(np.any(M))*2],n,n,state[tuple(idx_o)]))
+   309       984     196682.0    199.9     63.8  		return 2*new_state_mix
+
+Total time: 0.198732 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: E3mix at line 311
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   311                                           	@profile
+   312                                           	def E3mix(state,which):
+   313                                           
+   314       328      17279.0     52.7      8.7  		new_state_mix1 = np.zeros(state.shape,complex)
+   315       328      18853.0     57.5      9.5  		new_state_mix2 = np.zeros(state.shape,complex)
+   316       328       8178.0     24.9      4.1  		if 2<state.shape[int(np.any(M)*2+2)]:
+   317       328        426.0      1.3      0.2  			if M<L:
+   318       120        109.0      0.9      0.1  				phip=0.
+   319                                           			else:
+   320       208        193.0      0.9      0.1  				phip=phi
+   321       328       4172.0     12.7      2.1  			n = np.arange(1,state.shape[int(np.any(M)*2+2)])
+   322       328       3205.0      9.8      1.6  			n2 = np.sqrt(n[1:]*(n[1:]-1))
+   323       328        761.0      2.3      0.4  			n = np.sqrt(n)
+   324       328       1062.0      3.2      0.5  			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
+   325                                           				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+   326                                           				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+   327                                           				iend1 = state.shape[ich1]
+   328                                           				iend2 = state.shape[ich2]
+   329                                           				context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
+   330                                           
+   331                                           				idx_n1=[slice(None)]*state.ndim
+   332                                           				idx_n1[ich1]=slice(None,iend1-1)
+   333                                           				idx_n1[ich2]=slice(None,iend2-2)
+   334                                           				idx_n2=[slice(None)]*state.ndim
+   335                                           				idx_n2[ich1]=slice(None,iend1-2)
+   336                                           				idx_n2[ich2]=slice(None,iend2-1)
+   337                                           				idx_o1=[slice(None)]*state.ndim
+   338                                           				idx_o1[ich1]=slice(1,iend1)
+   339                                           				idx_o1[ich2]=slice(2,iend2)
+   340                                           				idx_o2=[slice(None)]*state.ndim
+   341                                           				idx_o2[ich1]=slice(2,iend1)
+   342                                           				idx_o2[ich2]=slice(1,iend2)
+   343                                           				
+   344                                           				new_state_mix1[tuple(idx_n1)] = (gamma_F[which-1]*np.sqrt(gamma_B[which-1])*dt**1.5*np.exp(-2j*phip)*
+   345                                           								contract(context[which-1+int(np.any(M))*2],n2,n,state[tuple(idx_o1)]))
+   346                                           				new_state_mix2[tuple(idx_n2)] = (gamma_B[which-1]*np.sqrt(gamma_F[which-1])*dt**1.5*np.exp(-1j*phip)*
+   347                                           								contract(context[which-1+int(np.any(M))*2],n,n2,state[tuple(idx_o2)]))
+   348       328     144494.0    440.5     72.7  		return 3*(new_state_mix1+new_state_mix2)
+
+Total time: 0.196466 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: Ed3mix at line 350
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   350                                           	@profile
+   351                                           	def Ed3mix(state,which):
+   352                                           
+   353       328      16478.0     50.2      8.4  		new_state_mix1 = np.zeros(state.shape,complex)
+   354       328      16285.0     49.6      8.3  		new_state_mix2 = np.zeros(state.shape,complex)
+   355       328       7553.0     23.0      3.8  		if 2<state.shape[int(np.any(M)*2+2)]:
+   356       328        352.0      1.1      0.2  			if M<L:
+   357       120         91.0      0.8      0.0  				phip=0.
+   358                                           			else:
+   359       208        171.0      0.8      0.1  				phip=phi
+   360       328       3826.0     11.7      1.9  			n = np.arange(1,state.shape[int(np.any(M)*2+2)])
+   361       328       2613.0      8.0      1.3  			n2 = np.sqrt(n[1:]*(n[1:]-1))
+   362       328        672.0      2.0      0.3  			n = np.sqrt(n)
+   363       328        895.0      2.7      0.5  			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
+   364                                           				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+   365                                           				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+   366                                           				iend1 = state.shape[ich1]
+   367                                           				iend2 = state.shape[ich2]
+   368                                           				context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
+   369                                           
+   370                                           				idx_o1=[slice(None)]*state.ndim
+   371                                           				idx_o1[ich1]=slice(None,iend1-1)
+   372                                           				idx_o1[ich2]=slice(None,iend2-2)
+   373                                           				idx_o2=[slice(None)]*state.ndim
+   374                                           				idx_o2[ich1]=slice(None,iend1-2)
+   375                                           				idx_o2[ich2]=slice(None,iend2-1)
+   376                                           				idx_n1=[slice(None)]*state.ndim
+   377                                           				idx_n1[ich1]=slice(1,iend1)
+   378                                           				idx_n1[ich2]=slice(2,iend2)
+   379                                           				idx_n2=[slice(None)]*state.ndim
+   380                                           				idx_n2[ich1]=slice(2,iend1)
+   381                                           				idx_n2[ich2]=slice(1,iend2)
+   382                                           				
+   383                                           				new_state_mix1[tuple(idx_n1)] = (gamma_F[which-1]*np.sqrt(gamma_B[which-1])*dt**1.5*np.exp(2j*phip)*
+   384                                           								contract(context[which-1+int(np.any(M))*2],n2,n,state[tuple(idx_o1)]))
+   385                                           				new_state_mix2[tuple(idx_n2)] = (gamma_B[which-1]*np.sqrt(gamma_F[which-1])*dt**1.5*np.exp(1j*phip)*
+   386                                           								contract(context[which-1+int(np.any(M))*2],n,n2,state[tuple(idx_o2)]))
+   387                                           
+   388       328     147530.0    449.8     75.1  		return 3*(new_state_mix1+new_state_mix2)
+
+Total time: 0.188235 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: E4mix at line 390
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   390                                           	@profile
+   391                                           	def E4mix(state,which):
+   392                                           
+   393       164       7997.0     48.8      4.2  		new_state_mix1 = np.zeros(state.shape,complex)
+   394       164       8402.0     51.2      4.5  		new_state_mix2 = np.zeros(state.shape,complex)
+   395       164      11538.0     70.4      6.1  		new_state_mix3 = np.zeros(state.shape,complex)
+   396                                           
+   397       164       4562.0     27.8      2.4  		if 2<state.shape[int(np.any(M)*2+2)]:
+   398       164        226.0      1.4      0.1  			if M<L:
+   399        60         64.0      1.1      0.0  				phip=0.
+   400                                           			else:
+   401       104        114.0      1.1      0.1  				phip=phi
+   402       164       2111.0     12.9      1.1  			n = np.arange(1,state.shape[int(np.any(M)*2+2)])
+   403       164       1588.0      9.7      0.8  			n2 = np.sqrt(n[1:]*(n[1:]-1))
+   404       164       1743.0     10.6      0.9  			if 3<state.shape[int(np.any(M)*2+2)]:
+   405                                           				n3 = np.sqrt(n[2:]*(n[2:]-1)*(n[2:]-2))
+   406       164        493.0      3.0      0.3  			n = np.sqrt(n)
+   407       164        560.0      3.4      0.3  			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
+   408                                           				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+   409                                           				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+   410                                           				iend1 = state.shape[ich1]
+   411                                           				iend2 = state.shape[ich2]
+   412                                           				context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
+   413                                           
+   414                                           				if 3<state.shape[int(np.any(M)*2+2)]:
+   415                                           					idx_n1=[slice(None)]*state.ndim
+   416                                           					idx_n1[ich1]=slice(None,iend1-3)
+   417                                           					idx_n1[ich2]=slice(None,iend2-1)
+   418                                           					idx_n2=[slice(None)]*state.ndim
+   419                                           					idx_n2[ich1]=slice(None,iend1-1)
+   420                                           					idx_n2[ich2]=slice(None,iend2-3)
+   421                                           					idx_o1=[slice(None)]*state.ndim
+   422                                           					idx_o1[ich1]=slice(3,iend1)
+   423                                           					idx_o1[ich2]=slice(1,iend2)
+   424                                           					idx_o2=[slice(None)]*state.ndim
+   425                                           					idx_o2[ich1]=slice(1,iend1)
+   426                                           					idx_o2[ich2]=slice(3,iend2)
+   427                                           					new_state_mix1[tuple(idx_n1)] = (gamma_B[which-1]*np.sqrt(gamma_B[which-1]*gamma_F[which-1])*dt**2*np.exp(-1j*phip)*
+   428                                           									contract(context[which-1+int(np.any(M))*2],n,n3,state[tuple(idx_o1)]))
+   429                                           					new_state_mix2[tuple(idx_n2)] = (gamma_F[which-1]*np.sqrt(gamma_F[which-1]*gamma_B[which-1])*dt**2*np.exp(-3j*phip)*
+   430                                           									contract(context[which-1+int(np.any(M))*2],n3,n,state[tuple(idx_o2)]))
+   431                                           				idx_n3=[slice(None)]*state.ndim
+   432                                           				idx_n3[ich1]=slice(None,iend1-2)
+   433                                           				idx_n3[ich2]=slice(None,iend2-2)
+   434                                           				idx_o3=[slice(None)]*state.ndim
+   435                                           				idx_o3[ich1]=slice(2,iend1)
+   436                                           				idx_o3[ich2]=slice(2,iend2)
+   437                                           				
+   438                                           				new_state_mix3[tuple(idx_n3)] = (gamma_B[which-1]*gamma_F[which-1]*dt**2*np.exp(-2j*phip)*
+   439                                           								contract(context[which-1+int(np.any(M))*2],n2,n2,state[tuple(idx_o3)]))
+   440                                           
+   441       164     148837.0    907.5     79.1  		return 4*(new_state_mix1+new_state_mix2)+6*new_state_mix3
+
+Total time: 0.20357 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: Ed4mix at line 443
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   443                                           	@profile
+   444                                           	def Ed4mix(state,which):
+   445       164       8076.0     49.2      4.0  		new_state_mix1 = np.zeros(state.shape,complex)
+   446       164       8301.0     50.6      4.1  		new_state_mix2 = np.zeros(state.shape,complex)
+   447       164      26314.0    160.5     12.9  		new_state_mix3 = np.zeros(state.shape,complex)
+   448       164       4225.0     25.8      2.1  		if 2<state.shape[int(np.any(M)*2+2)]:
+   449       164        191.0      1.2      0.1  			if M<L:
+   450        60         53.0      0.9      0.0  				phip=0.
+   451                                           			else:
+   452       104         99.0      1.0      0.0  				phip=phi
+   453       164       2012.0     12.3      1.0  			n = np.arange(1,state.shape[int(np.any(M)*2+2)])
+   454       164       1453.0      8.9      0.7  			n2 = np.sqrt(n[1:]*(n[1:]-1))
+   455       164       1668.0     10.2      0.8  			if 3<state.shape[int(np.any(M)*2+2)]:
+   456                                           				n3 = np.sqrt(n[2:]*(n[2:]-1)*(n[2:]-2))
+   457       164        430.0      2.6      0.2  			n = np.sqrt(n)
+   458       164        488.0      3.0      0.2  			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
+   459                                           				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+   460                                           				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+   461                                           				iend1 = state.shape[ich1]
+   462                                           				iend2 = state.shape[ich2]
+   463                                           				context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
+   464                                           
+   465                                           				if 3<state.shape[int(np.any(M)*2+2)]:
+   466                                           					idx_o1=[slice(None)]*state.ndim
+   467                                           					idx_o1[ich1]=slice(None,iend1-3)
+   468                                           					idx_o1[ich2]=slice(None,iend2-1)
+   469                                           					idx_o2=[slice(None)]*state.ndim
+   470                                           					idx_o2[ich1]=slice(None,iend1-1)
+   471                                           					idx_o2[ich2]=slice(None,iend2-3)
+   472                                           					idx_n1=[slice(None)]*state.ndim
+   473                                           					idx_n1[ich1]=slice(3,iend1)
+   474                                           					idx_n1[ich2]=slice(1,iend2)
+   475                                           					idx_n2=[slice(None)]*state.ndim
+   476                                           					idx_n2[ich1]=slice(1,iend1)
+   477                                           					idx_n2[ich2]=slice(3,iend2)
+   478                                           					new_state_mix1[tuple(idx_n1)] = (gamma_B[which-1]*np.sqrt(gamma_B[which-1]*gamma_F[which-1])*dt**2*np.exp(1j*phip)*
+   479                                           									contract(context[which-1+int(np.any(M))*2],n,n3,state[tuple(idx_o1)]))
+   480                                           					new_state_mix2[tuple(idx_n2)] = (gamma_F[which-1]*np.sqrt(gamma_F[which-1]*gamma_B[which-1])*dt**2*np.exp(3j*phip)*
+   481                                           									contract(context[which-1+int(np.any(M))*2],n3,n,state[tuple(idx_o2)]))
+   482                                           				idx_o3=[slice(None)]*state.ndim
+   483                                           				idx_o3[ich1]=slice(None,iend1-2)
+   484                                           				idx_o3[ich2]=slice(None,iend2-2)
+   485                                           				idx_n3=[slice(None)]*state.ndim
+   486                                           				idx_n3[ich1]=slice(2,iend1)
+   487                                           				idx_n3[ich2]=slice(2,iend2)
+   488                                           				
+   489                                           				new_state_mix3[tuple(idx_n3)] = (gamma_B[which-1]*gamma_F[which-1]*dt**2*np.exp(2j*phip)*
+   490                                           								contract(context[which-1+int(np.any(M))*2],n2,n2,state[tuple(idx_o3)]))
+   491                                           
+   492       164     150260.0    916.2     73.8  		return 4*(new_state_mix1+new_state_mix2)+6*new_state_mix3
+
+Total time: 9.52322 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: nE at line 494
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   494                                           	@profile
+   495                                           	def nE(state,which,const):
+   496      4264     273151.0     64.1      2.9  		new_state_tF = np.zeros(state.shape,complex)
+   497      4264     274092.0     64.3      2.9  		new_state_tB = np.zeros(state.shape,complex)
+   498      4264     285984.0     67.1      3.0  		new_state_tFB1 = np.zeros(state.shape,complex)
+   499      4264     348909.0     81.8      3.7  		new_state_tFB2 = np.zeros(state.shape,complex)
+   500      4264     174084.0     40.8      1.8  		n = np.arange(0,state.shape[int(np.any(M)*2+2)])
+   501      4264      21869.0      5.1      0.2  		if gamma_F[which-1]>0:
+   502      4264       5417.0      1.3      0.1  			context = ["i,ijklmn->ijklmn","l,ijklmn->ijklmn","I,gIeJKhLfMN->gIeJKhLfMN","L,gIeJKhLfMN->gIeJKhLfMN"]
+   503                                           
+   504      4264    3549921.0    832.5     37.3  			new_state_tF = dt*gamma_F[which-1]*es(context[which-1+2*int(np.any(M))],n+const,state)
+   505                                           
+   506      4264      35991.0      8.4      0.4  		if gamma_B[which-1]>0:
+   507                                           			context = ["k,ijklmn->ijklmn","n,ijklmn->ijklmn","K,gIeJKhLfMN->gIeJKhLfMN","N,gIeJKhLfMN->gIeJKhLfMN"]
+   508                                           
+   509                                           			new_state_tB = dt*gamma_B[which-1]*es(context[which-1+2*int(np.any(M))],n+const,state)
+   510                                           
+   511      4264       6075.0      1.4      0.1  		if gamma_B[which-1]>0 and gamma_F[which-1]>0:
+   512                                           
+   513                                           			if M<L:
+   514                                           				phip=0.
+   515                                           			else:
+   516                                           				phip=phi
+   517                                           
+   518                                           			context = ["i,k,ijklmn->ijklmn","l,n,ijklmn->ijklmn","I,K,gIeJKhLfMN->gIeJKhLfMN","L,N,gIeJKhLfMN->gIeJKhLfMN"]
+   519                                           			ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+   520                                           			ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+   521                                           			iend1 = state.shape[ich1]
+   522                                           			iend2 = state.shape[ich2]
+   523                                           			n = np.sqrt(n[1:])
+   524                                           
+   525                                           			idx_n1=[slice(None)]*state.ndim
+   526                                           			idx_n1[ich1]=slice(None,iend1-1)
+   527                                           			idx_n1[ich2]=slice(1,iend2)
+   528                                           			idx_n2=[slice(None)]*state.ndim
+   529                                           			idx_n2[ich1]=slice(1,iend1)
+   530                                           			idx_n2[ich2]=slice(None,iend2-1)
+   531                                           			idx_o1=[slice(None)]*state.ndim
+   532                                           			idx_o1[ich1]=slice(1,iend1)
+   533                                           			idx_o1[ich2]=slice(None,iend2-1)
+   534                                           			idx_o2=[slice(None)]*state.ndim
+   535                                           			idx_o2[ich1]=slice(None,iend1-1)
+   536                                           			idx_o2[ich2]=slice(1,iend2)
+   537                                           			
+   538                                           			new_state_tFB1[tuple(idx_n1)] = (np.sqrt(gamma_F[which-1]*gamma_B[which-1])*dt*np.exp(1j*phip)*
+   539                                           							contract(context[which-1+int(np.any(M))*2],n,n,state[tuple(idx_o1)]))
+   540                                           			new_state_tFB2[tuple(idx_n2)] = (np.sqrt(gamma_F[which-1]*gamma_B[which-1])*dt*np.exp(-1j*phip)*
+   541                                           							contract(context[which-1+int(np.any(M))*2],n,n,state[tuple(idx_o2)]))
+   542                                           
+   543      4264    4547723.0   1066.5     47.8  		return new_state_tF+new_state_tB+new_state_tFB1+new_state_tFB2
+
+Total time: 4.3035 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: nEda at line 545
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   545                                           	@profile
+   546                                           	def nEda(state,which):
+   547       492    4303496.0   8746.9    100.0  		return nE(nc(state,which,1),which,0)+nE(nc(state,which,0),which,1)+nE(nc(state,which,-1),which,2)
+
+Total time: 4.2669 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: nEad at line 549
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   549                                           	@profile
+   550                                           	def nEad(state,which):
+   551       492    4266901.0   8672.6    100.0  		return nE(nc(state,which,2),which,-1)+nE(nc(state,which,1),which,0)+nE(nc(state,which,0),which,1)
+
+Total time: 3.14157 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: ME1 at line 553
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   553                                           	@profile
+   554                                           	def ME1(state,which):
+   555       656    3141574.0   4789.0    100.0  		return ad(E(state,which,1),which,1)-a(Ed(state,which,1),which,1)
+
+Total time: 7.41895 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: ME2 at line 557
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   557                                           	@profile
+   558                                           	def ME2(state,which):
+   559                                           		return (ad(E(state,which,2)+E2mix(state,which),which,2)+a(Ed(state,which,2)+Ed2mix(state,which),which,2)-
+   560       656    7418953.0  11309.4    100.0  				nE(2*nc(state,which,0.5),which,0)-(gamma_F[which-1]+gamma_B[which-1])*dt*nc(state,which,0))
+
+Total time: 8.6999 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: ME3 at line 562
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   562                                           	@profile
+   563                                           	def ME3(state,which):
+   564                                           		return (ad(E(state,which,3)+E3mix(state,which),which,3) - a(Ed(state,which,3)+Ed3mix(state,which),which,3)-
+   565       328    8699899.0  26524.1    100.0  				E(ad(nEad(state,which),which,1),which,1)+Ed(a(nEda(state,which),which,1),which,1))
+
+Total time: 6.96852 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: ME4 at line 567
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   567                                           	@profile
+   568                                           	def ME4(state,which):
+   569                                           		return (ad(E(state,which,4)+E4mix(state,which),which,4) + a(Ed(state,which,4)+Ed4mix(state,which),which,4)-
+   570                                           				nE(nc(ad(E(state,which,2)+E2mix(state,which),which,2),which,-2),which,3)-
+   571                                           				nE(nc(a(Ed(state,which,2)+Ed2mix(state,which),which,2),which,3),which,-2)-
+   572       164    4708709.0  28711.6     67.6  				nEad(nE(nc(state,which,1),which,0)-a(Ed(state,which,2)+Ed2mix(state,which),which,2),which)+
+   573       164    2259806.0  13779.3     32.4  				nEda(nE(nc(state,which,0),which,1)-ad(E(state,which,2)+E2mix(state,which),which,2),which))
+
+Total time: 2.51866 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: D1 at line 575
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   575                                           	@profile
+   576                                           	def D1(state):
+   577       246      12642.0     51.4      0.5  		new_state = np.zeros(state.shape,complex)
+   578       738       1151.0      1.6      0.0  		for which in range(1,3):
+   579       492       1658.0      3.4      0.1  			if Delc[which-1] !=0:
+   580                                           				new_state += Delc[which-1]*(E(ad(state,which,1),which,1)+Ed(a(state,which,1),which,1))
+   581       492        643.0      1.3      0.0  			if g[which-1] != 0:
+   582       492    2413887.0   4906.3     95.8  				new_state += g[which-1]*(sm(Ed(state,which,1),which)+sp(E(state,which,1),which))
+   583       492       2583.0      5.2      0.1  			if Ome[which-1] != 0:
+   584                                           				new_state += Ome[which-1]*(Ed(state,which,1)+E(state,which,1))
+   585       246      86093.0    350.0      3.4  		return -1j*new_state*dt
+
+Total time: 0.687962 s
+File: /home/nnem614/Documents/Research/Jupyter/MPS/U_CCQED.py
+Function: D2 at line 587
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   587                                           	@profile
+   588                                           	def D2(state):
+   589        82       4000.0     48.8      0.6  		new_state = np.zeros(state.shape,complex)
+   590       246        430.0      1.7      0.1  		for which in range(1,3):
+   591       164        444.0      2.7      0.1  			if Delc[which-1] !=0:
+   592                                           				new_state += 2*Delc[which-1]*(nE(state,which,0)-(gamma_B[which-1]+gamma_F[which-1])*dt*nc(state,which,0))
+   593       164        217.0      1.3      0.0  			if g[which-1] !=0:
+   594       164     642635.0   3918.5     93.4  				new_state += g[which-1]*(gamma_B[which-1]+gamma_F[which-1])*dt*(a(sp(state,which),which,1)-ad(sm(state,which),which,1))
+   595       164        852.0      5.2      0.1  			if Omc[which-1] !=0:
+   596                                           				new_state += Omc[which-1]*(gamma_B[which-1]+gamma_F[which-1])*dt*(a(state,which,1)-ad(state,which,1))
+   597        82      39384.0    480.3      5.7  		return -1j*new_state*dt
+

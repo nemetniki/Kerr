@@ -1,0 +1,5 @@
+nohup: ignoring input
+MPS_CCQED+fb.py:303: RuntimeWarning: invalid value encountered in true_divide
+  g2_exp1  = exp_sys(g2c,sys_state,1)/nc_exp1**2 #correlation function from the field in cavity 1
+MPS_CCQED+fb.py:304: RuntimeWarning: invalid value encountered in true_divide
+  g2_exp2  = exp_sys(g2c,sys_state,2)/nc_exp2**2 #correlation function from the field in cavity 2
