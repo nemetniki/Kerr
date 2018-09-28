@@ -5,6 +5,9 @@ import time
 import sys
 from decimal import Decimal
 from math import factorial
+from scipy.sparse import csc_matrix
+from scipy.sparse.linalg import svds
+
 
 #************************************#
 #***------------------------------***#
@@ -25,12 +28,12 @@ def SVD_sig(block,cutoff):
 	svd_final = [0]*3
 	block = np.nan_to_num(block,copy=False)
 	#print(block.shape)
-	# Performing the SVD
 	try:
 		svd_init  = svd(block,full_matrices=False)
 	except:
-		np.savetxt("failed_array.txt",block)
-		raise
+		kv = min(block.shape)
+	# Performing the SVD
+		svd_init  = svds(csc_matrix(block),k=kv-2)
 	# Storing the singular values in an array
 	sing      = np.array(svd_init[1])
 	# Storing only the significant singular values

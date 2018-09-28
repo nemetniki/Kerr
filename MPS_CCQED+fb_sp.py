@@ -17,7 +17,7 @@ import sys
 import argparse
 from decimal import Decimal
 from math import factorial
-from MPS_fund import *
+from MPS_fund_sp import *
 from U_CCQED import *
 from MPS_analysis import *
 
