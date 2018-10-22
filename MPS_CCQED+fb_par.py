@@ -222,8 +222,8 @@ g2c    = np.diag(np.sort(np.concatenate((gcdiag[:-1],gcdiag))))
 ### File initialization ###
 ###########################
 
-filename = "./Data/CCQED+fb_%d.txt" % (args.findex)
-outname = "./Data/OUT_CCQED+fb_%d.txt" % (args.findex)
+filename = "./Data/CCQED+fb_par_%d.txt" % (args.findex)
+outname = "./Data/OUT_CCQED+fb_par_%d.txt" % (args.findex)
 #	specname = "./Data/spec_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
 #	g2tau = "./Data/g2tau_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
 	
@@ -323,29 +323,32 @@ for M in range(0,N):
 	##U(M,L,tF1,tF2,tS,tB1,tB2,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele)
 #	print(len(statesB1),len(statesB2),M,len(statesF),F_ind,F_ind+L)
 	U_block = U(M,L,statesF[F_ind%(2*L)],statesF[(F_ind+L)%(2*L)],statesS,statesB1[M],statesB2[M],gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele)
-	#    print("U block",U_block.shape)
+#	print("at M=",M,"\nU block:",U_block.shape)
 
 	# Split into original blocks
 	#----------------------------
 	Sdim = 3 + int(np.any(M))*2 # Number of indices for each side (S+F+B)
 	# Merging indices per side
 	U_block,U1_dim,U2_dim = merge(U_block,Sdim,Sdim)
+#	print("after merge U block:",U_block.shape)
 	# Separating the two sides with 2 link indices
 	U1_block,U2_block = SVD_split(U_block,tol)
+#	print("after SVD U1 block:",U1_block.shape,"U2 block:",U2_block.shape)
 	# Unmerging the indices of block 1 on the left
 	##unmerge(block,dL,dR,which=0)
-#	print("u1_block dim:",U1_dim,", u1 block:", U1_block.shape)
 	U1_block = unmerge(U1_block,U1_dim,np.array([1]),1)
-#	print("u1 block:", U1_block.shape)
+#	print("after unmerge U1 block:",U1_block.shape)
 	# Saving the new states from block 1 in their corresponding lists
 	##split(M,block,which,tol)
 	statesF[(F_ind)%(2*L)],statesB1[M],statesS[0] = split(M,U1_block,1,tol)
-#	print("M=",M,", F1:",statesF[(F_ind)%(2*L)].shape,", B1:",statesB1[M].shape,", S1:",statesS[0].shape)
 	# Unmerging the indices of block 2 on the right
 	U2_block = unmerge(U2_block,np.array([1]),U2_dim,2)
+#	print("after unmerge U2 block:",U2_block.shape)
 	# Saving the new states from block 2 in their corresponding lists
 	statesF[(F_ind+L)%(2*L)],statesB2[M],statesS[1] = split(M,U2_block,2,tol)
-#	print("M=",M,", F2:",statesF[(F_ind+L)%(2*L)].shape,", B2:",statesB2[M].shape,", S2:",statesS[1].shape)
+#	print("\nS1 shape:",statesS[0].shape,"S2 shape:",statesS[1].shape,"\nF1 shape:",statesF[(F_ind)%(2*L)].shape,"F2 shape:",statesF[(F_ind+L)%(2*L)].shape,
+#		"\nB1 shape:",statesB1[M].shape,"B2 shape:",statesB2[M].shape,
+#		"\nF upper mid shape:",statesF[(F_ind+int(L/2))%(2*L)].shape,"F lower mid shape:",statesF[(F_ind+3*int(L/2))%(2*L)].shape)
 
 	# SWAP
 	#------

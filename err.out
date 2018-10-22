@@ -1,13 +1,5 @@
 nohup: ignoring input
-MPS_CCQED+fb_1.py:303: RuntimeWarning: invalid value encountered in true_divide
+MPS_CCQED+fb_par.py:303: RuntimeWarning: invalid value encountered in true_divide
   g2_exp1  = exp_sys(g2c,sys_state,1)/nc_exp1**2 #correlation function from the field in cavity 1
-MPS_CCQED+fb_1.py:304: RuntimeWarning: invalid value encountered in true_divide
+MPS_CCQED+fb_par.py:304: RuntimeWarning: invalid value encountered in true_divide
   g2_exp2  = exp_sys(g2c,sys_state,2)/nc_exp2**2 #correlation function from the field in cavity 2
-Traceback (most recent call last):
-  File "MPS_CCQED+fb_1.py", line 286, in <module>
-    statesF = SWAP_U(M,L,statesF,tol)
-  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_therm.py", line 482, in SWAP_U
-    merged,dimFO,dimF = merge(combined_down,3,1+spec) #indices->AB (A=bLd, B=P or Pz)
-  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_therm.py", line 189, in merge
-    merged_block[:,j1+dR[1]*j2] = left_block[:,j2,j1]
-MemoryError

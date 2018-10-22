@@ -1,0 +1,483 @@
+nohup: ignoring input
+MPS_CCQED+fb_par.py:303: RuntimeWarning: invalid value encountered in true_divide
+  g2_exp1  = exp_sys(g2c,sys_state,1)/nc_exp1**2 #correlation function from the field in cavity 1
+MPS_CCQED+fb_par.py:304: RuntimeWarning: invalid value encountered in double_scalars
+  g2_exp2  = exp_sys(g2c,sys_state,2)/nc_exp2**2 #correlation function from the field in cavity 2
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:269: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:280: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:305: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
+/home/nnem614/Documents/Research/Jupyter/MPS/MPS_fund_par.py:292: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+  right_block[idx_n] = block[idx_o]
