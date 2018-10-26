@@ -266,7 +266,7 @@ def unmerge(block,dL,dR,which=0):
 			idx_n[-1] = J%dR[1]
 			idx_n[-2] = int(J/dR[1])
 
-			right_block[idx_n] = block[idx_o]
+			right_block[tuple(idx_n)] = block[tuple(idx_o)]
 
 	elif NR == 3:
 		for J in np.arange(0,DR[0]):
@@ -277,7 +277,7 @@ def unmerge(block,dL,dR,which=0):
 			idx_n[-2] = int(J/dR[2])%dR[1]
 			idx_n[-3] = int(J/(dR[2]*dR[1]))
 
-			right_block[idx_n] = block[idx_o]
+			right_block[tuple(idx_n)] = block[tuple(idx_o)]
 		
 	elif NR == 4:
 		for J in np.arange(0,DR[0]):
@@ -289,7 +289,7 @@ def unmerge(block,dL,dR,which=0):
 			idx_n[-3] = int(J/(dR[3]*dR[2]))%dR[1]
 			idx_n[-4] = int(J/(dR[3]*dR[2]*dR[1]))
 
-			right_block[idx_n] = block[idx_o]
+			right_block[tuple(idx_n)] = block[tuple(idx_o)]
 		
 	elif NR == 5:
 		for J in np.arange(0,DR[0]):
@@ -302,7 +302,7 @@ def unmerge(block,dL,dR,which=0):
 			idx_n[-4] = int(J/(dR[4]*dR[3]*dR[2]))%dR[1]
 			idx_n[-5] = int(J/(dR[4]*dR[3]*dR[2]*dR[1]))
 
-			right_block[idx_n] = block[idx_o]
+			right_block[tuple(idx_n)] = block[tuple(idx_o)]
 
 	#%%%%%%#
 	# LEFT #
@@ -372,40 +372,47 @@ def split(M,block,which,tol):
 	#%%%%%%%%%%%%%%%%#
 	# INDEX ORDERING #
 	#%%%%%%%%%%%%%%%%#
+#	print("\nsplit","\nhow:",context[spec*2+which-1],"what:",block.shape)
 #	print("block shape:",block.shape,", spec:", spec,", which:", which,", context:",context[spec*2+which-1])
 	block = np.einsum(context[spec*2+which-1],block)
+#	print("then:",block.shape)
 	
 	#%%%%%%%%%%%%%%%%%%%%%%#
 	# SPLITTING F FROM B&S #
 	#%%%%%%%%%%%%%%%%%%%%%%#
 	# Merging the indices in block to F+SB
 	merged_FSB,dimF,dimSB = merge(block,2,3+2*spec) 
+#	print("merged:",merged_FSB.shape, dimF,dimSB)
 	#print(merged_FSB.shape,dimF,dimSB)
 	#indices -> AB (A=Ib/aL, B=JaK/bMN or B=gJaKe/bMhNf)		
 	# Performing the SVD to split the F from SB
 	svd_FSB,link_dim1    = SVD_sig(merged_FSB,tol) #indices->Ac/Ad,cc/dd,cB/dB
-	#print(svd_FSB[0].shape,svd_FSB[1].shape,svd_FSB[2].shape,link_dim1)
+#	print("F from SB svd:",svd_FSB[0].shape,svd_FSB[2].shape)
 	merged_FSB = None
 	# Reordering the indices of F
 	Fstr = ["Ibc->cIb","aLd->aLd"]
 	F = np.einsum(Fstr[which-1],unmerge(svd_FSB[0],dimF,np.array([link_dim1]))) #indices->Ac/Ad->Ibc/aLd->cIb/aLd
-	#print(F.shape)
+#	print("how:",Fstr[which-1],"F:",F.shape)
 	
 	#%%%%%%%%%%%%%%%%%%%%%#
 	# SEPARATING B FROM S #
 	#%%%%%%%%%%%%%%%%%%%%%#
 	# Keeping the orthognality centre in S. Unmerging the indices of S from B, but merging the indices of S and B separately
 	SB,dimS,dimB = merge(unmerge(np.dot(svd_FSB[1],svd_FSB[2]),np.array([link_dim1]),np.array([np.prod(dimSB[:spec+2]),np.prod(dimSB[spec+2:])])),2,1)
+#	print("SB merged:",SB.shape,dimS,dimB)
 	#indices->cB/dB->cCK/dCN or cCE/dCE (C=Ja/bM or C=gJa/bMh,E=Ke/Nf)->DK/DN or DE (D=cJa/dbM or D=cgJa/dbMh)
 	svd_FSB = None
 	# Performing SVD to separate S from B
 	svd_SB,link_dim2 = SVD_sig(SB,tol) #indices->Dj/Dk,jj/kk,jK/kN or jE/kE
+#	print("svd SB:",svd_SB[0].shape,svd_SB[2].shape)
 	# Unmerging the potential merged indices in B
 	B    = unmerge(svd_SB[2],np.array([link_dim2]),dimSB[2+spec:]) #indices->jK/kN or jKe/kNf
+#	print("B:",B.shape)
 	Sstr = ["cJae->ceJa","dbMf->bfMd","cgJae->gceJa","dbMhf->bfMdh"]
 	# Keeping the orthoginality centre in S, unmerging and reordering the indices of S
 	S = np.einsum(Sstr[which-1+2*spec],unmerge(np.dot(svd_SB[0],svd_SB[1]),
 								np.concatenate((np.array([dimS[0]]),dimSB[:2+spec])),np.array([link_dim2])))
+#	print("how:",Sstr[which-1+2*spec],"S:",S.shape)
 	#De/Df->cJae/dbMf or cgJae/dbMhf->ceJa/bfMd or gceJa/bfMdh
 	return F,B,S	
 	#cIb/aLd, jK/kN or jKe/kNf, ceJa/bfMd or gceJa/bfMdh
@@ -417,42 +424,52 @@ def split(M,block,which,tol):
 def parallel_back1(M,L,F,S,tol,result_queue):
 	Ms = int(np.any(M))
 	context_up = ["O,ceJa->ceJOa","zOg,gceJa->zceJOa","Og,gceJa->ceJOa"]
+	list_FS = [0]*(L)
+	list_FS[0] += S[0]
+#	print(list_FS[0]==S[0])
 	for i in range(L-1,0,-1):
 		#upper branch
 		I = (M+i)%(2*L)			
 		spec = (1-int(np.any(i-1)))*Ms
 		#print("before back",I,F[I].shape,S[0].shape,context_up[Ms+spec],Ms+spec)#+spec)
-		combined_up      = np.einsum(context_up[Ms+spec],F[I],S[0])
+		combined_up      = np.einsum(context_up[Ms+spec],F[I],list_FS[0])
 		merged,dimS,dimF = merge(combined_up,3+Ms-spec,2) #indices->AB (A=ceJ or zceJ, B=Oa)
 		svded,link_dim  = SVD_sig(merged,tol) #indices->Ax,xx,xB
 		merged = None
-		F[I]   = unmerge(svded[2],np.array([link_dim]),dimF) #indices->xB->xOa
-		S[0] = unmerge(np.dot(svded[0],svded[1]),dimS,np.array([link_dim])) #indices->Ax->ceJx or zceJx
+		list_FS[i]   = unmerge(svded[2],np.array([link_dim]),dimF) #indices->xB->xOa
+#		print("at M=",M,"before",list_FS[0].shape)
+		list_FS[0] = unmerge(np.dot(svded[0],svded[1]),dimS,np.array([link_dim])) #indices->Ax->ceJx or zceJx
+#		print("at M=",M,"after",list_FS[0].shape)
 		#print("after back",I,F[I].shape,S[0].shape,context_up[Ms+spec],Ms+spec)#+spec)
 		dimF  = None
 		dimS  = None
 		svded = None
-	result_queue.put((0,"done"))
+	result_queue.put((0,list_FS))
 
 def parallel_back2(M,L,F,S,tol,result_queue):
 	Ms = int(np.any(M))
 	context_down = ["bfMd,P->bPfMd","bfMdh,hPz->bPfMdz","bfMdh,hP->bPfMd"]
-	for i in range(L-1,0,-1):
-		spec = int(np.any(i))
+	list_FS = [0]*(L)
+	list_FS[0] += S[1]
+#	print(list_FS[0]==S[1])
+	for j in range(L-1,0,-1):
+		spec = (1-int(np.any(j-1)))*Ms
 		#lower branch
-		J = (L+M+i)%(2*L)
+		J = (L+M+j)%(2*L)
 #		print("before back",J,F[J].shape,S[1].shape,context_down[Ms+spec],Ms+spec)#+spec)
-		combined_down    = np.einsum(context_down[Ms+spec],S[1],F[J])
+		combined_down    = np.einsum(context_down[Ms+spec],list_FS[0],F[J])
 		merged,dimF,dimS = merge(combined_down,2,3+Ms-spec) #indices->AB (A=bP, B=fMd or fMdz)
 		svded,link_dim  = SVD_sig(merged,tol) #indices->Ay,yy,yB
 		merged = None
-		F[J] = unmerge(svded[0],dimF,np.array([link_dim])) #indices->Ay->bPy
-		S[1] = unmerge(np.dot(svded[1],svded[2]),np.array([link_dim]),dimS) #indices->yB->yfMd or yfMdz
+		list_FS[j] = unmerge(svded[0],dimF,np.array([link_dim])) #indices->Ay->bPy
+#		print("at M=",M,"before",list_FS[0].shape)
+		list_FS[0] = unmerge(np.dot(svded[1],svded[2]),np.array([link_dim]),dimS) #indices->yB->yfMd or yfMdz
+#		print("at M=",M,"after",list_FS[0].shape)
 #		print("after back",J,F[J].shape,S[1].shape,context_down[Ms+spec],Ms+spec)#+spec)
 		dimF  = None
 		dimS  = None
 		svded = None
-	result_queue.put((1,"done"))
+	result_queue.put((1,list_FS))
 	
 
 def SWAP_back(M,L,F,S,tol):
@@ -472,9 +489,15 @@ def SWAP_back(M,L,F,S,tol):
 	# two items were put into the Queue: the result index and the result
 		result_index, tmp_result = result_queue.get()
 		tmp_results[result_index] = tmp_result
-
+	
 	proc1.join()
 	proc2.join()
+
+	for ind in range(L-1,0,-1):
+		F[(M+ind)%(2*L)]   = tmp_results[0][ind]
+		F[(L+M+ind)%(2*L)] = tmp_results[1][ind]
+	S[0] = tmp_results[0][0]
+	S[1] = tmp_results[1][0]
 
 	return F,S
 	#xOa and bPy, ceJx or zceJx and yfMd or yfMdz
@@ -485,40 +508,44 @@ def SWAP_back(M,L,F,S,tol):
 #############################
 def parallel_U1(M,L,F,tol,result_queue):
 	context_up = ["cIx,xOa->OcIa","zcIx,xOa->zOcIa"]
-	for i in range(L-1):
+	list_F = [0]*(L)
+	list_F[-1] += F[M%(2*L)]
+	for iU in range(L-1):
 		#upper branch
-		I = (M+i+1)%(2*L)
-		spec = int(np.any(i))
-#		print("before",I, F[M%(2*L)].shape,F[I].shape,context_up[spec])
-		combined_up      = np.einsum(context_up[spec],F[M%(2*L)],F[I])
+		I = (M+iU+1)%(2*L)
+		spec = int(np.any(iU))
+		#print("before",I,spec, list_F[-1].shape,F[I].shape,context_up[spec])
+		combined_up      = np.einsum(context_up[spec],list_F[-1],F[I])
 		merged,dimF,dimFO = merge(combined_up,1+spec,3) #indices->AB (A=O or zO, B=cIa)
 		svded,link_dim  = SVD_sig(merged,tol) #indices->Au,uu,uB
 		merged = None
-		F[I]   = unmerge(svded[0],dimF,np.array([link_dim])) #indices->Au->Ou or zOu
-		F[M%(2*L)] = unmerge(np.dot(svded[1],svded[2]),np.array([link_dim]),dimFO) #indices->uB->ucIa
-#		print("after",I, F[M%(2*L)].shape,F[I].shape)
+		list_F[iU]   = unmerge(svded[0],dimF,np.array([link_dim])) #indices->Au->Ou or zOu
+		list_F[-1] = unmerge(np.dot(svded[1],svded[2]),np.array([link_dim]),dimFO) #indices->uB->ucIa
+		#print("after",I, list_F[-1].shape,list_F[iU].shape)
 		dimF  = None
 		dimS  = None
 		svded = None
-	return "done"
+	result_queue.put((0,list_F))
 
-def parallel_U1(M,L,F,tol,result_queue):
+def parallel_U2(M,L,F,tol,result_queue):
 	context_down = ["bPy,yLd->bLdP","bPy,yLdz->bLdPz"]
-	for i in range(L-1):
-		spec = int(np.any(i))
+	list_F = [0]*(L)
+	list_F[-1] += F[(M+L)%(2*L)]
+	for jU in range(L-1):
+		spec = int(np.any(jU))
 		#lower branch
-		J = (L+M+i+1)%(2*L)
+		J = (L+M+jU+1)%(2*L)
 #		print("F shape",F[J].shape,F[(M+L)%(2*L)].shape,F[(J-1)%(2*L)].shape)
-		combined_down    = np.einsum(context_down[spec],F[J],F[(M+L)%(2*L)])
+		combined_down    = np.einsum(context_down[spec],F[J],list_F[-1])
 		merged,dimFO,dimF = merge(combined_down,3,1+spec) #indices->AB (A=bLd, B=P or Pz)
 		svded,link_dim  = SVD_sig(merged,tol) #indices->Av,vv,vB
 		merged = None
-		F[J] = unmerge(svded[2],np.array([link_dim]),dimF) #indices->vB->vP or vPz
-		F[(M+L)%(2*L)] = unmerge(np.dot(svded[0],svded[1]),dimFO,np.array([link_dim])) #indices->Av->bLdv
+		list_F[jU] = unmerge(svded[2],np.array([link_dim]),dimF) #indices->vB->vP or vPz
+		list_F[-1] = unmerge(np.dot(svded[0],svded[1]),dimFO,np.array([link_dim])) #indices->Av->bLdv
 		dimF  = None
 		dimS  = None
 		svded = None
-	return "done"
+	result_queue.put((1,list_F))
 
 def SWAP_U(M,L,F,tol):
 	"""Moving the interacting fibre and system bins next to each other.
@@ -540,6 +567,12 @@ def SWAP_U(M,L,F,tol):
 
 	proc1.join()
 	proc2.join()	
+
+	for ind in range(L-1):
+		F[(M+ind+1)%(2*L)] = tmp_results[0][ind]
+		F[(M+L+ind+1)%(2*L)] = tmp_results[1][ind]
+	F[M%(2*L)] = tmp_results[0][-1]
+	F[(L+M)%(2*L)] = tmp_results[1][-1]
 
 	return F
 	#Ou/vP or zOu/vPz and ucIa/bLdv

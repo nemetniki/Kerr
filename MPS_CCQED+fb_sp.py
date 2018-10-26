@@ -222,8 +222,8 @@ g2c    = np.diag(np.sort(np.concatenate((gcdiag[:-1],gcdiag))))
 ### File initialization ###
 ###########################
 
-filename = "./Data/CCQED+fb_%d.txt" % (args.findex)
-outname = "./Data/OUT_CCQED+fb_%d.txt" % (args.findex)
+filename = "./Data/CCQED+fb_%d_sp.txt" % (args.findex)
+outname = "./Data/OUT_CCQED+fb_%d_sp.txt" % (args.findex)
 #	specname = "./Data/spec_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
 #	g2tau = "./Data/g2tau_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
 	
