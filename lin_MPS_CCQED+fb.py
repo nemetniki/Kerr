@@ -271,10 +271,11 @@ for M in range(0,N):
 	#    print(M*dt)
 	percent10 = (N)/10.
 	count = 0
-	if M%(int(percent10))==0:
+	#if M%(int(percent10))==0:
 	#        count=count+5
-		print("M =",M, " out of ",N)
-	sys.stdout.flush()
+	#	print("M =",M, " out of ",N)
+	#sys.stdout.flush()
+	print(M)
 	
 	#%%%%%%#
 	# NORM #
@@ -313,122 +314,177 @@ for M in range(0,N):
 	test_var = M%(2*L)
 	
 	if test_var<L:
-	
+		print("FIRST HALF\n----------")
 		if M>0:
+			print("S2,F2",statesS[1].shape,statesF[test_var+L].shape)
 			S2F2 = es("aIb,bJc->aIJc",statesS[1],statesF[test_var+L])
+			print("S2F2",S2F2.shape)
 			S2F2,merge_dims                = MERGE(S2F2,[1,2]) #aIJc->aKc
-			S2F2,statesF                   = SWAP(S2F2,statesF,test_var+L-1,test_var+1)
+			print("S2F2",S2F2.shape)
+			S2F2,statesF                   = SWAP(S2F2,statesF,test_var+L-1,test_var+1,tol,"left")
+			print("after swap",S2F2.shape)
 			S2F2                           = UNMERGE(S2F2,np.concatenate((np.array([S2F2.shape[0],]),
 																			merge_dims,np.array([S2F2.shape[2],])),axis=0),
 													merge_dims,[1,2])
-			splist                         = SPLIT(S2F2,2,"left",2,0)
+			print("S2F2",S2F2.shape)
+			splist                         = SPLIT(S2F2,2,"left",tol,2,0)
 			statesS[1],statesF[test_var+L] = splist[0],splist[1]
+			print("S2,F2",statesS[1].shape,statesF[test_var+L].shape)
+			print("First swapping done S1",statesS[0].shape)
 
 		# Time evolution map
 		#--------------------
 		##U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order)
 		U_block = U(M,L,[statesF[test_var],statesF[test_var+L]],statesS,
 				[statesB1[M],statesB2[M]],gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele)#IJKLMN or aIJKLMNe
-				
+		print("U",U_block.shape)		
 		if M>0:
-			splist                    = SPLIT(U_block,2,"left",2,5)#aIb,bPe
+			splist                    = SPLIT(U_block,2,"left",tol,2,5)#aIb,bPe
 			block_shape               = np.array(U_block.shape[2:7])
 		else:
-			splist                    = SPLIT(U_block,2,"left",0,5)#Ib,bP
+			splist                    = SPLIT(U_block,2,"left",tol,0,5)#Ib,bP
 			block_shape               = np.array(U_block.shape[1:6])
 			
 		statesB1[M],block         = splist[0],splist[1]
-		statesB1[M],statesF       = SWAP(statesB1[M],statesF,test_var-1,0)
-		statesB1[M],statesF,block = OC_RELOC(statesB1[M],block,statesF,0,test_var)
+		print("B1 split down",statesB1[M].shape,block.shape)
+		#print("statesB1",statesB1[M])
+		if test_var!=0:
+			print("statesF[0]",statesF[0].shape)
+			statesB1[M],statesF       = SWAP(statesB1[M],statesF,test_var-1,0,tol,"left")
+			print("B1 moved to the left",statesB1[M].shape,statesF[0].shape)
+			statesB1[M],statesF,block = OC_RELOC(M,statesB1[M],block,statesF,0,test_var-1,tol,"right")
+			print("OC back in block",statesB1[M].shape,statesF[0].shape,block.shape)
 		
 		if M>0:
 			block  = UNMERGE(block,np.concatenate((np.array([block.shape[0],]),block_shape,np.array([block.shape[-1],])),axis=0),
 							block_shape,[1,2,3,4,5])#bJKLMNe
-			splist = SPLIT(block,3,"right",2,3)#bJc,cKd,dQe
+			print("block_shape",block.shape)
+			splist = SPLIT(block,3,"right",tol,2,3)#bJc,cKd,dQe
+			#print(splist[0],splist[1],splist[2])
 		else:
-			block  = UNMERGE(block,np.concatenate((np.array([block.shape[0],]),block_shape),axis=0),block_shape,,[1,2,3,4,5])#bJKLMN
-			splist = SPLIT(block,3,"right",-1,3)#bJc,cKd,dQ
+			block  = UNMERGE(block,np.concatenate((np.array([block.shape[0],]),block_shape),axis=0),block_shape,[1,2,3,4,5])#bJKLMN
+			print("block_shape",block.shape)
+			splist = SPLIT(block,3,"right",tol,-1,3)#bJc,cKd,dQ
+			#print("splist[0]",splist[0],"splist[1]",splist[1],"splist[2]",splist[2])
 		block_shape                         = np.array(block.shape[3:6])
 		statesF[test_var],statesS[0],block2 = splist[0],splist[1],splist[2]
-		block2,statesF                      = SWAP(block2,statesF,test_var+1,test_var+L-1)
+		print("F1 and S1 split off",statesF[test_var].shape,statesS[0].shape,block2.shape)
+		block2,statesF                      = SWAP(block2,statesF,test_var+1,test_var+L-1,tol,"right")
+		print("block2 moved back in place",block2.shape)
 		
 		if M>0:
-			block2 = UNMERGE(block2,np.concatenate((np.array([block2.shape[0],]),block_shape,np.array([block.shape[-1],])),axis=0),
+			block2 = UNMERGE(block2,np.concatenate((np.array([block2.shape[0],]),block_shape,np.array([block2.shape[-1],])),axis=0),
 							block_shape,[1,2,3])#dLMNe
-			splist = SPLIT(block2,3,"right",2,0)#dLf,fMg,gNe
+			splist = SPLIT(block2,3,"right",tol,2,0)#dLf,fMg,gNe
 		else:
 			block2 = UNMERGE(block2,np.concatenate((np.array([block2.shape[0],]),block_shape),axis=0),block_shape,[1,2,3])#dLMN
-			splist = SPLIT(block2,3,"right",-1,0)#dLf,fMg,gN
+			splist = SPLIT(block2,3,"right",tol,-1,0)#dLf,fMg,gN
 		
 		statesF[test_var+L],statesS[1],statesB2[M] = splist[0],splist[1],splist[2]
-		statesB2[M],statesF                        = SWAP(statesB2[M],statesF,test_var+L+1,2*L-1)
-		statesB2[M],statesF,statesS[1]             = OC_RELOC(statesB2[M],statesS[1],statesF,2*L-1,test_var+L+1)
+		#print("statesB2",statesB2[M])
+		print("F2,S2 and B2 separated",statesF[test_var+L].shape,statesS[1].shape,statesB2[M].shape)
+		if test_var<L-1:
+			print("statesF[2*L-1]",statesF[2*L-1].shape)
+			statesB2[M],statesF                        = SWAP(statesB2[M],statesF,test_var+L+1,2*L-1,tol,"right")
+			print("B2 moved to the right",statesB2[M].shape,statesF[2*L-1].shape)
+			statesB2[M],statesF,statesS[1]             = OC_RELOC(M,statesB2[M],statesS[1],statesF,2*L-1,test_var+L+1,tol,"left")
+			print("OC on S2",statesB2[M].shape,statesS[1].shape)
 		
 		if test_var==L-1:
-			statesS[1],statesF = SWAP(statesS[1],statesF,2L-1,0)
+			statesS[1],statesF = SWAP(statesS[1],statesF,2*L-1,0,tol,"left")
 			
 	elif test_var>=L:		
+		print("SECOND HALF\n-----------")
+		print("S2,F2",statesS[1].shape,statesF[test_var-L].shape, test_var-L)
 		S2F2                           = es("aIb,bJc->aIJc",statesS[1],statesF[test_var-L])
+		print("S2F2",S2F2.shape)
 		S2F2,merge_dims                = MERGE(S2F2,[1,2])#aKc
-		S2F2,statesF                   = SWAP(S2F2,statesF,test_var+1-L,test_var-1)
+		print("S2F2",S2F2.shape)
+		S2F2,statesF                   = SWAP(S2F2,statesF,test_var+1-L,test_var-1,tol,"right")
+		print("S2F2",S2F2.shape)
 		S2F2                           = UNMERGE(S2F2,np.concatenate((np.array([S2F2.shape[0],]),
 																		merge_dims,np.array([S2F2.shape[2],])),axis=0),
 												merge_dims,[1,2])#aIJc
-		splist                         = SPLIT(S2F2,2,"left",2,0)
+		print("S2F2",S2F2.shape)
+		splist                         = SPLIT(S2F2,2,"left",tol,2,0)
 		statesS[1],statesF[test_var-L] = splist[0],splist[1]
-
+		print("S2,F2",statesS[1].shape,statesF[test_var-L].shape)
+		print("First swaps done, S1,S2",statesS[0].shape,statesS[1].shape)
 		# Time evolution map
 		#--------------------
 		##U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order)
 		U_block = U(M,L,[statesF[test_var-L],statesF[test_var]],statesS[::-1],
-				[statesB2[M],statesB1[M]],gamma_B[::-1],gamma_F[::-1],dt,phi[::-1],
+				[statesB2[M],statesB1[M]],gamma_B[::-1],gamma_F[::-1],dt,phi,
 				Ome[::-1],Omc[::-1],g[::-1],Delc[::-1],Dele[::-1])
-				
-		if test_var<2*(L-1):
+		print("U",U_block.shape)
+		
+		if test_var<2*L-1:
 			U_block                   = es("aIJKLMNe->aNJKLMIe",U_block)
-			splist                    = SPLIT(U_block,2,"right",2,-5)
+			print("U",U_block.shape)
+			splist                    = SPLIT(U_block,2,"right",tol,2,-5)
 			block_shape               = np.array(U_block.shape[1:6])
 			block,statesB2[M]         = splist[0],splist[1]
-			statesB2[M],statesF       = SWAP(statesB2[M],statesF,test_var+1,2L-1)
-			statesB2[M],statesF,block = OC_RELOC(statesB2[M],block,statesF,2L-1,test_var+1)
+			print("block,B2",block.shape,statesB2[M].shape)
+			statesB2[M],statesF       = SWAP(statesB2[M],statesF,test_var+1,2*L-1,tol,"right")
+			print("B2",statesB2[M].shape)
+			statesB2[M],statesF,block = OC_RELOC(M,statesB2[M],block,statesF,2*L-1,test_var+1,tol,"left")
+			print("block,B2",block.shape,statesB2[M].shape)
 			
 			block                               = UNMERGE(block,np.concatenate((np.array([block.shape[0],]),
-																				block_shape,np.array([block.shape[-1],)),axis=0),
-															block_shape,[1:6])
-			splist                              = SPLIT(block,3,"left",2,-3)
+																				block_shape,np.array([block.shape[-1],])),axis=0),
+															block_shape,[1,2,3,4,5])
+			print("block",block.shape)
+			splist                              = SPLIT(block,3,"left",tol,2,-3)
 			block_shape                         = np.array(block.shape[1:4])
 			block2,statesF[test_var],statesS[0] = splist[0],splist[1],splist[2]
-			block2,statesF                      = SWAP(block2,statesF,test_var-1,test_var-L+1)
+			print("block2,F1,S1",block2.shape,statesF[test_var].shape,statesS[0].shape)
+			block2,statesF                      = SWAP(block2,statesF,test_var-1,test_var-L+1,tol,"left")
+			print("block2",block2.shape)
 			
 			block2                                     = UNMERGE(block2,np.concatenate((np.array([block2.shape[0],]),
 																						block_shape,np.array([block2.shape[-1],])),axis=0),
-																block_shape,list(np.arange(1,4,1)))
-			splist                                     = SPLIT(block2,3,"left",2,0)
+																block_shape,[1,2,3])
+			print("block2",block2.shape)
+			splist                                     = SPLIT(block2,3,"left",tol,2,0)
 			statesB1[M],statesF[test_var-L],statesS[1] = splist[0],splist[1],splist[2]
-			statesB1[M],statesF                        = SWAP(statesB1[M],statesF,test_var-L-1,0)
-			statesB1[M],statesF,statesS[1]             = OC_RELOC(statesB1[M],statesS[1],statesF,0,test_var-L)
+			print("B1,F2,S2",statesB1[M].shape,statesF[test_var-L].shape,statesS[1].shape)
+			if M%L!=0:
+				print(test_var-L-1)
+				statesB1[M],statesF                        = SWAP(statesB1[M],statesF,test_var-L-1,0,tol,"left")
+				print("B1,F[0]",statesB1[M].shape,statesF[0].shape)
+			statesB1[M],statesF,statesS[1]             = OC_RELOC(M,statesB1[M],statesS[1],statesF,0,test_var-L,tol,"right")
+			print("B1,S2",statesB1[M].shape,statesS[1].shape)
 			
 		elif test_var==2*L-1:
 			U_block                             = es("aIJKLMNe->aNMJKLIe",U_block)
-			splist                              = SPLIT(U_block,3,"left",2,-4)
+			print("U",U_block.shape,test_var)
+			splist                              = SPLIT(U_block,3,"left",tol,2,-4)
 			block_shape                         = np.array(U_block.shape[1:5])
 			block,statesF[test_var],statesB2[M] = splist[0],splist[1],splist[2]
+			print("block,F1,B2",block.shape,statesF[test_var].shape,statesB2[M].shape)
 			
-			block,statesF                         = SWAP(block,statesF,2*(L-1),L)
+			block,statesF                         = SWAP(block,statesF,2*(L-1),L,tol,"left")
+			print("block",block.shape)
 			block                                 = UNMERGE(block,np.concatenate((np.array([block.shape[0],]),
 																				block_shape,np.array([block.shape[-1],])),axis=0),
 															block_shape,list(np.arange(1,5,1)))
-			splist                                = SPLIT(block,3,"left",2,-2)
+			print("block",block.shape)
+			splist                                = SPLIT(block,3,"left",tol,2,-2)
 			block_shape                           = np.array(block.shape[1:3])
 			block2,statesF[test_var-L],statesS[1] = splist[0],splist[1],splist[2]
-			block2,statesF                        = SWAP(block2,statesF,L-2,0)
+			print("block2,F2,S2",block2.shape,statesF[test_var-L].shape,statesS[1].shape)
+			block2,statesF                        = SWAP(block2,statesF,L-2,0,tol,"left")
+			print("block2",block2.shape)
 			
 			block2                        = UNMERGE(block2,np.concatenate((np.array([block2.shape[0],]),
 																						block_shape,np.array([block2.shape[-1],])),axis=0),
 													block_shape,[1,2])
-			splist                        = SPLIT(block2,2,"right",2,0)
+			print("block2",block2.shape)
+			splist                        = SPLIT(block2,2,"right",tol,2,0)
 			statesB1[M],statesS[0]        = splist[0],splist[1]
-			statesS[0],statesF,statesS[1] = OC_RELOC(statesS[0],statesS[1],statesF,0,L-1)
+			print("B1,S1",statesB1[M].shape,statesS[0].shape)
+			statesS[0],statesF,statesS[1] = OC_RELOC(M,statesS[0],statesS[1],statesF,0,L-1,tol,"right")
+			print("S1,S2",statesS[0].shape,statesS[1].shape)
 			
 #	print("system",statesS[0].shape,statesS[1].shape)
 #	print("fibre",statesF[(M)%(2*L)].shape,statesF[(M+1)%(2*L)].shape,statesF[(M+L)%(2*L)].shape,statesF[(M+L+1)%(2*L)].shape)

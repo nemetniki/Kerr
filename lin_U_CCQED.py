@@ -12,7 +12,7 @@ es=np.einsum
 ### Evolution operator U ###
 ############################
 
-def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
+def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 	"""Evolution operator up to dt^2
 	INPUT: states at the current time (t_k), the delayed time (t_l) and the system state (t_S) at timestep M
 	Remember, at M=0 the state is separable
@@ -25,7 +25,7 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
     ####--------------------------####
     
     #####Dimensions of the physical indices#####
-	dim_tB = tB1.shape[0]
+	dim_tB = tB[0].shape[0]
 	if M==0:
 		dim_tS = tS[0].shape[0]
 		dim_tF = tF[0].shape[0]
@@ -48,7 +48,7 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
 				nprod *= np.sqrt(n-i)
 				i+=1
 
-			ich  = (-1)**(which+1)*(2*int(np.any(M))*(2-which)+which)#which=1->1/3, which=2->-2/-2
+			ich  = (-1)**(which+1)*(2+int(np.any(M)))#which=1->2/3, which=2->-2/-3
 			iend = state.shape[ich]
 			context = ["k,ijklmn->ijklmn","m,ijklmn->ijklmn","K,aIJKLMNe->aIJKLMNe","M,aIJKLMNe->aIJKLMNe"]
 
@@ -70,7 +70,7 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
 				nprod *= np.sqrt(n-i)
 				i+=1
 
-			ich  = (-1)**(which+1)*(2*int(np.any(M))*(2-which)+which)#which=1->1/3, which=2->-2/-2
+			ich  = (-1)**(which+1)*(2+int(np.any(M)))#which=1->2/3, which=2->-2/-3
 			iend = state.shape[ich]
 			context = ["k,ijklmn->ijklmn","m,ijklmn->ijklmn","K,aIJKLMNe->aIJKLMNe","M,aIJKLMNe->aIJKLMNe"]
 
@@ -83,7 +83,7 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
 	#@profile
 	def sm(state,which):
 		new_state = np.zeros(state.shape,complex)
-		ich  = (-1)**(which+1)*(2*int(np.any(M))*(2-which)+which)#which=1->1/3, which=2->-2/-2
+		ich  = (-1)**(which+1)*(2+int(np.any(M)))#which=1->2/3, which=2->-2/-3
 		iend = state.shape[ich]
 
 		idx=[slice(None)]*state.ndim
@@ -95,7 +95,7 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
 	#@profile
 	def sp(state,which):
 		new_state = np.zeros(state.shape,complex)
-		ich  = (-1)**(which+1)*(2*int(np.any(M))*(2-which)+which)#which=1->1/3, which=2->-2/-2
+		ich  = (-1)**(which+1)*(2+int(np.any(M)))#which=1->2/3, which=2->-2/-3
 		iend = state.shape[ich]
 
 		idx=[slice(None)]*state.ndim
@@ -111,7 +111,7 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
 		n = np.linspace(1,int((dim_tS)/2),dim_tS-2).astype(np.int64)
 		n = np.sqrt(n[0:dim_tS-1:2])
 
-		ich  = (-1)**(which+1)*(2*int(np.any(M))*(2-which)+which)#which=1->1/3, which=2->-2/-2
+		ich  = (-1)**(which+1)*(2+int(np.any(M)))#which=1->2/3, which=2->-2/-3
 		iend = state.shape[ich]
 
 		if g[which-1] != 0:
@@ -162,7 +162,7 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
 		if Dele[which-1] == 0:
 			return -1j*dt*(C(state,which)+JC(state,which))
 		else:
-			ich  = (-1)**(which+1)*(2*int(np.any(M))*(2-which)+which)#which=1->1/3, which=2->-2/-2
+			ich  = (-1)**(which+1)*(2+int(np.any(M)))#which=1->2/3, which=2->-2/-3
 			iend = state.shape[ich]
 
 			idx=[slice(None)]*new_state.ndim
@@ -177,10 +177,11 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
 
 	#@profile
 	def E(state,which,N):
+		#print(state.shape, N)
 		new_state_tB = np.zeros(state.shape,complex)
 		new_state_tF = np.zeros(state.shape,complex)
-		if N<state.shape[int(np.any(M)*2+2)]:
-			n = np.arange(N,state.shape[int(np.any(M)*2+2)])
+		if N<dim_tB:
+			n = np.arange(N,dim_tB)
 			nprod = 1.
 			i = 0
 			if M<L:
@@ -192,7 +193,7 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
 				i+=1
 
 			if gamma_B[which-1] > 0.:
-				ich = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+				ich = (-1)**(which+1)*(which-1+int(np.any(M)))#which=1->0/1, which=2->-1/-2
 				iend = state.shape[ich]
 				context = ["i,ijklmn->ijklmn","n,ijklmn->ijklmn","I,aIJKLMNe->aIJKLMNe","N,aIJKLMNe->aIJKLMNe"]
 
@@ -203,7 +204,7 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
 				new_state_tB[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod*np.sqrt(gamma_B[which-1]*dt)**N,np.take(state,np.arange(N,iend),axis=ich))
 
 			if gamma_F[which-1] > 0:
-				ich = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+				ich = (-1)**(which+1)*(2*which-1+int(np.any(M)))#which=1->1/2, which=2->-3/-4
 				iend = state.shape[ich]
 				context = ["j,ijklmn->ijklmn","l,ijklmn->ijklmn","J,aIJKLMNe->aIJKLMNe","L,aIJKLMNe->aIJKLMNe"]
 
@@ -219,8 +220,8 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
 	def Ed(state,which,N):
 		new_state_tB = np.zeros(state.shape,complex)
 		new_state_tF = np.zeros(state.shape,complex)
-		if N<state.shape[int(np.any(M)*2+2)]:
-			n = np.arange(N,state.shape[int(np.any(M)*2+2)])
+		if N<dim_tB:
+			n = np.arange(N,dim_tB)
 			nprod = 1.
 			i = 0
 			if M<L:
@@ -232,7 +233,7 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
 				i+=1
 
 			if gamma_B[which-1] > 0.:
-				ich = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
+				ich = (-1)**(which+1)*(which-1+int(np.any(M)))#which=1->0/1, which=2->-1/-2
 				iend = state.shape[ich]
 				context = ["i,ijklmn->ijklmn","n,ijklmn->ijklmn","I,aIJKLMNe->aIJKLMNe","N,aIJKLMNe->aIJKLMNe"]
 
@@ -242,7 +243,7 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
 				new_state_tB[tuple(idx)] = es(context[which-1+int(np.any(M))*2],nprod*np.sqrt(gamma_B[which-1]*dt)**N,np.take(state,np.arange(0,iend-N),axis=ich))
 
 			if gamma_F[which-1] > 0:
-				ich = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+				ich = (-1)**(which+1)*(2*which-1+int(np.any(M)))#which=1->1/2, which=2->-3/-4
 				iend = state.shape[ich]
 				context = ["j,ijklmn->ijklmn","l,ijklmn->ijklmn","J,aIJKLMNe->aIJKLMNe","L,aIJKLMNe->aIJKLMNe"]
 
@@ -256,15 +257,15 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
 	#@profile
 	def E2mix(state,which):
 		new_state_mix = np.zeros(state.shape,complex)
-		if 2<state.shape[int(np.any(M)*2+2)]:
+		if 2<dim_tB:
 			if M<L:
 				phip=0.
 			else:
 				phip=phi
-			n = np.sqrt(np.arange(1,state.shape[int(np.any(M)*2+2)]))
+			n = np.sqrt(np.arange(1,dim_tB))
 			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
-				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
-				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+				ich1 = (-1)**(which+1)*(which-1+int(np.any(M)))#which=1->0/1, which=2->-1/-2
+				ich2 = (-1)**(which+1)*(2*which-1+int(np.any(M)))#which=1->1/2, which=2->-3/-4
 				iend1 = state.shape[ich1]
 				iend2 = state.shape[ich2]
 				context = ["j,i,ijklmn->ijklmn","l,n,ijklmn->ijklmn","J,I,aIJKLMNe->aIJKLMNe","L,N,aIJKLMNe->aIJKLMNe"]
@@ -283,16 +284,16 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
 	#@profile
 	def Ed2mix(state,which):
 		new_state_mix = np.zeros(state.shape,complex)
-		if 2<state.shape[int(np.any(M)*2+2)]:
+		if 2<dim_tB:
 			if M<L:
 				phip=0.
 			else:
 				phip=phi
-			n = np.sqrt(np.arange(1,state.shape[int(np.any(M)*2+2)]))
+			n = np.sqrt(np.arange(1,dim_tB))
 			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
 
-				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
-				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+				ich1 = (-1)**(which+1)*(which-1+int(np.any(M)))#which=1->0/1, which=2->-1/-2
+				ich2 = (-1)**(which+1)*(2*which-1+int(np.any(M)))#which=1->1/2, which=2->-3/-4
 				iend1 = state.shape[ich1]
 				iend2 = state.shape[ich2]
 				context = ["j,i,ijklmn->ijklmn","l,n,ijklmn->ijklmn","J,I,aIJKLMNe->aIJKLMNe","L,N,aIJKLMNe->aIJKLMNe"]
@@ -313,17 +314,17 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
 
 		new_state_mix1 = np.zeros(state.shape,complex)
 		new_state_mix2 = np.zeros(state.shape,complex)
-		if 2<state.shape[int(np.any(M)*2+2)]:
+		if 2<dim_tB:
 			if M<L:
 				phip=0.
 			else:
 				phip=phi
-			n = np.arange(1,state.shape[int(np.any(M)*2+2)])
+			n = np.arange(1,dim_tB)
 			n2 = np.sqrt(n[1:]*(n[1:]-1))
 			n = np.sqrt(n)
 			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
-				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
-				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+				ich1 = (-1)**(which+1)*(which-1+int(np.any(M)))#which=1->0/1, which=2->-1/-2
+				ich2 = (-1)**(which+1)*(2*which-1+int(np.any(M)))#which=1->1/2, which=2->-3/-4
 				iend1 = state.shape[ich1]
 				iend2 = state.shape[ich2]
 				context = ["j,i,ijklmn->ijklmn","l,n,ijklmn->ijklmn","J,I,aIJKLMNe->aIJKLMNe","L,N,aIJKLMNe->aIJKLMNe"]
@@ -352,17 +353,17 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
 
 		new_state_mix1 = np.zeros(state.shape,complex)
 		new_state_mix2 = np.zeros(state.shape,complex)
-		if 2<state.shape[int(np.any(M)*2+2)]:
+		if 2<dim_tB:
 			if M<L:
 				phip=0.
 			else:
 				phip=phi
-			n = np.arange(1,state.shape[int(np.any(M)*2+2)])
+			n = np.arange(1,dim_tB)
 			n2 = np.sqrt(n[1:]*(n[1:]-1))
 			n = np.sqrt(n)
 			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
-				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
-				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+				ich1 = (-1)**(which+1)*(which-1+int(np.any(M)))#which=1->0/1, which=2->-1/-2
+				ich2 = (-1)**(which+1)*(2*which-1+int(np.any(M)))#which=1->1/2, which=2->-3/-4
 				iend1 = state.shape[ich1]
 				iend2 = state.shape[ich2]
 				context = ["j,i,ijklmn->ijklmn","l,n,ijklmn->ijklmn","J,I,aIJKLMNe->aIJKLMNe","L,N,aIJKLMNe->aIJKLMNe"]
@@ -394,24 +395,24 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
 		new_state_mix2 = np.zeros(state.shape,complex)
 		new_state_mix3 = np.zeros(state.shape,complex)
 
-		if 2<state.shape[int(np.any(M)*2+2)]:
+		if 2<dim_tB:
 			if M<L:
 				phip=0.
 			else:
 				phip=phi
-			n = np.arange(1,state.shape[int(np.any(M)*2+2)])
+			n = np.arange(1,dim_tB)
 			n2 = np.sqrt(n[1:]*(n[1:]-1))
-			if 3<state.shape[int(np.any(M)*2+2)]:
+			if 3<dim_tB:
 				n3 = np.sqrt(n[2:]*(n[2:]-1)*(n[2:]-2))
 			n = np.sqrt(n)
 			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
-				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
-				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+				ich1 = (-1)**(which+1)*(which-1+int(np.any(M)))#which=1->0/1, which=2->-1/-2
+				ich2 = (-1)**(which+1)*(2*which-1+int(np.any(M)))#which=1->1/2, which=2->-3/-4
 				iend1 = state.shape[ich1]
 				iend2 = state.shape[ich2]
 				context = ["j,i,ijklmn->ijklmn","l,n,ijklmn->ijklmn","J,I,aIJKLMNe->aIJKLMNe","L,N,aIJKLMNe->aIJKLMNe"]
 
-				if 3<state.shape[int(np.any(M)*2+2)]:
+				if 3<dim_tB:
 					idx_n1=[slice(None)]*state.ndim
 					idx_n1[ich1]=slice(None,iend1-3)
 					idx_n1[ich2]=slice(None,iend2-1)
@@ -445,24 +446,24 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
 		new_state_mix1 = np.zeros(state.shape,complex)
 		new_state_mix2 = np.zeros(state.shape,complex)
 		new_state_mix3 = np.zeros(state.shape,complex)
-		if 2<state.shape[int(np.any(M)*2+2)]:
+		if 2<dim_tB:
 			if M<L:
 				phip=0.
 			else:
 				phip=phi
-			n = np.arange(1,state.shape[int(np.any(M)*2+2)])
+			n = np.arange(1,dim_tB)
 			n2 = np.sqrt(n[1:]*(n[1:]-1))
-			if 3<state.shape[int(np.any(M)*2+2)]:
+			if 3<dim_tB:
 				n3 = np.sqrt(n[2:]*(n[2:]-1)*(n[2:]-2))
 			n = np.sqrt(n)
 			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
-				ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
-				ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+				ich1 = (-1)**(which+1)*(which-1+int(np.any(M)))#which=1->0/1, which=2->-1/-2
+				ich2 = (-1)**(which+1)*(2*which-1+int(np.any(M)))#which=1->1/2, which=2->-3/-4
 				iend1 = state.shape[ich1]
 				iend2 = state.shape[ich2]
 				context = ["j,i,ijklmn->ijklmn","l,n,ijklmn->ijklmn","J,I,aIJKLMNe->aIJKLMNe","L,N,aIJKLMNe->aIJKLMNe"]
 
-				if 3<state.shape[int(np.any(M)*2+2)]:
+				if 3<dim_tB:
 					idx_o1=[slice(None)]*state.ndim
 					idx_o1[ich1]=slice(None,iend1-3)
 					idx_o1[ich2]=slice(None,iend2-1)
@@ -497,7 +498,7 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
 		new_state_tB = np.zeros(state.shape,complex)
 		new_state_tFB1 = np.zeros(state.shape,complex)
 		new_state_tFB2 = np.zeros(state.shape,complex)
-		n = np.arange(0,state.shape[int(np.any(M)*2+2)])
+		n = np.arange(0,dim_tB)
 		if gamma_F[which-1]>0:
 			context = ["j,ijklmn->ijklmn","l,ijklmn->ijklmn","J,aIJKLMNe->aIJKLMNe","L,aIJKLMNe->aIJKLMNe"]
 
@@ -516,8 +517,8 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
 				phip=phi
 
 			context = ["j,i,ijklmn->ijklmn","l,n,ijklmn->ijklmn","J,I,aIJKLMNe->aIJKLMNe","L,N,aIJKLMNe->aIJKLMNe"]
-			ich1 = (-1)**(which+1)*(int(np.any(M))*2*(2-which)+(3-which))#which=1->2/4, which=2->-1/-1
-			ich2 = int(np.any(M))*(2-which)+(int(np.any(M))+3)*(1-which)#which=1->0/1, which=2->-3/-4
+			ich1 = (-1)**(which+1)*(which-1+int(np.any(M)))#which=1->0/1, which=2->-1/-2
+			ich2 = (-1)**(which+1)*(2*which-1+int(np.any(M)))#which=1->1/2, which=2->-3/-4
 			iend1 = state.shape[ich1]
 			iend2 = state.shape[ich2]
 			n = np.sqrt(n[1:])
@@ -605,14 +606,14 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order):
 	##[0] refers to timebins correponding to system 1 for forward direction (t=i+(2n+1)M) 
 	##and system 2 for reverse direction (t=i+2nM)
 	
-#	print("shapes", tB[0].shape,tF[0].shape,tS[0].shape,tF[1].shape,tS[1].shape,tB[1].shape)
+	#print("shapes", tB[0].shape,tF[0].shape,tS[0].shape,tF[1].shape,tS[1].shape,tB[1].shape)
 	if M==0:
 		initial = contract("i,j,k,l,m,n->ijklmn",tB[0],tF[0],tS[0],tF[1],tS[1],tB[1])
 	else:
 		initial = contract("I,bJc,aKb,dLe,cMd,N->aIJKLMNe",tB[0],tF[0],tS[0],tF[1],tS[1],tB[1])
 
 		
-	#	print("initial",initial.shape)
+	#print("initial",initial.shape)
 	#legs = len(initial.shape)
 	
 	#####System#####

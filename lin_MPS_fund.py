@@ -5,6 +5,7 @@ import time
 import sys
 from decimal import Decimal
 from math import factorial
+es=np.einsum
 
 #************************************#
 #***------------------------------***#
@@ -70,17 +71,17 @@ def MERGE(what,where):
 	orig_shape = np.array(what.shape)
 	merge_dims = orig_shape[where]
 	if where[0]>0 and where[-1]<len(orig_shape-1):
-		new_block = np.zeros(np.concatenate((orig_shape[:where[0]],np.array([np.prod(merge_dims),]),orig_shape[where[-1]+1:]),axis=0))
+		new_block = np.zeros(np.concatenate((orig_shape[:where[0]],np.array([np.prod(merge_dims),]),orig_shape[where[-1]+1:]),axis=0),complex)
 	elif where[0]>0 and where[-1]==len(orig_shape-1):
-		new_block = np.zeros(np.concatenate((orig_shape[:where[0]],np.array([np.prod(merge_dims),])),axis=0))
+		new_block = np.zeros(np.concatenate((orig_shape[:where[0]],np.array([np.prod(merge_dims),])),axis=0),complex)
 	elif where[0]==0 and where[-1]<len(orig_shape-1):
-		new_block = np.zeros(np.concatenate((np.array([np.prod(merge_dims),]),orig_shape[where[-1]+1:]),axis=0))
+		new_block = np.zeros(np.concatenate((np.array([np.prod(merge_dims),]),orig_shape[where[-1]+1:]),axis=0),complex)
 	else:
 		print("Problem with merging location")
 		
-	i1 = np.arange(0,merge_dims[-1]])
+	i1 = np.arange(0,merge_dims[-1])
 	idx_o = [slice(None)]*what.ndim
-	idx_o[where[-1]]] = i1
+	idx_o[where[-1]] = i1
 	idx_n = [slice(None)]*(what.ndim-(number-1))
 	
 	if number == 2:
@@ -88,7 +89,7 @@ def MERGE(what,where):
 			idx_o[where[0]] = i2
 			idx_n[where[0]] = i1 + merge_dims[1]*i2
 			
-			new_block[tuple(idx_n)] = block[tuple(idx_o)]
+			new_block[tuple(idx_n)] = what[tuple(idx_o)]
 			
 	elif number == 3:
 		for i3 in range(0,merge_dims[0]):
@@ -97,7 +98,7 @@ def MERGE(what,where):
 				idx_o[where[0]] = i3
 				idx_n[where[0]] = i1 + merge_dims[2]*i2 + merge_dims[1]*merge_dims[2]*i3
 				
-				new_block[tuple(idx_n)] = block[tuple(idx_o)]
+				new_block[tuple(idx_n)] = what[tuple(idx_o)]
 
 	elif number == 4:
 		for i4 in range(0,merge_dims[0]):
@@ -107,9 +108,9 @@ def MERGE(what,where):
 					idx_o[where[1]] = i3
 					idx_o[where[0]] = i4
 					idx_n[where[0]] = (i1 + merge_dims[3]*i2 + merge_dims[2]*merge_dims[3]*i3 + 
-									   merge_dims[1]*merge_dims[2]*merge_dims[3]*i4
+									   merge_dims[1]*merge_dims[2]*merge_dims[3]*i4)
 				
-					new_block[tuple(idx_n)] = block[tuple(idx_o)]
+					new_block[tuple(idx_n)] = what[tuple(idx_o)]
 
 	elif number == 5:
 		for i5 in range(0,merge_dims[0]):
@@ -122,9 +123,9 @@ def MERGE(what,where):
 						idx_o[where[0]] = i5
 						idx_n[where[0]] = (i1 + merge_dims[4]*i2 + merge_dims[3]*merge_dims[4]*i3 + 
 										   merge_dims[2]*merge_dims[3]*merge_dims[4]*i4 +
-										   merge_dims[1]*merge_dims[2]*merge_dims[3]*merge_dims[4]*i5
+										   merge_dims[1]*merge_dims[2]*merge_dims[3]*merge_dims[4]*i5)
 					
-						new_block[tuple(idx_n)] = block[tuple(idx_o)]
+						new_block[tuple(idx_n)] = what[tuple(idx_o)]
 
 	return new_block, merge_dims
 
@@ -138,11 +139,11 @@ def UNMERGE(block,new_shape,merge_dims,where):
 	on the left and the right.
 	OUTPUT: the obtained higher-rank tensor"""
 
-	new_block  = np.zeros(new_shape)
+	new_block  = np.zeros(new_shape,complex)
 	merged     = block.shape[where[0]]
 	number = len(where)
 	idx_o = [slice(None)]*block.ndim
-	idx_n = [slice(None)]*(len(orig_shape))
+	idx_n = [slice(None)]*(len(new_shape))
 		
 	if number == 2:
 		for J in range(0,merged):
@@ -189,13 +190,13 @@ def UNMERGE(block,new_shape,merge_dims,where):
 ### Swapping to perform U ###
 #############################
 #S2F2,statesF = SWAP(S2F2,statesF,test_var+L-1,test_var+1)
-def SWAP(what,statesF,from_,to_):
+def SWAP(what,statesF,from_,to_,tol,dir):
 	"""Moving the interacting fibre and system bins next to each other.
 	INPUT: time, delay, list of fibre bins, tolerance of SVD
 	OUTPUT: list of fibre states"""
 
 	length = to_-from_+1
-	context = ["aI,J->aJI","aIb,bJc->aJIc","bJc,aIb->aJIc"]
+	context = ["aIb,bJc->aJIc","bJc,aIb->aJIc"]
 	
 	if from_>to_:
 		start = from_
@@ -206,42 +207,64 @@ def SWAP(what,statesF,from_,to_):
 		end   = to_+1
 		step  = 1
 	else:
+		start = from_
+		end   = to_+1
+		step  = 1
 
-	def swapping(what,with_):
+	def swapping(what,with_,tol):
 		what_size = what.ndim
 		with_size = with_.ndim
 		if what_size!=1:
-			combined = es(context[what.ndim-int((step+3)/2)],what,with_)
+#			print(what.shape,with_.shape)
 			if what_size>2:
-				left,left_merge  = MERGE(combined,[0,1])
-				right,right_merge = MERGE(left,[2,3])
-				svded,link_dim   = SVD(right,tol)
-				right,left       = None,None
-				right_merge      = None
-				what             = UNMERGE(np.dot(svded[1],svded[2]),np.concatenate((np.array([link_dim,]),right_merge),axis=0),
-											right_merge,[1,2])
+				#print("what,with",what.shape,with_.shape)
+				if dir=="left":
+					combined          = es(context[-1],what,with_)
+					left,left_merge   = MERGE(combined,[0,1])
+					right,right_merge = MERGE(left,[1,2])
+					svded,link_dim    = SVD(right,tol)
+					right,left        = None,None
+#					print(what.shape,with_.shape)
+					what  = UNMERGE(np.dot(svded[0],svded[1]),np.concatenate((left_merge,np.array([link_dim,])),axis=0),
+											left_merge,[0,1])
+					with_ = UNMERGE(svded[2],np.concatenate((np.array([link_dim,]),right_merge),axis=0),
+											right_merge,[1,2])		
+#					print(what.shape,with_.shape)
+				elif dir=="right":
+					combined          = es(context[0],what,with_)
+					left,left_merge   = MERGE(combined,[0,1])
+					right,right_merge = MERGE(left,[1,2])
+					svded,link_dim    = SVD(right,tol)
+					right,left        = None,None
+#					print(what.shape,with_.shape)
+					with_ = UNMERGE(svded[0],np.concatenate((left_merge,np.array([link_dim,])),axis=0),
+											left_merge,[0,1])
+					what  = UNMERGE(np.dot(svded[1],svded[2]),np.concatenate((np.array([link_dim,]),right_merge),axis=0),
+											right_merge,[1,2])		
 				
 			if what_size==2:
+				combined          = es("aI,J->aJI",what,with_)
 				merged,left_merge = MERGE(combined,[0,1])
 				svded,link_dim    = SVD(merged,tol)
 				merged            = None
 				what              = np.dot(svded[1],svded[2])
-								
+				with_             = UNMERGE(svded[0],np.concatenate((left_merge,np.array([link_dim,])),axis=0),left_merge,[0,1])
+
+			left_merge,svded = None,None
+			
+			return what,with_
 		elif what_size==1 and with_size==1:
 			return what,with_
 		else:
 			print("Problem with size of arrays to swap")
 			
-		with_ = UNMERGE(svded[0],np.concatenate((left_merge,np.array([link_dim,])),axis=0),left_merge,[0,1])
-
-		left_merge,svded = None
-		
-		return what,with_
 	
 	
+#	print("start of swap",start,"end of swap",end,"step",step)
 	for i in range(start,end,step):
 		#upper branch
-		what,statesF[start] = swapping(what,statesF[start])
+		#print("swapping",what.shape,statesF[i].shape)
+		what,statesF[i] = swapping(what,statesF[i],tol)
 
 	return what,statesF
 
@@ -251,7 +274,7 @@ def SWAP(what,statesF,from_,to_):
 ###################################
 ##splist = SPLIT(S2F2,2,"left",2)
 ##statesS[1],statesF[test_var+L] = splist[0],splist[1]
-def SPLIT(what,number,where,link,blocksize=0):
+def SPLIT(what,number,where,tol,link,blocksize=0):
 	"""Performing SVD with singular values above a certain threshold
 	INPUT: the block to split after U by performing SVD, threshold for singular values
 	OUTPUT: block 1 and block 2"""
@@ -264,11 +287,11 @@ def SPLIT(what,number,where,link,blocksize=0):
 			first,block_merge = MERGE(what,list(what.ndim-np.arange(blocksize,0,-1)))
 	elif blocksize<0:
 		if link==-1 or link==2:
-			first,block_merge = MERGE(what,list(np.arange(1,-blocksize,1)))
+			first,block_merge = MERGE(what,list(np.arange(1,-blocksize+1,1)))
 		else:
 			first,block_merge = MERGE(what,list(np.arange(-blocksize)))
 	else:
-		first = np.zeros(what.shape)
+		first = np.zeros(what.shape,complex)
 		first += what
 
 	if link==0:
@@ -277,31 +300,43 @@ def SPLIT(what,number,where,link,blocksize=0):
 		first = np.tensordot(np.ones(1),first,axes=0)
 	elif link==-1:
 		first = np.tensordot(first,np.ones(1),axes=0)
+	#print("first dim",first.shape)
 
 	if where == "right":
 			
 		for i in range(number-1):
+			#print("first",first)
 			second,second_merge = MERGE(first,[0,1])
+			#print("second dim",second.shape)
+			
+			#print("second",second)
 			third,third_merge   = MERGE(second,list(np.arange(1,second.ndim,1))) 
+			#print("third dim",third.shape)
+			#print(third)
 			svded,link_dim      = SVD(third,tol)
+			#print("svd",svded[0].shape,svded[1].shape,svded[2].shape)
+#			print("svd[0]",svded[0],"svd[1]", svded[1],"svd[2]",svded[2])
 			splist[i]           = UNMERGE(svded[0],np.concatenate((second_merge,np.array([link_dim,])),axis=0),second_merge,[0,1])
-			first              = UNMERGE(np.dot(svded[1],svded[2]),
+			#print(np.dot(svded[1],svded[2]))
+			first               = UNMERGE(np.dot(svded[1],svded[2]),
 											np.concatenate((np.array([link_dim,]),third_merge),axis=0), third_merge,
-											list(np.arange(1,third.ndim,1)))
-		splist[-1] = second
+											list(np.arange(1,second.ndim,1)))
+			#print("first dim",first.shape)
+
+		splist[-1] = first
 
 	elif where == "left":
 			
 		for i in range(number-1,0,-1):
-			second,second_merge = MERGE(first,[first.ndim-2,second.ndim-1])
+			second,second_merge = MERGE(first,[first.ndim-2,first.ndim-1])
 			third,third_merge   = MERGE(second,list(np.arange(0,second.ndim-1,1))) 
 			svded,link_dim      = SVD(third,tol)
-			splist[i]           = UNMERGE(svded[2],np.concatenate(np.array([link_dim,]),second_merge),
-										second_merge,[second.ndim-2,second.ndim-1])
-			second 	            = UNMERGE(np.dot(svded[0],svded[1]),
+			splist[i]           = UNMERGE(svded[2],np.concatenate((np.array([link_dim,]),second_merge),axis=0),
+										second_merge,[1,2])
+			first 	            = UNMERGE(np.dot(svded[0],svded[1]),
 										np.concatenate((third_merge,np.array([link_dim,])),axis=0),
-										third_mege,list(np.arange(0,third.ndim-1,1)))
-		splist[0] = second
+										third_merge,list(np.arange(0,second.ndim-1,1)))
+		splist[0] = first
 
 	if link==1 or link==0:
 		splist[0]  = splist[0][0,:,:]
@@ -317,64 +352,74 @@ def SPLIT(what,number,where,link,blocksize=0):
 ###################################
 ##statesB1[M],statesF,block = OC_RELOC(statesB1[M],block,statesF,0,test_var)
 
-def OC_RELOC(from_op,to_op,statesF,from_,to_):
-	if from_<to_:
-		if from_op.ndim==2:
-			first               = es("Ia,aJb->IJb",from_op,statesF[from_])
-			second,second_merge = MERGE(first,[1,2])
-			svded,link_dim      = SVD(second,tol)
-			from_op             = svded[0]
-			statesF[from_]      = UNMERGE(np.dot(svded[1],svded[2]),
-										np.concatenate((np.array([link_dim,]),second_merge),axis=0),second_merge,[1,2])
-		elif from_op.ndim==3:
-			first               = es("cIa,aJb->cIJb",from_op,statesF[from_])
-			second,second_merge = MERGE(first,[2,3])
-			third,third_merge   = MERGE(second,[0,1])
-			svded,link_dim      = SVD(second,tol)
-			from_op             = UNMERGE(svded[0],np.concatenate((third_merge,np.array([link_dim,])),axis=0),third_merge,[0,1])
-			statesF[from_]      = UNMERGE(np.dot(svded[1],svded[2]),
-										np.concatenate((np.array([link_dim,]),first_shape[2:]),axis=0),second_merge,[2,3])
-		
-		for i in range(from_,to_,1):
-			first               = es("aIb,bJc->aIJc",statesF[i],statesF[i+1])
-			second,second_merge = MERGE(first,[2,3])
-			third,third_merge   = MERGE(second,[0,1])
-			svded,link_dim      = SVD(second,tol)
-			statesF[i]          = UNMERGE(svded[0],np.concatenate((third_merge,np.array([link_dim,])),axis=0),third_merge,[0,1])
-			statesF[i+1]        = UNMERGE(np.dot(svded[1],svded[2]),
-										np.concatenate((np.array([link_dim,]),second_merge),axis=0),second_merge,[2,3])
+def OC_RELOC(M,from_op,to_op,statesF,from_,to_,tol,dir):
+	if dir=="right":
+		if from_!=to_:
+			if from_op.ndim==2:
+				first               = es("Ia,aJb->IJb",from_op,statesF[from_])
+				second,second_merge = MERGE(first,[1,2])
+				svded,link_dim      = SVD(second,tol)
+				from_op             = svded[0]
+				statesF[from_]      = UNMERGE(np.dot(svded[1],svded[2]),
+											np.concatenate((np.array([link_dim,]),second_merge),axis=0),second_merge,[1,2])
+			elif from_op.ndim==3:
+				first               = es("cIa,aJb->cIJb",from_op,statesF[from_])
+				second,second_merge = MERGE(first,[2,3])
+				third,third_merge   = MERGE(second,[0,1])
+				svded,link_dim      = SVD(third,tol)
+				from_op             = UNMERGE(svded[0],np.concatenate((third_merge,np.array([link_dim,])),axis=0),third_merge,[0,1])
+				statesF[from_]      = UNMERGE(np.dot(svded[1],svded[2]),
+											np.concatenate((np.array([link_dim,]),second_merge),axis=0),second_merge,[1,2])
+			
+			for i in range(from_,to_,1):
+				first               = es("aIb,bJc->aIJc",statesF[i],statesF[i+1])
+				second,second_merge = MERGE(first,[2,3])
+				third,third_merge   = MERGE(second,[0,1])
+				svded,link_dim      = SVD(third,tol)
+				statesF[i]          = UNMERGE(svded[0],np.concatenate((third_merge,np.array([link_dim,])),axis=0),third_merge,[0,1])
+				statesF[i+1]        = UNMERGE(np.dot(svded[1],svded[2]),
+											np.concatenate((np.array([link_dim,]),second_merge),axis=0),second_merge,[1,2])
 		
 		first               = es("aIb,bJc->aIJc",statesF[to_],to_op)
 		second,second_merge = MERGE(first,[2,3])
 		third,third_merge   = MERGE(second,[0,1])
-		svded,link_dim      = SVD(second,tol)
+		svded,link_dim      = SVD(third,tol)
 		statesF[to_]        = UNMERGE(svded[0],np.concatenate((third_merge,np.array([link_dim,])),axis=0),
 									third_merge,[0,1])
 		to_op               = UNMERGE(np.dot(svded[1],svded[2]),
-									np.concatenate((np.array([link_dim,]),second_merge),axis=0),second_merge,[2,3])
+									np.concatenate((np.array([link_dim,]),second_merge),axis=0),second_merge,[1,2])
 		
-	elif from_>to_:
-		first               = es("cIa,aJb->cIJb",statesF[from_],from_op)
-		second,second_merge = MERGE(first,[2,3])
-		third,third_merge   = MERGE(second,[0,1])
-		svded,link_dim      = SVD(second,tol)
-		statesF[from_]      = UNMERGE(np.dot(svded[0],svded[1]),np.concatenate((third_merge,np.array([link_dim,])),axis=0),third_merge,[0,1])
-		from_op             = UNMERGE(svded[2],np.concatenate((np.array([link_dim,]),second_merge),axis=0),second_merge,[2,3])
-		
-		for i in range(from_,to_,-1):
-			first               = es("aIb,bJc->aIJc",statesF[i-1],statesF[i])
-			second,second_merge = MERGE(first,[2,3])
-			third,third_merge   = MERGE(second,[0,1])
-			svded,link_dim      = SVD(second,tol)
-			statesF[i-1]        = UNMERGE(np.dot(svded[0],svded[1]),np.concatenate((third_merge,np.array([link_dim,])),axis=0),third_merge,[0,1])
-			statesF[i]          = UNMERGE(svded[2],np.concatenate((np.array([link_dim,]),second_merge),axis=0),second_merge,[2,3])
+	elif dir=="left":
+		if from_!=to_:
+			if M>0:
+				first               = es("cIa,aJb->cIJb",statesF[from_],from_op)
+				second,second_merge = MERGE(first,[2,3])
+				third,third_merge   = MERGE(second,[0,1])
+				svded,link_dim      = SVD(third,tol)
+				statesF[from_]      = UNMERGE(np.dot(svded[0],svded[1]),np.concatenate((third_merge,np.array([link_dim,])),axis=0),
+											third_merge,[0,1])
+				from_op             = UNMERGE(svded[2],np.concatenate((np.array([link_dim,]),second_merge),axis=0),second_merge,[1,2])
+			elif M==0:
+				first               = es("cIa,aJ->cIJ",statesF[from_],from_op)
+				third,third_merge   = MERGE(first,[0,1])
+				svded,link_dim      = SVD(third,tol)
+				statesF[from_]      = UNMERGE(np.dot(svded[0],svded[1]),np.concatenate((third_merge,np.array([link_dim,])),axis=0),third_merge,[0,1])
+				from_op             = svded[2]
+				
+			for i in range(from_,to_,-1):
+				first               = es("aIb,bJc->aIJc",statesF[i-1],statesF[i])
+				second,second_merge = MERGE(first,[2,3])
+				third,third_merge   = MERGE(second,[0,1])
+				svded,link_dim      = SVD(third,tol)
+				statesF[i-1]        = UNMERGE(np.dot(svded[0],svded[1]),np.concatenate((third_merge,np.array([link_dim,])),axis=0),third_merge,[0,1])
+				statesF[i]          = UNMERGE(svded[2],np.concatenate((np.array([link_dim,]),second_merge),axis=0),second_merge,[1,2])
 		
 		first               = es("aIb,bJc->aIJc",to_op,statesF[to_])
 		second,second_merge = MERGE(first,[2,3])
 		third,third_merge   = MERGE(second,[0,1])
-		svded,link_dim      = SVD(second,tol)
+		svded,link_dim      = SVD(third,tol)
 		to_op               = UNMERGE(np.dot(svded[0],svded[1]),np.concatenate((third_merge,np.array([link_dim,])),axis=0),third_merge,[0,1])
-		statesF[to_]        = UNMERGE(svded[2],np.concatenate((np.array([link_dim,]),second_merge),axis=0),second_merge,[2,3])
+		statesF[to_]        = UNMERGE(svded[2],np.concatenate((np.array([link_dim,]),second_merge),axis=0),second_merge,[1,2])
 	
 	return from_op,statesF,to_op
 	
