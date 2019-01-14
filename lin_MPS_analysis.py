@@ -47,28 +47,43 @@ def normf(M,L,statesB1,statesB2,statesF,statesS,normB1,normB2):
 		
 		norm_left = 0
 		norm_left += normB1
-		#print("norm_left",norm_left)
+#		print("norm_left",es("ii",norm_left))
 		if index!=0:
 			for i in range(index):
+#				print("index",i)
 				norm_left = contract("ab,aIc,bId->cd",norm_left,statesF[i],np.conjugate(statesF[i]))
-		#print("norm_left",norm_left)
+#				print("norm_left",es("ii",norm_left))
 		
-		norm_mid = es("aIc,bId->abcd",statesF[index],np.conjugate(statesF[index]))
-		for i in range(1,L,1):
-			norm_mid = contract("abcd,cIe,dIf->abef",norm_mid,statesF[index+i],np.conjugate(statesF[index+i]))
-		#print("norm_mid",norm_mid)
 			
 		norm_right = 0
 		norm_right += normB2
-		#print("norm_right",norm_right)
+#		print("norm_right",es("ii",norm_right))
 		for i in range(2*L-1,index+L-1,-1):
+#			print("index",i)
 			norm_right = contract("ab,cIa,dIb->cd",norm_right,statesF[i],np.conjugate(statesF[i]))
-		#print("norm_right",norm_right)
+#			print("norm_right",es("ii",norm_right))
+		
+#		print("S1",es("aIc,aIc",statesS[0],np.conjugate(statesS[0])))
+#		print("S2",es("aIc,aIc",statesS[1],np.conjugate(statesS[1])))
 		
 		if M%(2*L)<L:
+#			print("index",index)
+			norm_mid = es("aIc,bId->abcd",statesF[index],np.conjugate(statesF[index]))
+#			print("norm_mid",norm_mid.shape,es("aabb",norm_mid))
+			for i in range(1,L,1):
+#				print("index",i+index)
+				norm_mid = contract("abcd,cIe,dIf->abef",norm_mid,statesF[index+i],np.conjugate(statesF[index+i]))
+#				print("norm_mid",norm_mid.shape,es("aabb",norm_mid))
 			sys_state = contract("ab,aIc,bJd,cdef,eKg,fLh,gh->IJKL",norm_left,statesS[0],np.conjugate(statesS[0]),
 								norm_mid,statesS[1],np.conjugate(statesS[1]),norm_right)
 		elif M%(2*L)>L-1:
+#			print("index",index+L-1)
+			norm_mid = es("aIc,bId->abcd",statesF[index+L-1],np.conjugate(statesF[index+L-1]))
+#			print("norm_mid",norm_mid.shape,es("aabb",norm_mid))
+			for i in range(L-2,-1,-1):
+#				print("index",i+index)
+				norm_mid = contract("abcd,eIa,fIb->efcd",norm_mid,statesF[index+i],np.conjugate(statesF[index+i]))
+#				print("norm_mid",norm_mid.shape,es("aabb",norm_mid))
 			sys_state = contract("ab,aIc,bJd,cdef,eKg,fLh,gh->KLIJ",norm_left,statesS[1],np.conjugate(statesS[1]),
 								norm_mid,statesS[0],np.conjugate(statesS[0]),norm_right)
 		#print("sys_state",sys_state)
@@ -80,7 +95,7 @@ def normf(M,L,statesB1,statesB2,statesF,statesS,normB1,normB2):
 							
 	norm = contract("IIJJ",sys_state)
 	
-	#print("norm",norm)
+#	print("norm",norm)
 	return np.real(norm),normB1,normB2,sys_state
 
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
