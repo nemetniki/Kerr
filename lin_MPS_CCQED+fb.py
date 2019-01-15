@@ -111,7 +111,7 @@ Ome     = np.array([args.Ome1,args.Ome2])
 Omc     = np.array([args.Omc1,args.Omc2])
 Dele    = np.array([0.,0.])
 Delc    = np.array([0.,0.])
-phi     = args.phi*np.pi
+phi     = np.array([0.,args.phi*np.pi])
 thermal = False
 
 ########################################################################################################################################################################################################
@@ -247,7 +247,7 @@ file_out.write("""Data file index: %d
 \nthermal photon number: %f
 \nData file: M*dt,norm,pop1,pop2,nc1_exp,nc2_exp,g2_1_exp,g2_2_exp\n""" % (args.findex,g[0],Dele[0],Delc[0],args.initind1,Ome[0],Omc[0],
 								g[1],Dele[1],Delc[1],args.initind2,Ome[1],Omc[1],
-								gamma_B[0],gamma_B[1],gamma_F[0],gamma_F[1],phi,L,
+								gamma_B[0],gamma_B[1],gamma_F[0],gamma_F[1],args.phi,L,
 								args.Nphot,tol,endt,dt,args.cohC1,args.cohC2,
 								args.cohB1,args.cohB2,args.cohF,args.nT))
 file_out.close()
@@ -429,7 +429,7 @@ for M in range(0,N):
 		#--------------------
 		##U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order)
 		U_block = U(M,L,[statesF[test_var-L],statesF[test_var]],statesS[::-1],
-				[statesB2[M],statesB1[M]],gamma_B[::-1],gamma_F[::-1],dt,phi,
+				[statesB2[M],statesB1[M]],gamma_B[::-1],gamma_F[::-1],dt,phi[::-1],
 				Ome[::-1],Omc[::-1],g[::-1],Delc[::-1],Dele[::-1])
 #		print("U",U_block.shape)
 		

@@ -187,7 +187,7 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 			if M<L:
 				phip=0.
 			else:
-				phip=phi
+				phip=phi[which-1]
 			while i<N:
 				nprod *= np.sqrt(n-i)
 				i+=1
@@ -227,7 +227,7 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 			if M<L:
 				phip=0.
 			else:
-				phip=phi
+				phip=phi[which-1]
 			while i<N:
 				nprod *= np.sqrt(n-i)
 				i+=1
@@ -261,7 +261,7 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 			if M<L:
 				phip=0.
 			else:
-				phip=phi
+				phip=phi[which-1]
 			n = np.sqrt(np.arange(1,dim_tB))
 			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
 				ich1 = (-1)**(which+1)*(which-1+int(np.any(M)))#which=1->0/1, which=2->-1/-2
@@ -288,7 +288,7 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 			if M<L:
 				phip=0.
 			else:
-				phip=phi
+				phip=phi[which-1]
 			n = np.sqrt(np.arange(1,dim_tB))
 			if gamma_B[which-1]>0 and gamma_F[which-1]>0:
 
@@ -318,7 +318,7 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 			if M<L:
 				phip=0.
 			else:
-				phip=phi
+				phip=phi[which-1]
 			n = np.arange(1,dim_tB)
 			n2 = np.sqrt(n[1:]*(n[1:]-1))
 			n = np.sqrt(n)
@@ -357,7 +357,7 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 			if M<L:
 				phip=0.
 			else:
-				phip=phi
+				phip=phi[which-1]
 			n = np.arange(1,dim_tB)
 			n2 = np.sqrt(n[1:]*(n[1:]-1))
 			n = np.sqrt(n)
@@ -399,7 +399,7 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 			if M<L:
 				phip=0.
 			else:
-				phip=phi
+				phip=phi[which-1]
 			n = np.arange(1,dim_tB)
 			n2 = np.sqrt(n[1:]*(n[1:]-1))
 			if 3<dim_tB:
@@ -450,7 +450,7 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 			if M<L:
 				phip=0.
 			else:
-				phip=phi
+				phip=phi[which-1]
 			n = np.arange(1,dim_tB)
 			n2 = np.sqrt(n[1:]*(n[1:]-1))
 			if 3<dim_tB:
@@ -514,7 +514,7 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 			if M<L:
 				phip=0.
 			else:
-				phip=phi
+				phip=phi[which-1]
 
 			context = ["j,i,ijklmn->ijklmn","l,n,ijklmn->ijklmn","J,I,aIJKLMNe->aIJKLMNe","L,N,aIJKLMNe->aIJKLMNe"]
 			ich1 = (-1)**(which+1)*(which-1+int(np.any(M)))#which=1->0/1, which=2->-1/-2
