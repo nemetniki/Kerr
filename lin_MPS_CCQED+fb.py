@@ -111,7 +111,7 @@ Ome     = np.array([args.Ome1,args.Ome2])
 Omc     = np.array([args.Omc1,args.Omc2])
 Dele    = np.array([0.,0.])
 Delc    = np.array([0.,0.])
-phi     = np.array([0.,args.phi*np.pi])
+phi     = args.phi*np.pi#np.array([0.,args.phi*np.pi])#
 thermal = False
 
 ########################################################################################################################################################################################################
@@ -429,7 +429,7 @@ for M in range(0,N):
 		#--------------------
 		##U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order)
 		U_block = U(M,L,[statesF[test_var-L],statesF[test_var]],statesS[::-1],
-				[statesB2[M],statesB1[M]],gamma_B[::-1],gamma_F[::-1],dt,phi[::-1],
+				[statesB2[M],statesB1[M]],gamma_B[::-1],gamma_F[::-1],dt,phi,#[::-1],
 				Ome[::-1],Omc[::-1],g[::-1],Delc[::-1],Dele[::-1])
 #		print("U",U_block.shape)
 		
