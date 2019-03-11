@@ -59,6 +59,7 @@ parser = argparse.ArgumentParser(prog='MPS Jaynes-Cummings+feedback',
 						the photon number inside the cavity and the norm 
 						for different driving and feedback conditions''',
 				formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument("ID",type=int,help='ID number for the process')
 parser.add_argument("gamma_L",type=float,help='gamma_L')
 parser.add_argument("gamma_R",type=float,help='gamma_R')
 parser.add_argument("g",type=float,help='g: cavity atom coupling')
@@ -141,25 +142,30 @@ g2c = np.diag(np.sort(np.concatenate((gcdiag[:-1],gcdiag))))
 
 
 if args.cohC>0:
-	filename = "./Data/JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohC*10,Ome*10,Omc*10,L)
-	outname = "./Data/OUT_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohC*10,Ome*10,Omc*10,L)
-#	specname = "./Data/spec_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohC*10,Ome*10,Omc*10,L)
-#	g2tau = "./Data/g2tau_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohC*10,Ome*10,Omc*10,L)
+	filename = "../Data/JC+fb/Old/evol%04d_coherent_cavity.txt" % (args.ID)
+	outname = "../Data/JC+fb/Old/OUT%04d_coherent_cavity.txt" % (args.ID)
+	specname = "../Data/JC+fb/Old/spec%04d_coherent_cavity.txt" % (args.ID)
+	g2tau = "../Data/JC+fb/Old/g2tau%04d_coherent_cavity.txt" % (args.ID)
 elif args.cohE>0:
-	filename = "./Data/JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
-	outname = "./Data/OUT_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
-#	specname = "./Data/spec_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
-#	g2tau = "./Data/g2tau_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
-elif args.nT>0:
-	filename = "./Data/JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_initind=%d_ome=%dp10_omc=%dp10_L=%d-2.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.init_ind,Ome*10,Omc*10,L)
-	outname = "./Data/OUT_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_initind=%d_ome=%dp10_omc=%dp10_L=%d-2.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.init_ind,Ome*10,Omc*10,L)
-#	specname = "./Data/spec_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.init_ind,Ome*10,Omc*10,L)
-#	g2tau = "./Data/g2tau_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.init_ind,Ome*10,Omc*10,L)
+	filename = "../Data/JC+fb/Old/evol%04d_coherent_environment.txt" % (args.ID)
+	outname = "../Data/JC+fb/Old/OUT%04d_coherent_environment.txt" % (args.ID)
+	specname = "../Data/JC+fb/Old/spec%04d_coherent_environment.txt" % (args.ID)
+	g2tau = "../Data/JC+fb/Old/g2tau%04d_coherent_environment.txt" % (args.ID)
+elif Ome>0:
+	filename = "../Data/JC+fb/Old/evol%04d_atom_drive.txt" % (args.ID)
+	outname = "../Data/JC+fb/Old/OUT%04d_atom_drive.txt" % (args.ID)
+	specname = "../Data/JC+fb/Old/spec%04d_atom_drive.txt" % (args.ID)
+	g2tau = "../Data/JC+fb/Old/g2tau%04d_atom_drive.txt" % (args.ID)
+elif Omc>0:
+	filename = "../Data/JC+fb/Old/evol%04d_cavity_drive.txt" % (args.ID)
+	outname = "../Data/JC+fb/Old/OUT%04d_cavity_drive.txt" % (args.ID)
+	specname = "../Data/JC+fb/Old/spec%04d_cavity_drive.txt" % (args.ID)
+	g2tau = "../Data/JC+fb/Old/g2tau%04d_cavity_drive.txt" % (args.ID)
 else:
-	filename = "./Data/JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d-2.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
-	outname = "./Data/OUT_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d-2.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
-#	specname = "./Data/spec_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
-#	g2tau = "./Data/g2tau_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
+	filename = "../Data/JC+fb/Old/evol%04d.txt" % (args.ID)
+	outname = "../Data/JC+fb/Old/OUT%04d.txt" % (args.ID)
+	specname = "../Data/JC+fb/Old/spec%04d.txt" % (args.ID)
+	g2tau = "../Data/JC+fb/Old/g2tau%04d.txt" % (args.ID)
 	
 file_out = open(outname,"a")
 file_out.close()
@@ -269,21 +275,22 @@ if len(states[M].shape)>1:
 
 #Calculating the output spectra over a range of frequencies
 om = np.linspace(-20,20,5000)
-#spec = spectrum(states,om,N-L-1,N_env+1,dt,N-L-1,thermal)
-#tau,g2_outa = g2_out(states,N-L-1,N_env+1,dt,N-L-1,thermal)
-#time_out = np.transpose(np.vstack((om,spec)))
-#f = open(specname, 'a')
-#f.close()
-#f = open(specname, 'r+')
-#f.truncate()
-#np.savetxt(specname,time_out)
-#time_out = np.transpose(np.vstack((tau,g2_outa)))
-#f = open(g2tau, 'a')
-#f.close()
-#f = open(g2tau, 'r+')
-#f.truncate()
-#np.savetxt(g2tau,time_out)
-#time_out=None
+index=int(20/dt)
+spec = spectrum(states,om,index,N_env+1,dt,index,thermal)
+tau,g2_outa = g2_out(states,N-L-1,N_env+1,dt,N-L-1,thermal)
+time_out = np.transpose(np.vstack((om,spec)))
+f = open(specname, 'a')
+f.close()
+f = open(specname, 'r+')
+f.truncate()
+np.savetxt(specname,time_out)
+time_out = np.transpose(np.vstack((tau,g2_outa)))
+f = open(g2tau, 'a')
+f.close()
+f = open(g2tau, 'r+')
+f.truncate()
+np.savetxt(g2tau,time_out)
+time_out=None
 
 states[M+1:M+L+1] = SWAP(states,M+1,"future",L,tol)
 if len(states[ind_sys-1].shape)>1:

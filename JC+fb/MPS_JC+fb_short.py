@@ -59,6 +59,7 @@ parser = argparse.ArgumentParser(prog='MPS Jaynes-Cummings+feedback',
 						the photon number inside the cavity and the norm 
 						for different driving and feedback conditions''',
 				formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument("ID",type=int,help='ID number for the process')
 parser.add_argument("gamma_L",type=float,help='gamma_L')
 parser.add_argument("gamma_R",type=float,help='gamma_R')
 parser.add_argument("g",type=float,help='g: cavity atom coupling')
@@ -108,7 +109,7 @@ else:
 	initJC[args.init_ind]  = 1. #starting at |e>
 initenv    = np.zeros(N_env+1,complex)
 if args.cohE>0.:
-	initenv = coherent(args.cohE,0,initenv)
+	initenv = coherent(args.cohE,0,initenv)/np.sqrt(dt)
 else:
 	initenv[0] = 1.
 states     = [initenv]*L+(N-L)*[0.]
@@ -126,21 +127,34 @@ see = np.identity(2*N_env+1)-sgg
 ncdiag = np.linspace(0,N_env+.1,2*N_env+1).astype(np.int64)
 nc = np.diag(ncdiag)
 
+##################################
+### Output file initialization ###
+##################################
 if args.cohC>0:
-	filename = "./Data/JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohC*10,Ome*10,Omc*10,L)
-	outname = "./Data/OUT_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohC*10,Ome*10,Omc*10,L)
-	specname = "./Data/spec_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohC*10,Ome*10,Omc*10,L)
-	g2tau = "./Data/g2tau_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohc=%dp10_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohC*10,Ome*10,Omc*10,L)
+	filename = "../Data/JC+fb/Old/evol%04d_coherent_cavity.txt" % (args.ID)
+	outname = "../Data/JC+fb/Old/OUT%04d_coherent_cavity.txt" % (args.ID)
+	specname = "../Data/JC+fb/Old/spec%04d_coherent_cavity.txt" % (args.ID)
+	g2tau = "../Data/JC+fb/Old/g2tau%04d_coherent_cavity.txt" % (args.ID)
 elif args.cohE>0:
-	filename = "./Data/JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
-	outname = "./Data/OUT_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
-	specname = "./Data/spec_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
-	g2tau = "./Data/g2tau_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_nT=%dp1000_cohe=%dp100_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.nT*1000,args.cohE*100,args.init_ind,Ome*10,Omc*10,L)
+	filename = "../Data/JC+fb/Old/evol%04d_coherent_environment.txt" % (args.ID)
+	outname = "../Data/JC+fb/Old/OUT%04d_coherent_environment.txt" % (args.ID)
+	specname = "../Data/JC+fb/Old/spec%04d_coherent_environment.txt" % (args.ID)
+	g2tau = "../Data/JC+fb/Old/g2tau%04d_coherent_environment.txt" % (args.ID)
+elif Ome>0:
+	filename = "../Data/JC+fb/Old/evol%04d_atom_drive.txt" % (args.ID)
+	outname = "../Data/JC+fb/Old/OUT%04d_atom_drive.txt" % (args.ID)
+	specname = "../Data/JC+fb/Old/spec%04d_atom_drive.txt" % (args.ID)
+	g2tau = "../Data/JC+fb/Old/g2tau%04d_atom_drive.txt" % (args.ID)
+elif Omc>0:
+	filename = "../Data/JC+fb/Old/evol%04d_cavity_drive.txt" % (args.ID)
+	outname = "../Data/JC+fb/Old/OUT%04d_cavity_drive.txt" % (args.ID)
+	specname = "../Data/JC+fb/Old/spec%04d_cavity_drive.txt" % (args.ID)
+	g2tau = "../Data/JC+fb/Old/g2tau%04d_cavity_drive.txt" % (args.ID)
 else:
-	filename = "./Data/JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
-	outname = "./Data/OUT_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
-	specname = "./Data/spec_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
-	g2tau = "./Data/g2tau_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
+	filename = "../Data/JC+fb/Old/evol%04d.txt" % (args.ID)
+	outname = "../Data/JC+fb/Old/OUT%04d.txt" % (args.ID)
+	specname = "../Data/JC+fb/Old/spec%04d.txt" % (args.ID)
+	g2tau = "../Data/JC+fb/Old/g2tau%04d.txt" % (args.ID)
 	
 file_out = open(outname,"a")
 file_out.close()
