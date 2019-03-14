@@ -1,9 +1,7 @@
 ID = 0000
 gamma_L = 12.566371, gamma_R = 12.566371, Om_e = 0.000000, Om_c = 0.000000, phi = 1.000000pi,
-Delta_e = 0.000000, Delta_c = 0.000000, g = 6.283185, Nphot_max = 4, initind = 1,
-tolerance = 1E-03, delay_L = 50, endt = 5, dt = 0.020000
+Delta_e = 0.000000, Delta_c = 0.000000, g = 6.283185, Nphot_max = 3, initind = 1,
+tolerance = 1E-03, delay_L = 100, endt = 20, dt = 0.010000
 
 coherent initial state amplitude for cavity: 0.000000 and the environment 0.000000
-Data file: M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,NB,NB_outa
-
-finished in: 00:00:07
+Data file: M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB

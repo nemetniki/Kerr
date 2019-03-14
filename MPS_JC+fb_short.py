@@ -105,7 +105,7 @@ phi     = args.phi*np.pi#pi
 ################################
 initJC     = np.zeros(2*N_env+1,complex)
 if args.cohC>0.:
-	preinitJC = coherent(args.cohC,np.zeros(N_env+1,complex))
+	preinitJC = coherentS(args.cohC,np.zeros(N_env+1,complex))
 	initJC[0::2] = preinitJC
 	preinitJC = None
 else:
@@ -113,7 +113,7 @@ else:
 
 initenv    = np.zeros(N_env+1,complex)
 if args.cohE>0.:
-	initenv = coherent(args.cohE,initenv)
+	initenv = coherentE(args.cohE/np.sqrt(gamma_L),initenv)
 else:
 	initenv[0] = 1.
 states     = [initenv]*L+(N-L)*[0.]
@@ -390,8 +390,9 @@ for M in range(0,N-L-1):
 #############################
 
 if args.spectrum:
-	om = np.linspace(-20,20,5000)
-	spec = spectrum(states,om,10*L,N_env+1,dt,N-L-2)
+	om = np.linspace(-20,20,5001)
+#	om = np.fftfreq(N-L-1,dt)
+	spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)
 	tau,g2_outa = g2_out(states,N-L-2,N_env+1,dt,N-L-2)
 	time_out = np.transpose(np.vstack((om,spec)))
 	f = open(specname, 'a')

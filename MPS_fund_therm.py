@@ -426,7 +426,7 @@ def SWAP(states,from_,direction,M,L,tol):
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 
-def coherent(alpha,array):
+def coherentE(alpha,array):
     for i in range(len(array)):
         array[i] = np.exp(-np.abs(alpha)**2/2)*(alpha)**i/np.sqrt(float(factorial(i)))
     return array

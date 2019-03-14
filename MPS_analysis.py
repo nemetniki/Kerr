@@ -159,23 +159,26 @@ def spectrum(states,freqs,pmax,N_env,dt,index):
     dB  = sc.eye(N_env,N_env,1)*np.sqrt(dt*np.arange(0,N_env)) 
     dBd = sc.eye(N_env,N_env,-1)*np.sqrt(dt*np.arange(1,N_env+1)) 
     sum_B     = np.zeros(freqs.shape,complex)
-    sum_B      = np.einsum("ilk,ilk",np.einsum("lj,ijk->ilk",np.einsum("jf,fl->jl",dBd,dB),states[index]),
-	                   np.conjugate(states[index]))*np.ones(freqs.shape)
+    offset    = np.einsum("ilk,ilk",np.einsum("lj,ijk->ilk",np.einsum("jf,fl->jl",dBd,dB),states[index]),
+	                   np.conjugate(states[index]))
+    sum_B      = (np.einsum("ilk,ilk",np.einsum("lj,ijk->ilk",np.einsum("jf,fl->jl",dBd,dB),states[index]),
+	                   np.conjugate(states[index]))-offset)*np.ones(freqs.shape)
     next_step  = np.einsum("ilk,ilm->km",np.einsum("ijk,lj->ilk",states[index],dBd),np.conjugate(states[index]))
     for p in range(1,pmax):
         if len(states[index-p].shape)==2:
-            sum_B     += (np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
-                                                              np.conjugate(states[index-p])),next_step)*
+            sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+                                                              np.conjugate(states[index-p])),next_step)-offset)*
                                   np.exp(1j*freqs*p*dt))
             next_step  = np.einsum("jk,jk",np.einsum("ij,ik->jk",next_step,states[index-p]),
                                            np.conjugate(states[index-p]))
         elif len(states[index-p].shape)==3:
-            sum_B     += (np.einsum("ij,ij",np.einsum("ilk,jlk->ij",np.einsum("imk,lm->ilk",states[index-p],dB),
-                                                          np.conjugate(states[index-p])),next_step)*
+            sum_B     += ((np.einsum("ij,ij",np.einsum("ilk,jlk->ij",np.einsum("imk,lm->ilk",states[index-p],dB),
+                                                          np.conjugate(states[index-p])),next_step)-offset)*
                               np.exp(1j*freqs*p*dt))
             next_step  = np.einsum("jmk,jml->kl",np.einsum("ij,imk->jmk",next_step,states[index-p]),
                                        np.conjugate(states[index-p]))
-    return 2./dt*np.real(sum_B)
+#    return 2./dt*np.real(sum_B)
+    return 1./dt*np.abs(sum_B)
     
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
