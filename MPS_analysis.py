@@ -148,37 +148,67 @@ def env_dens(env):
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 
+#############################
+### Cavity density matrix ###
+#############################
+def cav_dens(sys,N):
+	"""Calculating the expectation value of a given system observable
+	INPUT: observable of interest, the state of the system and timestep M
+	OUTPUT: expectation value of the observable"""
+
+	# Indices of the timebins initially: 0->furthest past, L->system, L+1->first future timebin
+	if len(sys.shape)==1:
+		dens = np.einsum("i,j->ji",sys,np.conjugate(sys))
+	elif len(sys.shape)==2:
+		dens = np.einsum("ik,jk->ji",sys,np.conjugate(sys))
+	
+	cav_dens = np.zeros((N,N),complex)
+	for i in range(N):
+		for j in range(N):
+			cav_dens[i][j] = dens[2*i][2*j]+dens[2*i+1][2*j+1]
+#	cav_dens[0][0] = cav_dens[0][0]-1
+#	print(cav_dens.shape)
+	return cav_dens
+
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+
 #######################
 ### Output spectrum ###
 #######################
-def spectrum(states,freqs,pmax,N_env,dt,index):
+def spectrum(states,freqs,pmax,N_env,dt,index):#,offset):
 #spec = spectrum(states,om,N-L-1,N_env+1,dt,N-L-1)
     """Calculating the expectation value of a given system observable
     INPUT: observable of interest, the state of the system and timestep M
     OUTPUT: expectation value of the observable"""
+    corr = np.zeros(pmax,complex)
     dB  = sc.eye(N_env,N_env,1)*np.sqrt(dt*np.arange(0,N_env)) 
     dBd = sc.eye(N_env,N_env,-1)*np.sqrt(dt*np.arange(1,N_env+1)) 
     sum_B     = np.zeros(freqs.shape,complex)
-    offset    = np.einsum("ilk,ilk",np.einsum("lj,ijk->ilk",np.einsum("jf,fl->jl",dBd,dB),states[index]),
-	                   np.conjugate(states[index]))
-    sum_B      = (np.einsum("ilk,ilk",np.einsum("lj,ijk->ilk",np.einsum("jf,fl->jl",dBd,dB),states[index]),
-	                   np.conjugate(states[index]))-offset)*np.ones(freqs.shape)
+#    first_state = np.einsum("ijk,lj->ilk",states[index],dB)
+#    corr[0] = np.einsum("ilk,ilk",np.einsum("ijk,lj->ilk",states[index],np.einsum("ik,kj->ij",dB,dBd)),np.conjugate(states[index]))-offset
+#    offset    = np.einsum("ilk,ilk",first_state,np.conjugate(first_state))
+#    sum_B = corr[0]*np.ones(freqs.shape)
     next_step  = np.einsum("ilk,ilm->km",np.einsum("ijk,lj->ilk",states[index],dBd),np.conjugate(states[index]))
     for p in range(1,pmax):
+        if p==1:
+            offset = 0.#(np.einsum("ij,ij",np.einsum("ilk,jlk->ij",np.einsum("imk,lm->ilk",states[index-p],dB),
+                       #                                   np.conjugate(states[index-p])),next_step))
         if len(states[index-p].shape)==2:
-            sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
-                                                              np.conjugate(states[index-p])),next_step)-offset)*
-                                  np.exp(1j*freqs*p*dt))
+            corr[p] = 	((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+                                                              np.conjugate(states[index-p])),next_step)-offset))
+            sum_B     += corr[p]*np.exp(1j*freqs*p*dt)
             next_step  = np.einsum("jk,jk",np.einsum("ij,ik->jk",next_step,states[index-p]),
                                            np.conjugate(states[index-p]))
         elif len(states[index-p].shape)==3:
-            sum_B     += ((np.einsum("ij,ij",np.einsum("ilk,jlk->ij",np.einsum("imk,lm->ilk",states[index-p],dB),
-                                                          np.conjugate(states[index-p])),next_step)-offset)*
-                              np.exp(1j*freqs*p*dt))
+            corr[p]     += ((np.einsum("ij,ij",np.einsum("ilk,jlk->ij",np.einsum("imk,lm->ilk",states[index-p],dB),
+                                                          np.conjugate(states[index-p])),next_step)-offset))
+            sum_B     += corr[p]*np.exp(1j*freqs*p*dt)
             next_step  = np.einsum("jmk,jml->kl",np.einsum("ij,imk->jmk",next_step,states[index-p]),
                                        np.conjugate(states[index-p]))
 #    return 2./dt*np.real(sum_B)
-    return 1./dt*np.abs(sum_B)
+    return 1./dt*np.abs(sum_B),corr
     
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#

@@ -77,6 +77,9 @@ parser.add_argument("-endt",type=float, default = 10, help ='end of time evoluti
 parser.add_argument("-dt",type=float,default = 0.005, help ='dt')
 parser.add_argument("-cohC",type=float, default = 0.,help='coherent initial state for the cavity')
 parser.add_argument("-cohE",type=float, default = 0.,help='coherent initial state for the environment')
+parser.add_argument("-Dele",type=float, default = 0.,help='Detuning of the atom')
+parser.add_argument("-Delc",type=float, default = 0.,help='Detuning of the cavity')
+parser.add_argument("-spec_cutoff",type=int, default = 80,help='length of time in terms of tau over which the spectrum is calculated')
 
 args = parser.parse_args()
 
@@ -96,8 +99,8 @@ gamma_L = args.gamma_L#2*g#7.5
 gamma_R = args.gamma_R#2*g#7.5
 Ome     = args.Om_e#0.#1.5*np.pi
 Omc     = args.Om_c#0.#1.5*np.pi
-Dele    = 0.#1.0
-Delc    = 0.#1.0
+Dele    = args.Dele#1.0
+Delc    = args.Delc#1.0
 phi     = args.phi*np.pi#pi
 
 ################################
@@ -105,7 +108,7 @@ phi     = args.phi*np.pi#pi
 ################################
 initJC     = np.zeros(2*N_env+1,complex)
 if args.cohC>0.:
-	preinitJC = coherentS(args.cohC,np.zeros(N_env+1,complex))
+	preinitJC = coherentS(np.sqrt(args.cohC),np.zeros(N_env+1,complex))
 	initJC[0::2] = preinitJC
 	preinitJC = None
 else:
@@ -138,6 +141,7 @@ nB2 = np.diag(nBdiag-1)
 g2Bop = nB*nB2
 
 Bdens = env_dens(states[0])
+Cdens = cav_dens(states[ind_sys],N_env)
 NB    = np.einsum("ij,ij",Bdens,nB)
 g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
 
@@ -150,41 +154,45 @@ if args.cohC>0:
 	outname = "./Data/JC+fb/New/OUT%04d_coherent_cavity.txt" % (args.ID)
 	specname = "./Data/JC+fb/New/spec%04d_coherent_cavity.txt" % (args.ID)
 	g2tau = "./Data/JC+fb/New/g2tau%04d_coherent_cavity.txt" % (args.ID)
+	corrf = "./Data/JC+fb/New/corr%04d_coherent_cavity.txt" % (args.ID)
 	Bdenspath = "./Data/JC+fb/New/Bdens%04d_coherent_cavity" % (args.ID)
-	if not os.path.exists(Bdenspath):
-		os.makedirs(Bdenspath)
+	Cdenspath = "./Data/JC+fb/New/Cdens%04d_coherent_cavity" % (args.ID)
 elif args.cohE>0:
 	filename = "./Data/JC+fb/New/evol%04d_coherent_environment.txt" % (args.ID)
 	outname = "./Data/JC+fb/New/OUT%04d_coherent_environment.txt" % (args.ID)
 	specname = "./Data/JC+fb/New/spec%04d_coherent_environment.txt" % (args.ID)
 	g2tau = "./Data/JC+fb/New/g2tau%04d_coherent_environment.txt" % (args.ID)
+	corrf = "./Data/JC+fb/New/corr%04d_coherent_environment.txt" % (args.ID)
 	Bdenspath = "./Data/JC+fb/New/Bdens%04d_coherent_environment" % (args.ID)
-	if not os.path.exists(Bdenspath):
-		os.makedirs(Bdenspath)
+	Cdenspath = "./Data/JC+fb/New/Cdens%04d_coherent_environment" % (args.ID)
 elif Ome>0:
 	filename = "./Data/JC+fb/New/evol%04d_atom_drive.txt" % (args.ID)
 	outname = "./Data/JC+fb/New/OUT%04d_atom_drive.txt" % (args.ID)
 	specname = "./Data/JC+fb/New/spec%04d_atom_drive.txt" % (args.ID)
 	g2tau = "./Data/JC+fb/New/g2tau%04d_atom_drive.txt" % (args.ID)
+	corrf = "./Data/JC+fb/New/corr%04d_atom_drive.txt" % (args.ID)
 	Bdenspath = "./Data/JC+fb/New/Bdens%04d_atom_drive" % (args.ID)
-	if not os.path.exists(Bdenspath):
-		os.makedirs(Bdenspath)
+	Cdenspath = "./Data/JC+fb/New/Cdens%04d_atom_drive" % (args.ID)
 elif Omc>0:
 	filename = "./Data/JC+fb/New/evol%04d_cavity_drive.txt" % (args.ID)
 	outname = "./Data/JC+fb/New/OUT%04d_cavity_drive.txt" % (args.ID)
 	specname = "./Data/JC+fb/New/spec%04d_cavity_drive.txt" % (args.ID)
 	g2tau = "./Data/JC+fb/New/g2tau%04d_cavity_drive.txt" % (args.ID)
+	corrf = "./Data/JC+fb/New/corr%04d_cavity_drive.txt" % (args.ID)
 	Bdenspath = "./Data/JC+fb/New/Bdens%04d_cavity_drive" % (args.ID)
-	if not os.path.exists(Bdenspath):
-		os.makedirs(Bdenspath)
+	Cdenspath = "./Data/JC+fb/New/Cdens%04d_cavity_drive" % (args.ID)
 else:
 	filename = "./Data/JC+fb/New/evol%04d.txt" % (args.ID)
 	outname = "./Data/JC+fb/New/OUT%04d.txt" % (args.ID)
 	specname = "./Data/JC+fb/New/spec%04d.txt" % (args.ID)
 	g2tau = "./Data/JC+fb/New/g2tau%04d.txt" % (args.ID)
+	corrf = "./Data/JC+fb/New/corr%04d.txt" % (args.ID)
 	Bdenspath = "./Data/JC+fb/New/Bdens%04d" % (args.ID)
-	if not os.path.exists(Bdenspath):
-		os.makedirs(Bdenspath)
+	Cdenspath = "./Data/JC+fb/New/Cdens%04d" % (args.ID)
+if not os.path.exists(Bdenspath):
+	os.makedirs(Bdenspath)
+if not os.path.exists(Cdenspath):
+	os.makedirs(Cdenspath)
 	
 file_out = open(outname,"a")
 file_out.close()
@@ -208,17 +216,30 @@ file_evol.close()
 file_evol = open(filename,"a")
 
 if args.Wigner:
-	file_Bdens = open(Bdenspath+"/00.txt","a")
+	file_Bdens = open(Bdenspath+"/000.txt","a")
 	file_Bdens.close()
-	file_Bdens = open(Bdenspath+"/00.txt","r+")
+	file_Bdens = open(Bdenspath+"/000.txt","r+")
 	file_Bdens.truncate()
 	file_Bdens.close()
-	file_Bdens = open(Bdenspath+"/00.txt","a")
+	file_Bdens = open(Bdenspath+"/000.txt","a")
 
-	np.savetxt(Bdenspath+"/00.txt",Bdens.view(float))
+	np.savetxt(Bdenspath+"/000.txt",Bdens.view(float))
 	file_Bdens.write("\n")
 	file_Bdens.flush()
 	Bdens_count=0
+	file_Bdens.close()
+
+	file_Cdens = open(Cdenspath+"/000.txt","a")
+	file_Cdens.close()
+	file_Cdens = open(Cdenspath+"/000.txt","r+")
+	file_Cdens.truncate()
+	file_Cdens.close()
+	file_Cdens = open(Cdenspath+"/000.txt","a")
+
+	np.savetxt(Cdenspath+"/000.txt",Cdens.view(float))
+	file_Cdens.write("\n")
+	file_Cdens.flush()
+	file_Cdens.close()
 
 ######################
 ### Time evolution ###
@@ -259,6 +280,36 @@ for M in range(0,N-L-1):
 	file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
 	file_evol.flush()
 	file_out.close()
+
+	Cdens = cav_dens(states[ind_sys],N_env)
+
+	if args.Wigner:
+		if M*dt<15.1 and (M*dt)%1==0:
+			file_Cdens = open(Cdenspath+"/%03d.txt"%((M+1)*dt),"a")
+			file_Cdens.close()
+			file_Cdens = open(Cdenspath+"/%03d.txt"%((M+1)*dt),"r+")
+			file_Cdens.truncate()
+			file_Cdens.close()
+			file_Cdens = open(Cdenspath+"/%03d.txt"%((M+1)*dt),"a")
+
+			np.savetxt(Cdenspath+"/%03d.txt"%((M+1)*dt),Cdens.view(float))
+			file_Cdens.write("\n")
+			file_Cdens.flush()
+			file_Cdens.close()
+
+		elif M*dt>15 and (M*dt)%10==0:
+	 
+			file_Cdens = open(Cdenspath+"/%03d.txt"%((M+1)*dt),"a")
+			file_Cdens.close()
+			file_Cdens = open(Cdenspath+"/%03d.txt"%((M+1)*dt),"r+")
+			file_Cdens.truncate()
+			file_Cdens.close()
+			file_Cdens = open(Cdenspath+"/%03d.txt"%((M+1)*dt),"a")
+
+			np.savetxt(Cdenspath+"/%03d.txt"%((M+1)*dt),Cdens.view(float))
+			file_Cdens.write("\n")
+			file_Cdens.flush()
+			file_Cdens.close()
 
 	#%%%%%%%%%%%%%%#
 	# Unitary step #
@@ -364,19 +415,33 @@ for M in range(0,N-L-1):
 #	g2_ta,NB = g2_t(states[M],N_env+1,dt)
 	Bdens = env_dens(states[M])
 	if args.Wigner:
-		if M%(int(percent10))==0:
-			Bdens_count += 1
-	 
-			file_Bdens = open(Bdenspath+"/%02d.txt"%Bdens_count,"a")
+		if M*dt<15.1 and ((M+1)*dt)%1==0:
+			file_Bdens = open(Bdenspath+"/%03d.txt"%((M+1)*dt),"a")
 			file_Bdens.close()
-			file_Bdens = open(Bdenspath+"/%02d.txt"%Bdens_count,"r+")
+			file_Bdens = open(Bdenspath+"/%03d.txt"%((M+1)*dt),"r+")
 			file_Bdens.truncate()
 			file_Bdens.close()
-			file_Bdens = open(Bdenspath+"/%02d.txt"%Bdens_count,"a")
+			file_Bdens = open(Bdenspath+"/%03d.txt"%((M+1)*dt),"a")
 
-			np.savetxt(Bdenspath+"/%02d.txt"%Bdens_count,Bdens.view(float))
+			np.savetxt(Bdenspath+"/%03d.txt"%((M+1)*dt),Bdens.view(float))
 			file_Bdens.write("\n")
 			file_Bdens.flush()
+			file_Bdens.close()
+
+		elif ((M+1)*dt)>15 and ((M+1)*dt)%10==0:
+	 
+			file_Bdens = open(Bdenspath+"/%03d.txt"%((M+1)*dt),"a")
+			file_Bdens.close()
+			file_Bdens = open(Bdenspath+"/%03d.txt"%((M+1)*dt),"r+")
+			file_Bdens.truncate()
+			file_Bdens.close()
+			file_Bdens = open(Bdenspath+"/%03d.txt"%((M+1)*dt),"a")
+
+			np.savetxt(Bdenspath+"/%03d.txt"%((M+1)*dt),Bdens.view(float))
+			file_Bdens.write("\n")
+			file_Bdens.flush()
+			file_Bdens.close()
+
 	NB    = np.einsum("ij,ij",Bdens,nB)
 	g2_t  = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
 	#NB_outa = NB_out(states[M],N_env+1,NB_outa,dt)
@@ -392,7 +457,7 @@ for M in range(0,N-L-1):
 if args.spectrum:
 	om = np.linspace(-20,20,5001)
 #	om = np.fftfreq(N-L-1,dt)
-	spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)
+	spec,corr = spectrum(states,om,args.spec_cutoff*L,N_env+1,dt,N-L-2)#,NB*dt)
 	tau,g2_outa = g2_out(states,N-L-2,N_env+1,dt,N-L-2)
 	time_out = np.transpose(np.vstack((om,spec)))
 	f = open(specname, 'a')
@@ -407,6 +472,13 @@ if args.spectrum:
 	f.truncate()
 	np.savetxt(g2tau,time_out)
 	time_out=None
+	corr_out = np.transpose(np.vstack((np.arange(len(corr))*dt,corr)))
+	f = open(corrf, 'a')
+	f.close()
+	f = open(corrf, 'r+')
+	f.truncate()
+	np.savetxt(corrf,corr_out)
+	corr_out=None
 
 ###################################
 ### Relocating OC to system bin ###

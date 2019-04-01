@@ -1,0 +1,9 @@
+ID = 0210
+gamma_L = 0.400000, gamma_R = 0.000000, Om_e = 0.000000, Om_c = 0.100000, phi = 0.000000pi,
+Delta_e = 7.000000, Delta_c = 0.000000, g = 4.000000, Nphot_max = 5, initind = 0,
+tolerance = 1E-04, delay_L = 100, endt = 500, dt = 0.010000
+
+coherent initial state amplitude for cavity: 0.000000 and the environment 0.000000
+Data file: M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB
+
+finished in: 02:11:16
