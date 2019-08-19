@@ -1,0 +1,603 @@
+M = 0  out of  1000
+M = 100  out of  1000
+M = 200  out of  1000
+M = 300  out of  1000
+M = 400  out of  1000
+M = 0  out of  1000
+M = 100  out of  1000
+M = 500  out of  1000
+M = 200  out of  1000
+M = 600  out of  1000
+M = 0  out of  1000
+M = 300  out of  1000
+M = 700  out of  1000
+M = 100  out of  1000
+M = 400  out of  1000
+M = 800  out of  1000
+M = 200  out of  1000
+M = 500  out of  1000
+M = 300  out of  1000
+M = 600  out of  1000
+M = 400  out of  1000
+M = 0  out of  1000
+M = 700  out of  1000
+M = 500  out of  1000
+M = 100  out of  1000
+M = 600  out of  1000
+M = 800  out of  1000
+M = 200  out of  1000
+M = 700  out of  1000
+M = 900  out of  1000
+M = 300  out of  1000
+M = 800  out of  1000
+M = 400  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:271: RuntimeWarning: invalid value encountered in double_scalars
+  g2_ta =  exp_sys(g2cop,states[ind_sys])/nc_exp**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 447, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 900  out of  1000
+M = 500  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:271: RuntimeWarning: invalid value encountered in double_scalars
+  g2_ta =  exp_sys(g2cop,states[ind_sys])/nc_exp**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+MPS_JC+fb_short.py:433: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t  = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 447, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 600  out of  1000
+M = 700  out of  1000
+M = 800  out of  1000
+M = 900  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:271: RuntimeWarning: invalid value encountered in double_scalars
+  g2_ta =  exp_sys(g2cop,states[ind_sys])/nc_exp**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 447, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 0  out of  1000
+M = 0  out of  1000
+M = 100  out of  1000
+M = 100  out of  1000
+M = 200  out of  1000
+M = 0  out of  1000
+M = 200  out of  1000
+M = 300  out of  1000
+M = 100  out of  1000
+M = 300  out of  1000
+M = 400  out of  1000
+M = 200  out of  1000
+M = 400  out of  1000
+M = 500  out of  1000
+M = 300  out of  1000
+M = 500  out of  1000
+M = 600  out of  1000
+M = 400  out of  1000
+M = 700  out of  1000
+M = 600  out of  1000
+M = 500  out of  1000
+M = 800  out of  1000
+M = 700  out of  1000
+M = 600  out of  1000
+M = 900  out of  1000
+M = 800  out of  1000
+M = 700  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 447, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 900  out of  1000
+M = 800  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+MPS_JC+fb_short.py:433: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t  = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 447, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 900  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 447, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 0  out of  1000
+M = 100  out of  1000
+M = 200  out of  1000
+M = 300  out of  1000
+M = 400  out of  1000
+M = 500  out of  1000
+M = 600  out of  1000
+M = 700  out of  1000
+M = 800  out of  1000
+M = 900  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:271: RuntimeWarning: invalid value encountered in double_scalars
+  g2_ta =  exp_sys(g2cop,states[ind_sys])/nc_exp**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+MPS_JC+fb_short.py:433: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t  = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 447, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 0  out of  1000
+M = 100  out of  1000
+M = 0  out of  1000
+M = 200  out of  1000
+M = 100  out of  1000
+M = 300  out of  1000
+M = 0  out of  1000
+M = 200  out of  1000
+M = 400  out of  1000
+M = 100  out of  1000
+M = 300  out of  1000
+M = 500  out of  1000
+M = 200  out of  1000
+M = 400  out of  1000
+M = 600  out of  1000
+M = 300  out of  1000
+M = 500  out of  1000
+M = 700  out of  1000
+M = 400  out of  1000
+M = 600  out of  1000
+M = 800  out of  1000
+M = 500  out of  1000
+M = 900  out of  1000
+M = 700  out of  1000
+M = 600  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+MPS_JC+fb_short.py:433: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t  = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 447, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 800  out of  1000
+M = 700  out of  1000
+M = 900  out of  1000
+M = 800  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 447, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 900  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 447, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 0  out of  1000
+M = 100  out of  1000
+M = 200  out of  1000
+M = 300  out of  1000
+M = 400  out of  1000
+M = 500  out of  1000
+M = 600  out of  1000
+M = 700  out of  1000
+M = 800  out of  1000
+M = 900  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 447, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 0  out of  1000
+M = 100  out of  1000
+M = 200  out of  1000
+M = 300  out of  1000
+M = 0  out of  1000
+M = 400  out of  1000
+M = 100  out of  1000
+M = 500  out of  1000
+M = 200  out of  1000
+M = 600  out of  1000
+M = 0  out of  1000
+M = 300  out of  1000
+M = 700  out of  1000
+M = 100  out of  1000
+M = 400  out of  1000
+M = 800  out of  1000
+M = 200  out of  1000
+M = 500  out of  1000
+M = 900  out of  1000
+M = 300  out of  1000
+M = 600  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+MPS_JC+fb_short.py:433: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t  = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 447, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 400  out of  1000
+M = 700  out of  1000
+M = 500  out of  1000
+M = 800  out of  1000
+M = 600  out of  1000
+M = 900  out of  1000
+M = 700  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 447, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 800  out of  1000
+M = 900  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 447, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 0  out of  1000
+M = 100  out of  1000
+M = 200  out of  1000
+M = 300  out of  1000
+M = 400  out of  1000
+M = 500  out of  1000
+M = 600  out of  1000
+M = 700  out of  1000
+M = 800  out of  1000
+M = 900  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+MPS_JC+fb_short.py:433: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t  = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 447, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 0  out of  1000
+M = 100  out of  1000
+M = 200  out of  1000
+M = 300  out of  1000
+M = 400  out of  1000
+M = 0  out of  1000
+M = 500  out of  1000
+M = 100  out of  1000
+M = 600  out of  1000
+M = 200  out of  1000
+M = 700  out of  1000
+M = 300  out of  1000
+M = 800  out of  1000
+M = 400  out of  1000
+M = 900  out of  1000
+M = 500  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 447, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 600  out of  1000
+M = 700  out of  1000
+M = 800  out of  1000
+M = 900  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 447, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 0  out of  1000
+M = 100  out of  1000
+M = 200  out of  1000
+M = 300  out of  1000
+M = 400  out of  1000
+M = 500  out of  1000
+M = 600  out of  1000
+M = 700  out of  1000
+M = 800  out of  1000
+M = 900  out of  1000
+M = 0  out of  1000
+M = 100  out of  1000
+M = 200  out of  1000
+M = 300  out of  1000
+M = 400  out of  1000
+M = 500  out of  1000
+M = 600  out of  1000
+M = 700  out of  1000
+M = 800  out of  1000
+M = 900  out of  1000
+M = 0  out of  1000
+M = 100  out of  1000
+M = 200  out of  1000
+M = 300  out of  1000
+M = 400  out of  1000
+M = 500  out of  1000
+M = 600  out of  1000
+M = 700  out of  1000
+M = 800  out of  1000
+M = 900  out of  1000
+M = 0  out of  1000
+M = 100  out of  1000
+M = 200  out of  1000
+M = 300  out of  1000
+M = 400  out of  1000
+M = 500  out of  1000
+M = 600  out of  1000
+M = 700  out of  1000
+M = 800  out of  1000
+M = 900  out of  1000
+M = 0  out of  1000
+M = 100  out of  1000
+M = 200  out of  1000
+M = 300  out of  1000
+M = 400  out of  1000
+M = 500  out of  1000
+M = 600  out of  1000
+M = 700  out of  1000
+M = 800  out of  1000
+M = 900  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+MPS_JC+fb_short.py:438: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t  = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 452, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 0  out of  1000
+M = 100  out of  1000
+M = 200  out of  1000
+M = 0  out of  1000
+M = 300  out of  1000
+M = 100  out of  1000
+M = 400  out of  1000
+M = 200  out of  1000
+M = 500  out of  1000
+M = 300  out of  1000
+M = 600  out of  1000
+M = 400  out of  1000
+M = 700  out of  1000
+M = 500  out of  1000
+M = 800  out of  1000
+M = 600  out of  1000
+M = 900  out of  1000
+M = 700  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 452, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 800  out of  1000
+M = 900  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 452, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 0  out of  1000
+M = 100  out of  1000
+M = 200  out of  1000
+M = 300  out of  1000
+M = 0  out of  1000
+M = 400  out of  1000
+M = 100  out of  1000
+M = 500  out of  1000
+M = 200  out of  1000
+M = 600  out of  1000
+M = 0  out of  1000
+M = 300  out of  1000
+M = 700  out of  1000
+M = 100  out of  1000
+M = 400  out of  1000
+M = 800  out of  1000
+M = 200  out of  1000
+M = 500  out of  1000
+M = 900  out of  1000
+M = 300  out of  1000
+M = 600  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:271: RuntimeWarning: invalid value encountered in double_scalars
+  g2_ta =  exp_sys(g2cop,states[ind_sys])/nc_exp**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+MPS_JC+fb_short.py:438: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t  = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 452, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 400  out of  1000
+M = 700  out of  1000
+M = 500  out of  1000
+M = 800  out of  1000
+M = 600  out of  1000
+M = 900  out of  1000
+M = 700  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:271: RuntimeWarning: invalid value encountered in double_scalars
+  g2_ta =  exp_sys(g2cop,states[ind_sys])/nc_exp**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 452, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 800  out of  1000
+M = 900  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:271: RuntimeWarning: invalid value encountered in double_scalars
+  g2_ta =  exp_sys(g2cop,states[ind_sys])/nc_exp**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+Traceback (most recent call last):
+  File "MPS_JC+fb_short.py", line 452, in <module>
+    spec = spectrum(states,om,30*L,N_env+1,dt,N-L-2)/NB
+  File "/home/nnem614/Documents/Research/Jupyter/MPS/MPS_analysis.py", line 195, in spectrum
+    sum_B     += ((np.einsum("ij,ij",np.einsum("il,jl->ij",np.einsum("im,lm->il",states[index-p],dB),
+  File "/home/nnem614/Documents/anaconda3/envs/py35/lib/python3.5/site-packages/numpy/core/einsumfunc.py", line 948, in einsum
+    return c_einsum(*operands, **kwargs)
+ValueError: operands could not be broadcast together with remapped shapes [original->remapped]: (7,2)->(7,newaxis,2) (4,4)->(4,4) 
+M = 0  out of  1000
+M = 100  out of  1000
+M = 200  out of  1000
+M = 300  out of  1000
+M = 400  out of  1000
+M = 500  out of  1000
+M = 600  out of  1000
+M = 700  out of  1000
+M = 800  out of  1000
+M = 900  out of  1000
+MPS_JC+fb_short.py:143: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:272: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
+MPS_JC+fb_short.py:438: RuntimeWarning: invalid value encountered in cdouble_scalars
+  g2_t  = np.einsum("ij,ij",Bdens,g2Bop)/NB**2
+MPS_JC+fb_short.py:486: ComplexWarning: Casting complex values to real discards the imaginary part
+  file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,exc_pop,gr_pop,nc_exp,g2_ta,g2_t,NB))
