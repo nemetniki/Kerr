@@ -55,12 +55,12 @@ def U(tk,tS,tl,M,gamma_L,gamma_R,dt,phi,Ome,Omc,g,Delc,Dele): #tk: time bin stat
 			if gamma_L is not 0:
 				new_state_tk[1:,:,:] = np.einsum("i,ijk->ijk",np.sqrt(n*gamma_L*dt),state[0:-1,:,:])
 			if gamma_R is not 0:
-				new_state_tl[:,:,1:] = np.einsum("k,ijk->ijk",np.sqrt(n*gamma_R*dt)*np.exp(-1j*phi),state[:,:,0:-1])
+				new_state_tl[:,:,1:] = np.einsum("k,ijk->ijk",np.sqrt(n*gamma_R*dt)*np.exp(1j*phi),state[:,:,0:-1])
 		elif legs==4:
 			if gamma_L is not 0:
 				new_state_tk[1:,:,:,:] = np.einsum("i,ijkl->ijkl",np.sqrt(n*gamma_L*dt),state[0:-1,:,:,:])
 			if gamma_R is not 0:
-				new_state_tl[:,:,1:,:] = np.einsum("k,ijkl->ijkl",np.sqrt(n*gamma_R*dt)*np.exp(-1j*phi),state[:,:,0:-1,:])
+				new_state_tl[:,:,1:,:] = np.einsum("k,ijkl->ijkl",np.sqrt(n*gamma_R*dt)*np.exp(1j*phi),state[:,:,0:-1,:])
 		return new_state_tk+new_state_tl
 	def c(state):
     #        print("c",state[0,2,0], state.shape, len(state.shape))
