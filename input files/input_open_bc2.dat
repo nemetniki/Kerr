@@ -1,0 +1,10 @@
+683 .9 .9 0.11 0.11 0.005 .01 0. -endt 10000. -L 5 -tol -5 -dt .1 -Nphot 3 -initind1=1 -initind2=0
+684 .9 .9 0.11 0.11 0.005 .01 0. -endt 10000. -L 10 -tol -5 -dt .1 -Nphot 3 -initind1=1 -initind2=0
+685 .9 .9 0.11 0.11 0.005 .01 0. -endt 10000. -L 50 -tol -5 -dt .1 -Nphot 3 -initind1=1 -initind2=0
+686 .9 .9 0.11 0.11 0.005 .01 0. -endt 10000. -L 100 -tol -5 -dt .1 -Nphot 3 -initind1=1 -initind2=0
+687 .9 .9 0.11 0.11 0.005 .01 0. -endt 10000. -L 500 -tol -5 -dt .1 -Nphot 3 -initind1=1 -initind2=0
+688 .9 .9 0.11 0.11 0.001 .01 0. -endt 10000. -L 5 -tol -5 -dt .1 -Nphot 3 -initind1=1 -initind2=0
+689 .9 .9 0.11 0.11 0.001 .01 0. -endt 10000. -L 10 -tol -5 -dt .1 -Nphot 3 -initind1=1 -initind2=0
+690 .9 .9 0.11 0.11 0.001 .01 0. -endt 10000. -L 50 -tol -5 -dt .1 -Nphot 3 -initind1=1 -initind2=0
+691 .9 .9 0.11 0.11 0.001 .01 0. -endt 10000. -L 100 -tol -5 -dt .1 -Nphot 3 -initind1=1 -initind2=0
+692 .9 .9 0.11 0.11 0.001 .01 0. -endt 10000. -L 500 -tol -5 -dt .1 -Nphot 3 -initind1=1 -initind2=0
