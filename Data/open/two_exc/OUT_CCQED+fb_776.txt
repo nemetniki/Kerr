@@ -1,0 +1,17 @@
+Data file index: 776
+
+System1 parameters: g1 = 0.050000, Delta_e1 = 0.000000, Delta_c1 = 0.000000, initial index: 1, Omega_e1 = 0.000000, Omega_c1 = 0.000000
+
+System 2 parameters: g2 = 0.045000, Delta_e2 = 0.000000, Delta_c2 = 0.000000, initial index: 1, Omega_e2 = 0.000000, Omega_c2 = 0.000000
+
+Environment parameters: gamma_B1 = 0.500000, gamma_B2 = 0.500000
+
+Connecting fibre parameters: gamma_F1 = 0.110000, gamma_F2 = 0.110000,phi = 0.000000pi, delay_L = 500
+
+Numerical parameters: Nphot_max = 4, tolerance = 1E-04, endt = 3000, dt = 0.100000
+
+Coherent initial state amplitude for cavity1: 0.000000, cavity2: 0.000000, the environment on the left 0.000000, on the right: 0.000000 and in the fibre: 0.000000
+
+thermal photon number: 0.000000
+
+Data file: M*dt,norm,pop1,pop2,nc1_exp,nc2_exp,g2_1_exp,g2_2_exp

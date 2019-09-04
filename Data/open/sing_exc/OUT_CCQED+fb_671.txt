@@ -15,3 +15,5 @@ Coherent initial state amplitude for cavity1: 0.000000, cavity2: 0.000000, the e
 thermal photon number: 0.000000
 
 Data file: M*dt,norm,pop1,pop2,nc1_exp,nc2_exp,g2_1_exp,g2_2_exp
+
+finished in: 36:13:34
