@@ -71,6 +71,7 @@ parser.add_argument("gamF2",type=float,help='gamma_F2')
 parser.add_argument("g1",type=float,help='g1: cavity-atom coupling on the left')
 parser.add_argument("g2",type=float,help='g2: cavity-atom coupling on the right')
 parser.add_argument("phi",type=float,help='phi/pi phase of the propagation from one cavity to another')
+parser.add_argument("-psi",type=float,default = 0,help='psi/pi phase difference between initial conditions in the two cavity-qed systems')
 parser.add_argument("-initind1",type=int,default = 0,help='initial index of system 1 vector')
 parser.add_argument("-initind2",type=int,default = 0,help='initial index of system 2 vector')
 parser.add_argument("-Ome1",type=float,default = 0,help='Omega_e1: direct driving strength of the TLS on the left')
@@ -111,7 +112,7 @@ Ome     = np.array([args.Ome1,args.Ome2])
 Omc     = np.array([args.Omc1,args.Omc2])
 Dele    = np.array([0.,0.])
 Delc    = np.array([0.,0.])
-phi     = args.phi*np.pi#np.array([0.,args.phi*np.pi])#
+phi     = np.array([0.,args.phi*np.pi])
 thermal = False
 
 ########################################################################################################################################################################################################
@@ -126,34 +127,37 @@ initJC1 = np.zeros(len_sys,complex)
 initJC2 = np.zeros(len_sys,complex)
 #Coherent driving for cavities
 if args.cohC1>0. or args.cohC2>0.:
-	preJC   = coherent(args.cohC,0,np.zeros(N_env+1,complex))
-	prenorm = np.sqrt(np.sum(preJC**2))
+	preJC1   = coherent(args.cohC1,0,np.zeros(len_env,complex))
+	preJC2   = coherent(args.cohC2,0,np.zeros(len_env,complex))
+	prenorm1 = np.sqrt(np.sum(preJC1**2))
+	prenorm1 = np.sqrt(np.sum(preJC1**2))
 	if args.cohC1>0. and args.cohC2==0.:
 		if args.initind1==0:
-			initJC1[0::2] = preJC/prenorm
+			initJC1[0::2] = preJC1/prenorm1
 		elif args.initind1==1:
-			initJC1[1::2] = preJC[:-1]/prenorm
+			initJC1[1::2] = preJC1[:-1]/prenorm1
 		initJC2[args.initind2]  = 1.
 	elif args.cohC1>0. and args.cohC2==0.:
 		initJC1[args.initind1]  = 1.
 		if args.initind2==0:
-			initJC2[0::2] = preJC/prenorm
+			initJC2[0::2] = preJC2/prenorm2
 		elif args.initind2==1:
-			initJC2[1::2] = preJC[:-1]/prenorm
+			initJC2[1::2] = preJC2[:-1]/prenorm2
 	else:
 		if args.initind1==0:
-			initJC1[0::2] = preJC/prenorm
+			initJC1[0::2] = preJC1/prenorm1
 		elif args.initind1==1:
-			initJC1[1::2] = preJC[:-1]/prenorm
+			initJC1[1::2] = preJC1[:-1]/prenorm1
 		if args.initind2==0:
-			initJC2[0::2] = preJC/prenorm
+			initJC2[0::2] = preJC2/prenorm2
 		elif args.initind2==1:
-			initJC2[1::2] = preJC[:-1]/prenorm
-	preJC = None
+			initJC2[1::2] = preJC2[:-1]/prenorm2
+	preJC1 = None
+	preJC2 = None
 #Fock initial state
 else:
 	initJC1[args.initind1] = 1.
-	initJC2[args.initind2] = 1.
+	initJC2[args.initind2] = 1.*np.exp(1j*args.psi*np.pi)
 
 #%%%%%%%%%%%%%#
 # ENVIRONMENT #
@@ -208,14 +212,12 @@ sz     = see-sgg
 #print("sigmaz",sz)
 
 # n_c and g2_c construction
-n_env = np.diag(np.arange(len_env))
 ncdiag = (np.linspace(0,len_sys-1,len_sys)/2.).astype(np.int64)
 nc     = np.diag(ncdiag)
 #print("nc",nc)
 gcdiag = np.zeros(len_env,complex)
 for i in range(1,len_env):
 	gcdiag[i] = gcdiag[i-1]+2*(i-1)
-g2e    = np.diag(gcdiag)
 g2c    = np.diag(np.sort(np.concatenate((gcdiag[:-1],gcdiag))))
 
 
@@ -262,19 +264,33 @@ file_evol = open(filename,"a")
 file_evol.close()
 file_evol = open(filename,"r+")
 file_evol.truncate()
-file_evol.close()
+file_env.close()
 file_evol = open(filename,"a")
 
-file_env = open(envname,"a")			#new
-file_env.close()				#new
-file_env = open(envname,"r+")			#new
-file_env.truncate()				#new
-file_env.close()				#new
-file_env = open(envname,"a")			#new
+file_env = open(envname,"a")
+file_env.close()
+file_env = open(envname,"r+")
+file_env.truncate()
+file_env.close()
+file_env = open(envname,"a")
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+# Initial envionment expectation values #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+
+ne_exp1  = exp_sys(ne,sys_state,1) #photon number in reservoir 1
+ne_exp2  = exp_sys(ne,sys_state,2) #photon number in reservoir 2
+g2e_exp1  = exp_sys(g2e,sys_state,1)/nc_exp1**2 #correlation function from the field in reservoir 1 
+g2e_exp2  = exp_sys(g2e,sys_state,2)/nc_exp2**2 #correlation function from the field in reservoir 2 
+
+
 ########################################################################################################################################################################################################
 ######################
 ### Time evolution ###
 ######################
+## S1 and S2: system 1 and 2
+## F1 and F2: present fibre bins next to system 1 and 2
+## B1 and B2: present environment bins next to system 1 and 2
 
 for M in range(0,N):
 	#    print(M*dt)
@@ -307,19 +323,13 @@ for M in range(0,N):
 	file_evol.flush()
 	file_out.close()
 
-	NB1                       = exp_env(n_env,statesB1[M],1)					#new
-	g2B1                      = exp_env(g2e,statesB1[M],1)						#new
-	NF1                       = exp_env(n_env,statesF[0],1)						#new
-	g2F1                      = exp_env(g2e,statesF[0],1)						#new
-	NB2                       = exp_env(n_env,statesB2[M],2)					#new
-	g2B2                      = exp_env(g2e,statesB2[M],2)						#new
-	NF2                       = exp_env(n_env,statesF[-1],2)					#new
-	g2F2                      = exp_env(g2e,statesF[-1],2)						#new
-	file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,NB1,NB2,NF1,NF2,g2B1,g2B2,g2F1,g2F2))#new
-	file_evol.flush()										#new
-	file_out.close()										#new
-
-
+	#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+	# ENVIRONMENT EXPECTATION VALUES #
+	#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+	#exp_sys(observable,sys_state,which)
+	file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,ne_exp1,ne_exp2,g2e_exp1,g2e_exp2))
+	file_evol.flush()
+	file_out.close()
 
 	#    # Erase the remnants of the states that will not influence the dynamics anymore:
 	#    if M>0:
@@ -332,37 +342,56 @@ for M in range(0,N):
 	
 	## There are 2 different evolutions depending on the relative position of S1 and S2 within the MPS.
 	## To opt to the proper one, we introduce a test variable 
-	
 	test_var = M%(2*L)
-	
-	if test_var<L:
-		#print("FIRST HALF\n----------")
-		if M>0:
-#			print("S2,F2",statesS[1].shape,statesF[test_var+L].shape)
-			S2F2 = es("aIb,bJc->aIJc",statesS[1],statesF[test_var+L])
-#			print("S2F2",S2F2.shape)
-			S2F2,merge_dims                = MERGE(S2F2,[1,2]) #aIJc->aKc
-#			print("S2F2",S2F2.shape)
-			S2F2,statesF                   = SWAP(S2F2,statesF,test_var+L-1,test_var+1,tol,"left")
-#			print("after swapping S2F2 to the interaction",S2F2.shape)
-			S2F2                           = UNMERGE(S2F2,np.concatenate((np.array([S2F2.shape[0],]),
-																			merge_dims,np.array([S2F2.shape[2],])),axis=0),
-													merge_dims,[1,2])
-#			print("S2",es("aIc,aIc",statesS[1],np.conjugate(statesS[1])))
 
-#			print("S2F2",S2F2.shape)
+	#@@@@@@@@@@#
+	#@ TYPE 1 @#
+	#@@@@@@@@@@#
+	if test_var<L:
+		#print("TYPE 1\n------")
+
+		# Move S2 and and F2 to the left next to S1 #
+		# ========================================= #
+
+		if M>0:
+			#print("S2,F2",statesS[1].shape,statesF[test_var+L].shape)
+
+			## COMBINE S2 and F2 ##
+			## ----------------- ##
+			S2F2 = es("aIb,bJc->aIJc",statesS[1],statesF[test_var+L])
+			#print("S2F2",S2F2.shape)
+			S2F2,merge_dims                = MERGE(S2F2,[1,2]) #aIJc->aKc
+			#print("S2F2",S2F2.shape)
+			
+			## MOVE S2+F2 next to F1 ##
+			## --------------------- ##
+			S2F2,statesF                   = SWAP(S2F2,statesF,test_var+L-1,test_var+1,tol,"left")
+			#print("after swapping S2F2 to the interaction",S2F2.shape)
+
+			## SEPARATE S2 from F2 ##
+			## ------------------- ##
+			S2F2                           = UNMERGE(S2F2,np.concatenate((np.array([S2F2.shape[0],]), merge_dims,np.array([S2F2.shape[2],])),axis=0), merge_dims,[1,2])
+			#print("S2",es("aIc,aIc",statesS[1],np.conjugate(statesS[1])))
+			#print("S2F2",S2F2.shape)
 			splist                         = SPLIT(S2F2,2,"left",tol,2,0)
 			statesS[1],statesF[test_var+L] = splist[0],splist[1]
-#			print("S2,F2",statesS[1].shape,statesF[test_var+L].shape)
-#			print("First swapping done S1",statesS[0].shape)
-#			print("S2",es("aIc,aIc",statesS[1],np.conjugate(statesS[1])))
+			#print("S2,F2",statesS[1].shape,statesF[test_var+L].shape)
+			#print("First swapping done S1",statesS[0].shape)
+			#print("S2",es("aIc,aIc",statesS[1],np.conjugate(statesS[1])))
 
-		# Time evolution map
-		#--------------------
-		##U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order)
+			#///OC on S2\\\#
+
+
+		## Time evolution map ##
+		## ================== ##
+		
+		# Syntax: U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order)
 		U_block = U(M,L,[statesF[test_var],statesF[test_var+L]],statesS,
-				[statesB1[M],statesB2[M]],gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele)#IJKLMN or aIJKLMNe
-#		print("after U",U_block.shape)		
+				[statesB1[M],statesB2[M]],gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele) #IJKLMN or aIJKLMNe
+		#print("after U",U_block.shape)		
+
+		## SEPARATE B1 ##
+		## ----------- ##
 		if M>0:
 			splist                    = SPLIT(U_block,2,"left",tol,2,5)#aIb,bPe
 			block_shape               = np.array(U_block.shape[2:7])
@@ -371,54 +400,62 @@ for M in range(0,N):
 			block_shape               = np.array(U_block.shape[1:6])
 			
 		statesB1[M],block         = splist[0],splist[1]
-#		print("B1 split down",statesB1[M].shape,block.shape)
+		#print("B1 split down",statesB1[M].shape,block.shape)
 		#print("statesB1",statesB1[M])
+
+		#///OC on B1\\\#
+
 		if test_var!=0:
-#			print("statesF[0]",statesF[0].shape)
+
+			## MOVE B1 to the left end ##
+			## ----------------------- ##
+			#print("statesF[0]",statesF[0].shape)
 			statesB1[M],statesF       = SWAP(statesB1[M],statesF,test_var-1,0,tol,"left")
-			NB1                       = exp_env(n_env,statesB1[M],1)					#new
-			g2B1                      = exp_env(g2e,statesB1[M],1)						#new
-			statesB1[M],statesF,statesF[0] = OC_RELOC(M,statesB1[M],statesF[0],statesF,0,0,tol,"right",1)	#new
-			NF1                       = exp_env(n_env,statesF[0],1)						#new
-			g2F1                      = exp_env(g2e,statesF[0],1)						#new
-#			print("B1",es("aIc,aIc",statesB1[M],np.conjugate(statesB1[M])))
-#			print("B1 moved to the leftmost",statesB1[M].shape,statesF[0].shape)
-#			statesB1[M],statesF,block = OC_RELOC(M,statesB1[M],block,statesF,0,test_var-1,tol,"right")
-			statesF[0],statesF,block = OC_RELOC(M,statesF[0],block,statesF,1,test_var-1,tol,"right")	#new
-#			print("block",es("aIc,aIc",block,np.conjugate(block)))
-#			print("OC back to the right in block",statesB1[M].shape,statesF[0].shape,block.shape)
+			#print("B1",es("aIc,aIc",statesB1[M],np.conjugate(statesB1[M])))
+			#print("B1 moved to the leftmost",statesB1[M].shape,statesF[0].shape)
+
+			## MOVE OC from B1 to block ##
+			## ------------------------ ##
+			statesB1[M],statesF,block = OC_RELOC(M,statesB1[M],block,statesF,0,test_var-1,tol,"right")
+			#print("block",es("aIc,aIc",block,np.conjugate(block)))
+			#print("OC back to the right in block",statesB1[M].shape,statesF[0].shape,block.shape)
+
+		#///OC on F1+S1+F2+S2+B2 block\\\#
+
 		elif test_var==0:		
-			NB1                       = exp_env(n_env,statesB1[M],1)					#new
-			g2B1                      = exp_env(g2e,statesB1[M],1)						#new
+
+			## MOVE OC from B1 to block ##
+			## ------------------------ ##
 			statesB1[M],statesF,block = OC_RELOC(M,statesB1[M],block,statesF,0,0,tol,"right",1)
-#			print("OC back to the right in block",statesB1[M].shape,block.shape)
+			#print("OC back to the right in block",statesB1[M].shape,block.shape)
+
 		if M>0:
+			## SEPARATE F1 and S1 from block ##
+			## ----------------------------- ##
 			block  = UNMERGE(block,np.concatenate((np.array([block.shape[0],]),block_shape,np.array([block.shape[-1],])),axis=0),
 							block_shape,[1,2,3,4,5])#bJKLMNe
-#			print("block_shape",block.shape)
-#			splist = SPLIT(block,3,"right",tol,2,3)#bJc,cKd,dQe
-			splist = SPLIT(block,3,"left",tol,2,3)#bJc,cKd,dQe
+			#print("block_shape",block.shape)
+			splist = SPLIT(block,3,"right",tol,2,3)#bJc,cKd,dQe
 			#print(splist[0],splist[1],splist[2])
 		else:
 			block  = UNMERGE(block,np.concatenate((np.array([block.shape[0],]),block_shape),axis=0),block_shape,[1,2,3,4,5])#bJKLMN
-#			print("block_shape",block.shape)
-			if test_var!=0:											#new
-				splist = SPLIT(block,3,"right",tol,-1,3)#bJc,cKd,dQ
-			else:												#new
-				splist = SPLIT(block,3,"left",tol,-1,3)#bJc,cKd,dQ					#new
+			#print("block_shape",block.shape)
+			splist = SPLIT(block,3,"right",tol,-1,3)#bJc,cKd,dQ
 			#print("splist[0]",splist[0],"splist[1]",splist[1],"splist[2]",splist[2])
 		block_shape                         = np.array(block.shape[3:6])
 		statesF[test_var],statesS[0],block2 = splist[0],splist[1],splist[2]
-		if test_var==0:												#new
-			NF1                       = exp_env(n_env,statesF[0],1)						#new
-			g2F1                      = exp_env(g2e,statesF[0],1)						#new
-			statesF[0],statesF,statesS[0] = OC_RELOC(M,statesF[0],statesS[0],statesF,0,0,tol,"right",1)	#new
-			statesS[0],statesF,block2 = OC_RELOC(M,statesS[0],block2,statesF,0,0,tol,"right",1)		#new
+		#print("F1 and S1 split off",statesF[test_var].shape,statesS[0].shape,block2.shape)
 
-#		print("F1 and S1 split off",statesF[test_var].shape,statesS[0].shape,block2.shape)
+		#///OC on F2+S2+B2 block\\\#
+
+		## MOVE F2+S2+B2 back to its original place ##
+		## ======================================== ##
 		block2,statesF                      = SWAP(block2,statesF,test_var+1,test_var+L-1,tol,"right")
-#		print("block2 moved back in place",block2.shape)
+		#print("block2 moved back in place",block2.shape)
 		
+
+		## SEPARATE F2, S2 and B2 ##
+		## ====================== ##
 		if M>0:
 			block2 = UNMERGE(block2,np.concatenate((np.array([block2.shape[0],]),block_shape,np.array([block2.shape[-1],])),axis=0),
 							block_shape,[1,2,3])#dLMNe
@@ -426,162 +463,214 @@ for M in range(0,N):
 		else:
 			block2 = UNMERGE(block2,np.concatenate((np.array([block2.shape[0],]),block_shape),axis=0),block_shape,[1,2,3])#dLMN
 			splist = SPLIT(block2,3,"right",tol,-1,0)#dLf,fMg,gN
-		
 		statesF[test_var+L],statesS[1],statesB2[M] = splist[0],splist[1],splist[2]
 		#print("statesB2",statesB2[M])
-#		print("F2,S2 and B2 separated",statesF[test_var+L].shape,statesS[1].shape,statesB2[M].shape)
-#		print("S2",es("aIc,aIc",statesS[1],np.conjugate(statesS[1])))
-		if test_var<L-1:
-#			print("statesF[2*L-1]",statesF[2*L-1].shape)
-			statesB2[M],statesF                        = SWAP(statesB2[M],statesF,test_var+L+1,2*L-1,tol,"right")
-			NB2                       = exp_env(n_env,statesB2[M],2)									#new
-			g2B2                      = exp_env(g2e,statesB2[M],2)										#new
-			statesB2[M],statesF,statesF[-1]             = OC_RELOC(M,statesB2[M],statesF[-1],statesF,2*L-1,test_var+L+1,tol,"left",1)	#new
-			NF2                       = exp_env(n_env,statesF[-1],2)									#new
-			g2F2                      = exp_env(g2e,statesF[-1],2)										#new
 
-#			print("B2 moved to the right",statesB2[M].shape,statesF[2*L-1].shape)
-#			statesB2[M],statesF,statesS[1]             = OC_RELOC(M,statesB2[M],statesS[1],statesF,2*L-1,test_var+L+1,tol,"left")
-			statesF[-1],statesF,statesS[1]             = OC_RELOC(M,statesF[-1],statesS[1],statesF,2*L-1,test_var+L+1,tol,"left")		#new
-#			print("OC on S2",statesB2[M].shape,statesS[1].shape)
-				
-#			print("S2",es("aIc,aIc",statesS[1],np.conjugate(statesS[1])))
+		#///OC on B2\\\#
+
+		#print("F2,S2 and B2 separated",statesF[test_var+L].shape,statesS[1].shape,statesB2[M].shape)
+		#print("S2",es("aIc,aIc",statesS[1],np.conjugate(statesS[1])))
+		if test_var<L-1:
+
+			## MOVE B2 to the right ##
+			## -------------------- ##
+			#print("statesF[2*L-1]",statesF[2*L-1].shape)
+			statesB2[M],statesF                        = SWAP(statesB2[M],statesF,test_var+L+1,2*L-1,tol,"right")
+			#print("B2 moved to the right",statesB2[M].shape,statesF[2*L-1].shape)
+
+			## MOVE OC from B2 to S2 ##
+			## --------------------- ##		
+			statesB2[M],statesF,statesS[1]             = OC_RELOC(M,statesB2[M],statesS[1],statesF,2*L-1,test_var+L+1,tol,"left")
+			#print("OC on S2",statesB2[M].shape,statesS[1].shape)
+			#print("S2",es("aIc,aIc",statesS[1],np.conjugate(statesS[1])))
+
+		## Last step in type 1 ##
+		## =================== ##		
 		if test_var==L-1:
-			NB2                       = exp_env(n_env,statesB2[M],2)									#new
-			g2B2                      = exp_env(g2e,statesB2[M],2)										#new
-			statesB2[M],statesF,statesS[1] = OC_RELOC(M,statesB2[M],statesS[1],statesF,0,0,tol,"left",1)					#new
-			statesS[1],statesF,statesF[-1] = OC_RELOC(M,statesS[1],statesF[-1],statesF,0,0,tol,"left",1)					#new
-			NF2                       = exp_env(n_env,statesF[-1],2)									#new
-			g2F2                      = exp_env(g2e,statesF[-1],2)										#new
-#			print("OC on S2",statesB2[M].shape,statesS[1].shape)
-#			print("S2",es("aIc,aIc",statesS[1],np.conjugate(statesS[1])))
+
+			## MOVE OC from B2 to S2 ##
+			## --------------------- ##		
+			statesB2[M],statesF,statesS[1] = OC_RELOC(M,statesB2[M],statesS[1],statesF,0,0,tol,"left",1)
+			#print("OC on S2",statesB2[M].shape,statesS[1].shape)
+			#print("S2",es("aIc,aIc",statesS[1],np.conjugate(statesS[1])))
+
+			## MOVE S2 to the left (periodic boundary) ##
+			## --------------------------------------- ##		
 			statesS[1],statesF = SWAP(statesS[1],statesF,2*L-1,L,tol,"left")
 			statesS[1],statesS[0] = SWAP(statesS[1],statesS[0],2*L-1,L,tol,"left",1)
 			statesS[1],statesF = SWAP(statesS[1],statesF,L-1,0,tol,"left")
-#			print("S2",es("aIc,aIc",statesS[1],np.conjugate(statesS[1])))
-			
+			#print("S2",es("aIc,aIc",statesS[1],np.conjugate(statesS[1])))
+
+	#///OC on S2\\\#
+
+
+	#@@@@@@@@@@#
+	#@ TYPE 2 @#
+	#@@@@@@@@@@#
+
 	elif test_var>=L:		
-		#print("SECOND HALF\n-----------")
-#		print("S2,F2",statesS[1].shape,statesF[test_var-L].shape, test_var-L)
+	#print("TYPE 2\n------")
+
+		# Move S2 and and F2 to the right next to S1 #
+		# ========================================== #
+
+		#print("S2,F2",statesS[1].shape,statesF[test_var-L].shape, test_var-L)
+
+		## COMBINE S2 and F2 ##
+		## ----------------- ##
 		S2F2                           = es("aIb,bJc->aIJc",statesS[1],statesF[test_var-L])
-#		print("S2F2",S2F2.shape)
+		#print("S2F2",S2F2.shape)
 		S2F2,merge_dims                = MERGE(S2F2,[1,2])#aKc
-#		print("S2F2",S2F2.shape)
+		#print("S2F2",S2F2.shape)
+
+		## MOVE S2+F2 next to S1 ##
+		## --------------------- ##
 		S2F2,statesF                   = SWAP(S2F2,statesF,test_var+1-L,test_var-1,tol,"right")
-#		print("S2F2",S2F2.shape)
+		#print("S2F2",S2F2.shape)
+
+		## SEPARATE S2 and F2 ##
+		## ------------------ ##
 		S2F2                           = UNMERGE(S2F2,np.concatenate((np.array([S2F2.shape[0],]),
 							merge_dims,np.array([S2F2.shape[2],])),axis=0),
 							merge_dims,[1,2])#aIJc
-#		print("S2F2",S2F2.shape)
+		#print("S2F2",S2F2.shape)
 		splist                         = SPLIT(S2F2,2,"left",tol,2,0)
 		statesS[1],statesF[test_var-L] = splist[0],splist[1]
-#		print("S2,F2",statesS[1].shape,statesF[test_var-L].shape)
-#		print("First swaps done, S1,S2",statesS[0].shape,statesS[1].shape)
-		# Time evolution map
-		#--------------------
-		##U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order)
+		#print("S2,F2",statesS[1].shape,statesF[test_var-L].shape)
+		#print("First swaps done, S1,S2",statesS[0].shape,statesS[1].shape)
+
+		#///OC on S2\\\#
+
+		# Time evolution map #
+		# ================== #
+
+		## Syntax: U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele,order)
 		U_block = U(M,L,[statesF[test_var-L],statesF[test_var]],statesS[::-1],
-				[statesB2[M],statesB1[M]],gamma_B[::-1],gamma_F[::-1],dt,phi,#[::-1],
+				[statesB2[M],statesB1[M]],gamma_B[::-1],gamma_F[::-1],dt,phi[::-1],
 				Ome[::-1],Omc[::-1],g[::-1],Delc[::-1],Dele[::-1])
-#		print("U",U_block.shape)
+		#print("U",U_block.shape)
 		
 		if test_var<2*L-1:
+
+			## REARRANGE the U_block: ##
+			## ---------------------- ##
+			### B2+F2+S2+F1+S1+B1 -> B1+F2+S2+F1+S1+B2
 			U_block                   = es("aIJKLMNe->aNJKLMIe",U_block)
-#			print("U",U_block.shape)
+			#print("U",U_block.shape)
+
+			## SEPARATE B2 from U_block ##
+			## ------------------------ ##
 			splist                    = SPLIT(U_block,2,"right",tol,2,-5)
 			block_shape               = np.array(U_block.shape[1:6])
 			block,statesB2[M]         = splist[0],splist[1]
-#			print("block,B2",block.shape,statesB2[M].shape)
+			#print("block,B2",block.shape,statesB2[M].shape)
+
+			#///OC on B2\\\#
+
+			## MOVE B2 to the right ##
+			## -------------------- ##
 			statesB2[M],statesF       = SWAP(statesB2[M],statesF,test_var+1,2*L-1,tol,"right")
-			NB2                       = exp_env(n_env,statesB2[M],2)								#new
-			g2B2                      = exp_env(g2e,statesB2[M],2)									#new
-			statesB2[M],statesF,statesF[-1] = OC_RELOC(M,statesB2[M],statesF[-1],statesF,0,0,tol,"left",1)				#new
-			NF2                       = exp_env(n_env,statesF[-1],2)								#new
-			g2F2                      = exp_env(g2e,statesF[-1],2)									#new
-#			print("B2",statesB2[M].shape)
-			statesF[-1],statesF,block = OC_RELOC(M,statesF[-1],block,statesF,2*L-2,test_var+1,tol,"left")				#new
-#			statesB2[M],statesF,block = OC_RELOC(M,statesB2[M],block,statesF,2*L-1,test_var+1,tol,"left")
-#			print("block,B2",block.shape,statesB2[M].shape)
+			#print("B2",statesB2[M].shape)
+
+			## MOVE OC back to block ##
+			## --------------------- ##
+			statesB2[M],statesF,block = OC_RELOC(M,statesB2[M],block,statesF,2*L-1,test_var+1,tol,"left")
+			#print("block,B2",block.shape,statesB2[M].shape)
+
+			#///OC on B1+F2+S2+F1+S1 block\\\#
 			
-			block                               = UNMERGE(block,np.concatenate((np.array([block.shape[0],]),
-																				block_shape,np.array([block.shape[-1],])),axis=0),
-															block_shape,[1,2,3,4,5])
-#			print("block",block.shape)
+			## SEPARATE F1 and S1 from block ##
+			## ----------------------------- ##
+			block                               = UNMERGE(block,np.concatenate((np.array([block.shape[0],]),block_shape,np.array([block.shape[-1],])),axis=0),block_shape,[1,2,3,4,5])
+			#print("block",block.shape)
 			splist                              = SPLIT(block,3,"left",tol,2,-3)
 			block_shape                         = np.array(block.shape[1:4])
 			block2,statesF[test_var],statesS[0] = splist[0],splist[1],splist[2]
-#			print("block2,F1,S1",block2.shape,statesF[test_var].shape,statesS[0].shape)
+			#print("block2,F1,S1",block2.shape,statesF[test_var].shape,statesS[0].shape)
 			block2,statesF                      = SWAP(block2,statesF,test_var-1,test_var-L+1,tol,"left")
-#			print("block2",block2.shape)
+			#print("block2",block2.shape)
+
+			#///OC on B1+F2+S2 block\\\#
 			
-			block2                                     = UNMERGE(block2,np.concatenate((np.array([block2.shape[0],]),
-																						block_shape,np.array([block2.shape[-1],])),axis=0),
-																block_shape,[1,2,3])
-#			print("block2",block2.shape)
+			## SEPARATE B1, F2 and S2 ##
+			## ---------------------- ##
+			block2                                     = UNMERGE(block2,np.concatenate((np.array([block2.shape[0],]),block_shape,np.array([block2.shape[-1],])),axis=0),block_shape,[1,2,3])
+			#print("block2",block2.shape)
 			splist                                     = SPLIT(block2,3,"left",tol,2,0)
 			statesB1[M],statesF[test_var-L],statesS[1] = splist[0],splist[1],splist[2]
-#			print("B1,F2,S2",statesB1[M].shape,statesF[test_var-L].shape,statesS[1].shape)
-			if M%L!=0:
-#				print(test_var-L-1)
-				statesB1[M],statesF                        = SWAP(statesB1[M],statesF,test_var-L-1,0,tol,"left")
-			NB1                       = exp_env(n_env,statesB1[M],1)							#new
-			g2B1                      = exp_env(g2e,statesB1[M],1)								#new
-			statesB1[M],statesF,statesF[0] = OC_RELOC(M,statesB1[M],statesF[0],statesF,0,0,tol,"right",1)			#new
-			NF1                       = exp_env(n_env,statesF[0],1)								#new
-			g2F1                      = exp_env(g2e,statesF[0],1)								#new
-			statesF[0],statesF,statesS[1]             = OC_RELOC(M,statesF[0],statesS[1],statesF,1,test_var-L,tol,"right")	#new
+			#print("B1,F2,S2",statesB1[M].shape,statesF[test_var-L].shape,statesS[1].shape)
 
-#				print("B1,F[0]",statesB1[M].shape,statesF[0].shape)
-#			statesB1[M],statesF,statesS[1]             = OC_RELOC(M,statesB1[M],statesS[1],statesF,0,test_var-L,tol,"right")
-#			print("B1,S2",statesB1[M].shape,statesS[1].shape)
+			#///OC on B1\\\#
+
+			if M%L!=0:
+
+			## MOVE B1 to the left ##
+			## ------------------- ##
+				#print(test_var-L-1)
+				statesB1[M],statesF                        = SWAP(statesB1[M],statesF,test_var-L-1,0,tol,"left")
+				#print("B1,F[0]",statesB1[M].shape,statesF[0].shape)
+
+			## MOVE OC to S2 ##
+			## ------------- ##
+			statesB1[M],statesF,statesS[1]             = OC_RELOC(M,statesB1[M],statesS[1],statesF,0,test_var-L,tol,"right")
+			#print("B1,S2",statesB1[M].shape,statesS[1].shape)
+
+			#///OC on S2\\\#
 			
 		elif test_var==2*L-1:
+
+			## REARRANGE the U_block: ##
+			## ---------------------- ##
+			### B2+F2+S2+F1+S1+B1 -> B1+S1+F2+S2+F1+B2
 			U_block                             = es("aIJKLMNe->aNMJKLIe",U_block)
+			#print("U",U_block.shape,test_var)
+
+			## SEPARATE F1 and B2 from U_block ##
+			## ------------------------------- ##
+			splist                              = SPLIT(U_block,3,"left",tol,2,-4)
 			block_shape                         = np.array(U_block.shape[1:5])
-#			print("U",U_block.shape,test_var)
-			#splist                              = SPLIT(U_block,3,"left",tol,2,-4)
-			#block_shape                         = np.array(U_block.shape[1:5])
-			#block,statesF[test_var],statesB2[M] = splist[0],splist[1],splist[2]
-#			print("block,F1,B2",block.shape,statesF[test_var].shape,statesB2[M].shape)
-			splist                              = SPLIT(U_block,3,"right",tol,2,-4)
 			block,statesF[test_var],statesB2[M] = splist[0],splist[1],splist[2]
-			NB2                       = exp_env(n_env,statesB2[M],2)								#new
-			g2B2                      = exp_env(g2e,statesB2[M],2)									#new
-			statesB2[M],statesF,statesF[-1] = OC_RELOC(M,statesB2[M],statesF[-1],statesF,0,0,tol,"left",1)				#new
-			NF2                       = exp_env(n_env,statesF[-1],2)								#new
-			g2F2                      = exp_env(g2e,statesF[-1],2)									#new
-			statesF[-1],statesF,block = OC_RELOC(M,statesF[-1],block,statesF,0,0,tol,"left",1)					#new
-			
+			#print("block,F1,B2",block.shape,statesF[test_var].shape,statesB2[M].shape)
+
+			#///OC on B1+S1+F2+S2 block\\\#			
+
+			## MOVE block to the left ##
+			## ---------------------- ##
 			block,statesF                         = SWAP(block,statesF,2*(L-1),L,tol,"left")
-#			print("block",block.shape)
-			block                                 = UNMERGE(block,np.concatenate((np.array([block.shape[0],]),
-																				block_shape,np.array([block.shape[-1],])),axis=0),
-															block_shape,list(np.arange(1,5,1)))
-#			print("block",block.shape)
+			#print("block",block.shape)
+
+			## SEPARATE F2 and S2 from block ##
+			## ----------------------------- ##
+			block                                 = UNMERGE(block,np.concatenate((np.array([block.shape[0],]), block_shape,np.array([block.shape[-1],])),axis=0), block_shape,list(np.arange(1,5,1)))
+			#print("block",block.shape)
 			splist                                = SPLIT(block,3,"left",tol,2,-2)
 			block_shape                           = np.array(block.shape[1:3])
 			block2,statesF[test_var-L],statesS[1] = splist[0],splist[1],splist[2]
-#			print("block2,F2,S2",block2.shape,statesF[test_var-L].shape,statesS[1].shape)
+			#print("block2,F2,S2",block2.shape,statesF[test_var-L].shape,statesS[1].shape)
+
+			#///OC on B1+S1 block\\\#			
+
+			## MOVE B1+S1 to the left ##
+			## ---------------------- ##
 			block2,statesF                        = SWAP(block2,statesF,L-2,0,tol,"left")
-#			print("block2",block2.shape)
+			#print("block2",block2.shape)
 			
-			block2                        = UNMERGE(block2,np.concatenate((np.array([block2.shape[0],]),
-																						block_shape,np.array([block2.shape[-1],])),axis=0),
-													block_shape,[1,2])
-#			print("block2",block2.shape)
-#			splist                        = SPLIT(block2,2,"right",tol,2,0)
-			splist                        = SPLIT(block2,2,"left",tol,2,0)								#new
+			## SEPARATE B1 and S1 ##
+			## ------------------ ##
+			block2                        = UNMERGE(block2,np.concatenate((np.array([block2.shape[0],]),block_shape,np.array([block2.shape[-1],])),axis=0),block_shape,[1,2])
+			#print("block2",block2.shape)
+			splist                        = SPLIT(block2,2,"right",tol,2,0)
 			statesB1[M],statesS[0]        = splist[0],splist[1]
-			NB1                       = exp_env(n_env,statesB1[M],1)								#new
-			g2B1                      = exp_env(g2e,statesB1[M],1)									#new
-			statesB1[M],statesF,statesS[0] = OC_RELOC(M,statesB1[M],statesS[0],statesF,0,0,tol,"right",1)				#new
-			statesS[0],statesF,statesF[0] = OC_RELOC(M,statesS[0],statesF[0],statesF,0,0,tol,"right",1)				#new
-			NF1                       = exp_env(n_env,statesF[0],1)									#new
-			g2F1                      = exp_env(g2e,statesF[0],1)									#new
-#			print("B1,S1",statesB1[M].shape,statesS[0].shape)
-#			statesS[0],statesF,statesS[1] = OC_RELOC(M,statesS[0],statesS[1],statesF,0,L-1,tol,"right")
-			statesF[0],statesF,statesS[1] = OC_RELOC(M,statesF[0],statesS[1],statesF,1,L-1,tol,"right")				#new
-#			print("S1,S2",statesS[0].shape,statesS[1].shape)
+			#print("B1,S1",statesB1[M].shape,statesS[0].shape)
+
+			#///OC on S1\\\#			
+
+			## MOVE OC to S2 ##
+			## ---------------------- ##
+			statesS[0],statesF,statesS[1] = OC_RELOC(M,statesS[0],statesS[1],statesF,0,L-1,tol,"right")
+			#print("S1,S2",statesS[0].shape,statesS[1].shape)
+
+			#///OC on S2\\\#			
 			
 #	print("system",statesS[0].shape,statesS[1].shape)
 #	print("fibre",statesF[(M)%(2*L)].shape,statesF[(M+1)%(2*L)].shape,statesF[(M+L)%(2*L)].shape,statesF[(M+L+1)%(2*L)].shape)
@@ -607,16 +696,20 @@ for M in range(0,N):
 #np.savetxt(g2tau,time_out)
 #time_out=None
 
-#%%%%%%#
+#%%%%%%%%%%#
+# PROLOGUE #
+#%%%%%%%%%%#
+
 # NORM #
-#%%%%%%#
+# ==== #
+
 ##normf(M,L,statesB1,statesB2,statesF,statesS,normB1,normB2)
 ##return np.real(norm),np.real(normB1),np.real(normB2),sys_state
 norm,normB1,normB2,sys_state = normf(M+1,L,statesB1,statesB2,statesF,statesS,normB1,normB2)
 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 # SYSTEM EXPECTATION VALUES #
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+# ========================= #
+
 #exp_sys(observable,sys_state,which)
 nc_exp1  = exp_sys(nc,sys_state,1) #photon number in cavity 1
 nc_exp2  = exp_sys(nc,sys_state,2) #photon number in cavity 2

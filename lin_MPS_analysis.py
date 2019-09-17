@@ -118,33 +118,6 @@ def exp_sys(observable,sys_state,which):
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 
-##############################################
-### Expectation value of system observable ###
-##############################################
-def exp_env(observable,state,k):
-	"""Calculating the expectation value of a given system observable
-	INPUT: observable of interest, the combined system state from the norm function, which system
-	OUTPUT: expectation value of the observable"""
-	
-	context = ["I,IJ,J","Ia,IJ,Ja","aI,IJ,aJ","aIb,IJ,aJb"]
-	ND = state.ndim
-	
-	if ND==3:
-		obs = contract(context[3],state,observable,np.conjugate(state))
-	elif ND==2:
-		if k==1:
-			obs = contract(context[1],state,observable,np.conjugate(state))
-		elif k==2:
-			obs = contract(context[2],state,observable,np.conjugate(state))
-	elif ND==1:
-		obs = contract(context[0],state,observable,np.conjugate(state))
-
-	return np.real(obs)
-
-#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
-#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
-#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
-
 #######################
 ### Output spectrum ###
 #######################
