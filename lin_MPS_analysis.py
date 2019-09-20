@@ -118,107 +118,66 @@ def exp_sys(observable,sys_state,which):
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 
+#################################################
+### Expectation value of reservoir observable ###
+#################################################
+def env_dens(state,when = 3,which=1):
+	"""Calculating the expectation value of a given system observable
+	INPUT: observable of interest, the combined system state from the norm function, which system
+	OUTPUT: expectation value of the observable"""
+	
+	if when==0:
+		dens = contract("I,J->IJ",state,np.conjugate(state))
+	elif when==1:
+		if which==1:
+			dens = contract("Ia,Ja->IJ",state,np.conjugate(state))
+		elif which==2:
+			dens = contract("aI,aJ->IJ",state,np.conjugate(state))
+	else:
+		dens = contract("aIb,aJb->IJ",state,np.conjugate(state))
+	return dens
+
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+
+#################################################
+### Expectation value of reservoir observable ###
+#################################################
+def exp_res(observable,density):
+	"""Calculating the expectation value of a given system observable
+	INPUT: observable of interest, the combined system state from the norm function, which system
+	OUTPUT: expectation value of the observable"""
+	
+	obs = contract("IJ,IJ",density,observable)
+	return np.real(obs)
+
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
+#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+
 #######################
 ### Output spectrum ###
 #######################
-def spectrum(states,freqs,pmax,N_env,dt,index,thermal):
+def spectrum(states,freqs,pmax,N_env,dt):
 	"""Calculating the expectation value of a given system observable
 	INPUT: observable of interest, the state of the system and timestep M
 	OUTPUT: expectation value of the observable"""
-	def dB(state):
-		new_state = np.zeros(state.shape,complex)
-		legs = len(state.shape)
-		if thermal == True:
-			n = ((np.linspace(0,(N_env-1)**2-1,(N_env-1)**2)/(N_env-1)).astype(int)+1)[0:(-N_env+1)]
-			iend = N_env-1
-		else:
-			n = np.arange(1,N_env)
-			iend = 1
-		if legs==1:
-			new_state[0:(-iend)] = es("i,i->i",np.sqrt(n*dt),state[iend:])
-		elif legs==2:
-			ind = state.shape.index(np.max(state.shape))
-			if ind == 0:
-				new_state[0:(-iend),:] = es("i,ij->ij",np.sqrt(n*dt),state[iend:,:])
-			elif ind == 1:
-				new_state[:,0:(-iend)] = es("i,ji->ji",np.sqrt(n*dt),state[:,iend:])
-		elif legs==3:
-			new_state[:,0:(-iend),:] = es("i,jik->jik",np.sqrt(n*dt),state[:,iend:,:])
-		return new_state
-	def dBd(state):
-		new_state = np.zeros(state.shape,complex)
-		legs = len(state.shape)
-		if thermal == True:
-			n = ((np.linspace(0,(N_env-1)**2-1,(N_env-1)**2)/(N_env-1)).astype(int)+1)[0:(-N_env+1)]
-			iend = N_env-1
-		else:
-			n = np.arange(1,N_env)
-			iend = 1
-		if legs==1:
-			new_state[iend:] = es("k,k->k",np.sqrt(n*dt),state[0:-iend])
-		elif legs==2:
-			ind = state.shape.index(np.max(state.shape))
-			if ind == 0:
-				new_state[iend:,:] = es("k,kj->kj",np.sqrt(n*dt),state[0:-iend,:])
-			elif ind == 0:
-				new_state[:,iend:] = es("k,jk->jk",np.sqrt(n*dt),state[:,0:-iend])
-		elif legs==3:
-			new_state[:,iend:,:] = es("k,ikl->ikl",np.sqrt(n*dt),state[:,0:-iend,:])
-		return new_state
-	sum_B     = np.zeros(freqs.shape,complex)
-	if len(states[index].shape)==1:
-		sum_B      = es("l,l",dBd(dB(states[index])),np.conjugate(states[index]))*np.ones(freqs.shape)
-		next_step  = es("l,l",dBd(states[index]),np.conjugate(states[index]))
-	elif len(states[index].shape)==2:
-		ind = states[index].shape.index(np.max(states[index].shape))
-		sum_B      = es("lk,lk",dBd(dB(states[index])),np.conjugate(states[index]))*np.ones(freqs.shape)
-		if ind==0:
-			next_step  = es("lk,lm->km",dBd(states[index]),np.conjugate(states[index]))
-		elif ind==1:
-			next_step  = es("kl,kl",dBd(states[index]),np.conjugate(states[index]))
-	elif len(states[index].shape)==3:
-		sum_B      = es("ilk,ilk",dBd(dB(states[index])),np.conjugate(states[index]))*np.ones(freqs.shape)
-		next_step  = es("ilk,ilm->km",dBd(states[index]),np.conjugate(states[index]))
+
+	bval = np.sqrt(np.arange(0,N_env))
+	B = np.diag(bval[:-1],1)
+	Bd = np.diag(bval[1:],-1)
+	coherence = np.zeros(pmax,complex)
+
+	nB      = contract("aIb,IJ,JK,aKb",np.conjugate(states[-1]),Bd,B,states[-1])
+	coherence[0] = 1
+	sum_B   = coherence[0]*np.exp(1j*freqs*0.*dt)
+	next    = contract("aIb,IJ,aJc->bc",np.conjugate(states[-1]),Bd,states[-1])
 	for p in range(1,pmax):
-		if len(states[index-p].shape)==1:
-			if np.isscalar(next_step):
-				sum_B     += (es("l,l",dB(states[index-p]),np.conjugate(states[index-p]))*next_step*np.exp(1j*freqs*p*dt))
-				next_step  = next_step*es("j,j",states[index-p],np.conjugate(states[index-p]))
-			else:
-				sum_B     += (es("ii",next_step)*
-								es("l,l",dB(states[index-p]),np.conjugate(states[index-p]))*np.exp(1j*freqs*p*dt))
-				next_step  = es("ii",next_step)*es("m,m",states[index-p],np.conjugate(states[index-p]))
-		if len(states[index-p].shape)==2:
-			indp = states[index-p].shape.index(np.max(states[index-p].shape))
-			if indp == 0:
-				if np.isscalar(next_step):
-					sum_B     += (next_step*es("lk,lk",dB(states[index-p]),np.conjugate(states[index-p]))*np.exp(1j*freqs*p*dt))
-					next_step  = next_step*es("mk,ml->kl",states[index-p],np.conjugate(states[index-p]))
-				else:
-					sum_B     += (es("ii",next_step)*
-									es("lk,lk",dB(states[index-p]),np.conjugate(states[index-p]))*np.exp(1j*freqs*p*dt))
-					next_step  = es("ii",next_step)*es("mk,lm->kl",states[index-p],
-                                                                 np.conjugate(states[index-p]))
-			elif indp == 1:
-				if np.isscalar(next_step):
-					sum_B     += (es("ii",es("il,jl->ij",dB(states[index-p]),np.conjugate(states[index-p])))*
-									next_step*np.exp(1j*freqs*p*dt))
-					next_step  = next_step*es("ij,ij",states[index-p],np.conjugate(states[index-p]))
-				else:
-					sum_B     += (es("ij,ij",es("il,jl->ij",dB(states[index-p]),np.conjugate(states[index-p])),next_step)*
-									np.exp(1j*freqs*p*dt))
-					next_step  = es("kj,jk",es("ij,ik->kj",next_step,states[index-p]),
-											np.conjugate(states[index-p]))
-		elif len(states[index-p].shape)==3:
-			if np.isscalar(next_step):
-				sum_B     += (es("ilk,ilk",dB(states[index-p]),np.conjugate(states[index-p]))*next_step*np.exp(1j*freqs*p*dt))
-				next_step  = next_step*es("imk,imk",states[index-p],np.conjugate(states[index-p]))
-			else:
-				sum_B     += (es("ij,ij",es("ilk,jlk->ij",dB(states[index-p]),np.conjugate(states[index-p])),next_step)*
-								np.exp(1j*freqs*p*dt))
-				next_step  = es("jmk,jml->kl",es("ij,imk->jmk",next_step,states[index-p]),
-										np.conjugate(states[index-p]))
-	return 2./dt*np.real(sum_B)
+		coherence[p] = contract("bc,bId,IJ,cJd",next,np.conjugate(states[-1-p]),B,states[-1-p])/nB
+		sum_B   += coherence[p]*np.exp(1j*freqs*p*dt)
+		next    = contract("bc,bId,cIe->de",next,np.conjugate(states[-1-p]),states[-1-p])	
+	return 2./dt*sum_B, np.real(coherence)
     
 #/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
@@ -227,176 +186,23 @@ def spectrum(states,freqs,pmax,N_env,dt,index,thermal):
 ######################
 ### g2 correlation ###
 ######################
-def g2_t(state,N_env,dt,thermal):
+def g2_tau(state,N_env,dt,pmax):
 	"""Calculating the expectation value of a given system observable
 	INPUT: observable of interest, the state of the system and timestep M
 	OUTPUT: expectation value of the observable"""
-	def dB(state):
-		new_state = np.zeros(state.shape,complex)
-		legs = len(state.shape)
-		if thermal == True:
-			n = ((np.linspace(0,(N_env-1)**2-1,(N_env-1)**2)/(N_env-1)).astype(int)+1)[0:(-N_env+1)]
-			iend = N_env-1
-		else:
-			n = np.arange(1,N_env)
-			iend = 1
-		if legs==1:
-			new_state[0:(-iend)] = es("i,i->i",np.sqrt(n),state[iend:])
-		elif legs==2:
-			ind = state.shape.index(np.max(state.shape))
-			if ind == 0:
-				new_state[0:(-iend),:] = es("i,ij->ij",np.sqrt(n),state[iend:,:])
-			elif ind == 1:
-				new_state[:,0:(-iend)] = es("i,ji->ji",np.sqrt(n),state[:,iend:])
-		elif legs==3:
-			new_state[:,0:(-iend),:] = es("i,jik->jik",np.sqrt(n),state[:,iend:,:])
-		return new_state
-#    dBd = sc.eye(N_env,N_env,-1)*np.sqrt(dt*np.arange(1,N_env+1))
-	temp = dB(dB(state))
-	temp2 = dB(state)
-	if len(state.shape)==1:       
-		NB = es("i,i",temp2,np.conjugate(temp2))
-		g2_t = es("i,i",temp,np.conjugate(temp))/(NB**2)
-		temp = None
-	elif len(state.shape)==2:       
-		indp = state.shape.index(np.max(state.shape))
-		NB = es("il,il",temp2,np.conjugate(temp2))
-		g2_t = es("il,il",temp,np.conjugate(temp))/(NB**2)
-		temp = None        
-	elif len(state.shape)==3:
-		NB = es("jil,jil",temp2,np.conjugate(temp2))
-		g2_t = es("jil,jil",temp,np.conjugate(temp))/(NB**2)
-		temp = None
-	return np.real(g2_t),np.real(NB)
+	bval = np.sqrt(np.arange(0,N_env))
+	B = np.diag(bval[:-1],1)
+	g2tau = np.zeros(pmax,complex)
 
-#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
-#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
-#/////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+	temp      = contract("IJ,JK,aKb->aIb",B,B,states[-1])
+	next_temp = contract("IJ,aJb->aIb",B,states[-1])
+	nB        = contract("aIb,aIb",np.conjugate(next_temp),next_temp)
+	g2tau[0]  = contract("aIb,aIb",np.conjugate(temp),temp)/nB**2
+	next    = contract("aIb,aIc->bc",np.conjugate(next_temp),next_temp)
+	for p in range(1,pmax):
+		temp     = contract("IJ,bJd->bId",B,states[-1-p])
+		g2tau[p] = contract("bc,bId,cId",next,np.conjugate(temp),temp)/nB**2
+		next     = contract("bc,bId,cIe->de",next,np.conjugate(states[-1-p]),states[-1-p])
+	return g2tau
 
-#############################
-### g2 output correlation ###
-#############################
-def g2_out(states,taumax,N_env,dt,index,thermal):
-	"""Calculating the expectation value of a given system observable
-	INPUT: observable of interest, the state of the system and timestep M
-	OUTPUT: expectation value of the observable"""
-	def dB(state):
-		new_state = np.zeros(state.shape,complex)
-		legs = len(state.shape)
-		if thermal == True:
-			n = ((np.linspace(0,(N_env-1)**2-1,(N_env-1)**2)/(N_env-1)).astype(int)+1)[0:(-N_env+1)]
-			iend = N_env-1
-		else:
-			n = np.arange(1,N_env)
-			iend = 1
-		if legs==1:
-			new_state[0:(-iend)] = es("i,i->i",np.sqrt(n),state[iend:])
-		elif legs==2:
-			ind = state.shape.index(np.max(state.shape))
-			if ind == 0:
-				new_state[0:(-iend),:] = es("i,ij->ij",np.sqrt(n),state[iend:,:])
-			elif ind == 1:
-				new_state[:,0:(-iend)] = es("i,ji->ji",np.sqrt(n),state[:,iend:])
-		elif legs==3:
-			new_state[:,0:(-iend),:] = es("i,jik->jik",np.sqrt(n),state[:,iend:,:])
-		return new_state
-	g2_out = np.zeros(taumax,complex)
-	tau = np.zeros(taumax,complex)
-	temp      = dB(dB(states[index]))
-	temp2     = dB(states[index])
-	if len(states[index].shape)==1:
-		next_step = es("j,j",temp2,np.conjugate(temp2))
-		NB = next_step
-		g2_out[0] = es("j,j",temp,np.conjugate(temp))/(NB**2)
-	elif len(states[index].shape)==2:
-		ind = states[index].shape.index(np.max(states[index].shape))
-		NB = es("jk,jk",temp2, np.conjugate(temp2))
-		if ind==0:
-			g2_out[0] = es("jk,jk",temp, np.conjugate(temp))/(NB**2)
-			next_step = es("jk,jl->kl",temp2,np.conjugate(temp2))
-		elif ind==1:
-			g2_out[0] = es("kj,kj",temp, np.conjugate(temp))/(NB**2)
-			next_step = es("kj,kj",temp2,np.conjugate(temp2))
-	elif len(states[index].shape)==3:
-		NB = es("ijk,ijk",temp2, np.conjugate(temp2))
-		g2_out[0] = es("ijk,ijk",temp, np.conjugate(temp))/(NB**2)
-		next_step = es("ijk,ijl->kl",temp2,np.conjugate(temp2))
-	for it in range(1,taumax):
-		tau[it] = dt*it
-		temp    = dB(states[index-it])
-		if len(states[index-it].shape)==1:
-			if np.isscalar(next_step):
-				g2_out[it] = next_step * es("j,j",temp,np.conjugate(temp))/(NB**2)
-				next_step  = next_step * es("j,j",states[index-it],np.conjugate(states[index-it]))
-			else:
-				g2_out[it] = es("ii",next_step) * es("j,j",temp,np.conjugate(temp))/(NB**2)
-				next_step  = es("ii",next_step) * es("j,j",states[index-it],
-                                                                   np.conjugate(states[index-it]))
-		if len(states[index-it].shape)==2:
-			indp = states[index-it].shape.index(np.max(states[index-it].shape))
-			if indp == 0:
-				if np.isscalar(next_step):
-					g2_out[it] = next_step*es("jk,jk",temp,np.conjugate(temp))/(NB**2)
-					next_step = next_step*es("jk,jl->kl",states[index-it],np.conjugate(states[index-it]))
-				else:
-					g2_out[it] = es("ii",next_step)*es("jk,jk",temp, np.conjugate(temp))/(NB**2)
-					next_step = es("ii",next_step)*es("jk,jl->kl",states[index-it],
-																	np.conjugate(states[index-it]))
-			elif indp == 1:
-				if np.isscalar(next_step):
-					g2_out[it] = next_step*es("kj,kj",temp, np.conjugate(temp))/(NB**2)
-					next_step = next_step*es("kj,kj",states[index-it],np.conjugate(states[index-it]))
-				else:
-					g2_out[it] = es("ki,ki",next_step,es("kj,ij->ki",temp, np.conjugate(temp)))/(NB**2)
-					next_step = es("ki,ki",next_step,es("kj,ij->ki",states[index-it],
-																		np.conjugate(states[index-it])))
-		elif len(states[index-it].shape)==3:
-			if np.isscalar(next_step):
-				g2_out[it] = next_step*es("ijk,ijk",temp, np.conjugate(temp))/(NB**2)
-				next_step = next_step * es("ijk,ijl->kl",states[index-it],np.conjugate(states[index-it]))
-			else:
-				g2_out[it] = es("mn,mn",next_step,es("mjk,njk->mn",temp, np.conjugate(temp)))/(NB**2)
-				next_step = es("mjk,mjl->kl",es("ijk,im->mjk",states[index-it],next_step),
-									np.conjugate(states[index-it]))
-	return np.real(tau),np.real(g2_out)
-
-################################
-### Number of output photons ###
-################################
-def NB_out(state,N_env,NB_past,dt,thermal):
-	"""Calculating the expectation value of a given system observable
-	INPUT: observable of interest, the state of the system and timestep M
-	OUTPUT: expectation value of the observable"""
-	def dB(state):
-		new_state = np.zeros(state.shape,complex)
-		legs = len(state.shape)
-		if thermal == True:
-			n = ((np.linspace(0,(N_env-1)**2-1,(N_env-1)**2)/(N_env-1)).astype(int)+1)[0:(-N_env+1)]
-			iend = N_env-1
-		else:
-			n = np.arange(1,N_env)
-			iend = 1
-		if legs==1:
-			new_state[0:(-iend)] = es("i,i->i",np.sqrt(n),state[iend:])
-		elif legs==2:
-			ind = state.shape.index(np.max(state.shape))
-			if ind == 0:
-				new_state[0:(-iend),:] = es("i,ij->ij",np.sqrt(n),state[iend:,:])
-			elif ind == 1:
-				new_state[:,0:(-iend)] = es("i,ji->ji",np.sqrt(n),state[:,iend:])
-		elif legs==3:
-			new_state[:,0:(-iend),:] = es("i,jik->jik",np.sqrt(n),state[:,iend:,:])
-		return new_state
-	temp = dB(state)
-	if len(state.shape)==1:       
-		NB_now = es("i,i",temp,np.conjugate(temp))
-	elif len(state.shape)==2:       
-		indp = state.shape.index(np.max(state.shape))
-		NB_now = es("il,il",temp,np.conjugate(temp))
-	elif len(state.shape)==3:
-		NB_now = es("jil,jil",temp,np.conjugate(temp))
-	NB = NB_now+NB_past
-	temp = None
-	NB_now = None
-	return np.real(NB)
 

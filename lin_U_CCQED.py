@@ -17,7 +17,6 @@ def U(M,L,tF,tS,tB,gamma_B,gamma_F,dt,phi,Ome,Omc,g,Delc,Dele):
 	INPUT: states at the current time (t_k), the delayed time (t_l) and the system state (t_S) at timestep M
 	Remember, at M=0 the state is separable
 	OUTPUT: combined block of states at t_k, for the system and at t_l"""
-    
     #print(tk.shape,tS.shape,tl.shape,M)
     
     ####--------------------------####

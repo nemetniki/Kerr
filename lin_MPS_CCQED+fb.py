@@ -87,8 +87,11 @@ parser.add_argument("-cohC1",type=float, default = 0.,help='coherent initial sta
 parser.add_argument("-cohC2",type=float, default = 0.,help='coherent initial state for cavity 2')
 parser.add_argument("-cohB1",type=float, default = 0.,help='coherent initial state for the environment on the left')
 parser.add_argument("-cohB2",type=float, default = 0.,help='coherent initial state for the environment on the right')
-parser.add_argument("-cohF",type=float, default = 0.,help='coherent initial state for the connecting fibre')
+parser.add_argument("-cohF1",type=float, default = 0.,help='coherent initial state for the connecting fibre to the left')
+parser.add_argument("-cohF2",type=float, default = 0.,help='coherent initial state for the connecting fibre to the right')
 parser.add_argument("-nT",type=float, default = 0.,help='thermal photon number')
+parser.add_argument("-spec",type=bool, default = False,help='Spectrum?')
+parser.add_argument("-pspec",type=int, default = 30,help='pspec*L timesteps')
 
 args = parser.parse_args()
 
@@ -164,16 +167,34 @@ else:
 #%%%%%%%%%%%%%#
 initB1 = np.zeros(len_env,complex)
 initB2 = np.zeros(len_env,complex)
-initF  = np.zeros(len_env,complex)
+initF1  = np.zeros(len_env,complex)
+initF2  = np.zeros(len_env,complex)
 
 #Coherent driving for environments
-if args.cohB1>0. or args.cohB2>0. or args.cohF>0.:
+if args.cohB1>0. or args.cohB2>0. or args.cohF1>0.:
 	if args.cohB1>0.:
-		initB1 = coherent(args.cohB1,0,initB1)
+		print("coherent driving for B1")
+		initB1 = coherent(args.cohB1/np.sqrt(args.gamB1),0,initB1)
+		print(initB1)
+		initB2[0] = 1.
+		initF1[0]  = 1.
+		initF2[0]  = 1.
 	if args.cohB2>0.:
-		initB2 = coherent(args.cohB2,0,initB2)
-	if args.cohF>0.:
-		initF  = coherent(args.cohF,0,initF)
+		initB2 = coherent(args.cohB2/np.sqrt(args.gamB2),0,initB2)
+		initB1[0] = 1.
+		initF1[0]  = 1.
+		initF2[0]  = 1.
+	if args.cohF1>0.:
+		initF1  = coherent(args.cohF1/np.sqrt(args.gamF1),0,initF1)
+		initB1[0] = 1.
+		initB2[0] = 1.
+		initF2[0]  = 1.
+	if args.cohF2>0.:
+		initF2  = coherent(args.cohF2/np.sqrt(args.gamF2),0,initF2)
+		initB1[0] = 1.
+		initB2[0] = 1.
+		initF1[0]  = 1.
+
 #Thermal state for environments
 elif args.nT>0.:
 	thermal = True
@@ -186,13 +207,15 @@ elif args.nT>0.:
 else:
 	initB1[0] = 1.
 	initB2[0] = 1.
-	initF[0]  = 1.
+	initF1[0]  = 1.
+	initF2[0]  = 1.
 
 #Markovian environment lists
 statesB1 = [initB1]*N
+#print(statesB1[0])
 statesB2 = [initB2]*N
 #Non-Markovian environment+system list
-statesF  = 2*L*[initF]
+statesF  = L*[initF1]+L*[initF2]
 statesS  = [initJC1]+[initJC2]
 #print("statesS",statesS)
 
@@ -220,6 +243,11 @@ for i in range(1,len_env):
 	gcdiag[i] = gcdiag[i-1]+2*(i-1)
 g2c    = np.diag(np.sort(np.concatenate((gcdiag[:-1],gcdiag))))
 
+# n_B/F and g2_B/F construction
+nediag = np.arange(0,len_env)
+ne     = np.diag(nediag)
+g2e    = np.diag(gcdiag)
+
 
 ########################################################################################################################################################################################################
 ###########################
@@ -229,6 +257,8 @@ g2c    = np.diag(np.sort(np.concatenate((gcdiag[:-1],gcdiag))))
 filename = "./Data/CCQED+fb_%d.txt" % (args.findex)
 envname = "./Data/ENV_CCQED+fb_%d.txt" % (args.findex)
 outname = "./Data/OUT_CCQED+fb_%d.txt" % (args.findex)
+specname = "./Data/SPEC_CCQED+fb_%d.txt" % (args.findex)
+cohname = "./Data/COH_CCQED+fb_%d.txt" % (args.findex)
 #	specname = "./Data/spec_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
 #	g2tau = "./Data/g2tau_JC+fb_gL=%dp1000_gR=%dp1000_g=%dp10_phi=%dp10pi_initind=%d_ome=%dp10_omc=%dp10_L=%d.txt" % (gamma_L*1000, gamma_R*1000, g*10, args.phi*10,args.init_ind,Ome*10,Omc*10,L)
 	
@@ -248,13 +278,13 @@ file_out.write("""Data file index: %d
 \nEnvironment parameters: gamma_B1 = %f, gamma_B2 = %f
 \nConnecting fibre parameters: gamma_F1 = %f, gamma_F2 = %f,phi = %fpi, delay_L = %d
 \nNumerical parameters: Nphot_max = %d, tolerance = %.0E, endt = %.0f, dt = %f
-\nCoherent initial state amplitude for cavity1: %f, cavity2: %f, the environment on the left %f, on the right: %f and in the fibre: %f
+\nCoherent initial state amplitude for cavity1: %f, cavity2: %f, the environment on the left %f, on the right: %f and in the fibre on the left %f, and on the right %f
 \nthermal photon number: %f
 \nData file: M*dt,norm,pop1,pop2,nc1_exp,nc2_exp,g2_1_exp,g2_2_exp\n""" % (args.findex,g[0],Dele[0],Delc[0],args.initind1,Ome[0],Omc[0],
 								g[1],Dele[1],Delc[1],args.initind2,Ome[1],Omc[1],
 								gamma_B[0],gamma_B[1],gamma_F[0],gamma_F[1],args.phi,L,
 								args.Nphot,tol,endt,dt,args.cohC1,args.cohC2,
-								args.cohB1,args.cohB2,args.cohF,args.nT))
+								args.cohB1,args.cohB2,args.cohF1,args.cohF2,args.nT))
 file_out.close()
 
 #%%%%%%%%%%%#
@@ -264,7 +294,7 @@ file_evol = open(filename,"a")
 file_evol.close()
 file_evol = open(filename,"r+")
 file_evol.truncate()
-file_env.close()
+file_evol.close()
 file_evol = open(filename,"a")
 
 file_env = open(envname,"a")
@@ -277,11 +307,20 @@ file_env = open(envname,"a")
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 # Initial envionment expectation values #
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+densB1 = env_dens(statesB1[0],when=0)
+densB2 = env_dens(statesB2[0],when=0)
+densF1 = env_dens(statesF[-1],when=0)
+densF2 = env_dens(statesF[-L-1],when=0)
 
-ne_exp1  = exp_sys(ne,sys_state,1) #photon number in reservoir 1
-ne_exp2  = exp_sys(ne,sys_state,2) #photon number in reservoir 2
-g2e_exp1  = exp_sys(g2e,sys_state,1)/nc_exp1**2 #correlation function from the field in reservoir 1 
-g2e_exp2  = exp_sys(g2e,sys_state,2)/nc_exp2**2 #correlation function from the field in reservoir 2 
+ne_exp1  = exp_res(ne,densB1) #photon number in reservoir 1
+#print(ne_exp1)
+ne_exp2  = exp_res(ne,densB2) #photon number in reservoir 2
+g2e_exp1  = exp_res(g2e,densB1)/ne_exp1**2 #correlation function from the field in reservoir 1 
+g2e_exp2  = exp_res(g2e,densB2)/ne_exp2**2 #correlation function from the field in reservoir 2 
+nf_exp1  = exp_res(ne,densF1) #photon number in fibre bin 1
+nf_exp2  = exp_res(ne,densF2) #photon number in fibre bin 2
+g2f_exp1  = exp_res(g2e,densF1)/nf_exp1**2 #correlation function from the field in fibre bin 1 
+g2f_exp2  = exp_res(g2e,densF2)/nf_exp2**2 #correlation function from the field in fibre bin 2 
 
 
 ########################################################################################################################################################################################################
@@ -293,7 +332,7 @@ g2e_exp2  = exp_sys(g2e,sys_state,2)/nc_exp2**2 #correlation function from the f
 ## B1 and B2: present environment bins next to system 1 and 2
 
 for M in range(0,N):
-	#    print(M*dt)
+#	print(M*dt)
 	percent10 = (N)/10.
 	count = 0
 	if M%(int(percent10))==0:
@@ -301,6 +340,8 @@ for M in range(0,N):
 		print("M =",M, " out of ",N)
 	sys.stdout.flush()
 	#print("----------\nM = ",M,"\n----------")
+
+	#///OC on S2\\\#
 	
 	#%%%%%%#
 	# NORM #
@@ -321,20 +362,6 @@ for M in range(0,N):
 	g2_exp2  = exp_sys(g2c,sys_state,2)/nc_exp2**2 #correlation function from the field in cavity 2 
 	file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,norm,pop_exp1,pop_exp2,nc_exp1,nc_exp2,g2_exp1,g2_exp2))
 	file_evol.flush()
-	file_out.close()
-
-	#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-	# ENVIRONMENT EXPECTATION VALUES #
-	#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-	#exp_sys(observable,sys_state,which)
-	file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,ne_exp1,ne_exp2,g2e_exp1,g2e_exp2))
-	file_evol.flush()
-	file_out.close()
-
-	#    # Erase the remnants of the states that will not influence the dynamics anymore:
-	#    if M>0:
-	#        statesB[M-1] = None
-	#   It is needed for the spectral calculations
 
 	#%%%%%%%%%%%%%%%%#
 	# TIME EVOLUTION #
@@ -405,6 +432,15 @@ for M in range(0,N):
 
 		#///OC on B1\\\#
 
+		## B1 expectation values ##
+		## --------------------- ##
+		if M>0:
+			densB1 = env_dens(statesB1[M])
+		else:
+			densB1 = env_dens(statesB1[M],when=1,which=1)
+		ne_exp1  = exp_res(ne,densB1) #photon number in reservoir 1
+		g2e_exp1  = exp_res(g2e,densB1)/ne_exp1**2 #correlation function from the field in reservoir 1 
+
 		if test_var!=0:
 
 			## MOVE B1 to the left end ##
@@ -467,6 +503,15 @@ for M in range(0,N):
 		#print("statesB2",statesB2[M])
 
 		#///OC on B2\\\#
+
+		## B2 expectation values ##
+		## --------------------- ##
+		if M>0:
+			densB2 = env_dens(statesB2[M])
+		else:
+			densB2 = env_dens(statesB2[M],when=1,which=2)
+		ne_exp2  = exp_res(ne,densB2) #photon number in reservoir 1
+		g2e_exp2  = exp_res(g2e,densB2)/ne_exp2**2 #correlation function from the field in reservoir 1 
 
 		#print("F2,S2 and B2 separated",statesF[test_var+L].shape,statesS[1].shape,statesB2[M].shape)
 		#print("S2",es("aIc,aIc",statesS[1],np.conjugate(statesS[1])))
@@ -567,6 +612,12 @@ for M in range(0,N):
 
 			#///OC on B2\\\#
 
+			## B2 expectation values ##
+			## --------------------- ##
+			densB2   = env_dens(statesB2[M])
+			ne_exp2  = exp_res(ne,densB2) #photon number in reservoir 1
+			g2e_exp2 = exp_res(g2e,densB2)/ne_exp2**2 #correlation function from the field in reservoir 1 
+
 			## MOVE B2 to the right ##
 			## -------------------- ##
 			statesB2[M],statesF       = SWAP(statesB2[M],statesF,test_var+1,2*L-1,tol,"right")
@@ -602,6 +653,12 @@ for M in range(0,N):
 
 			#///OC on B1\\\#
 
+			## B1 expectation values ##
+			## --------------------- ##
+			densB1 = env_dens(statesB1[M])
+			ne_exp1  = exp_res(ne,densB1) #photon number in reservoir 1
+			g2e_exp1  = exp_res(g2e,densB1)/ne_exp1**2 #correlation function from the field in reservoir 1 
+
 			if M%L!=0:
 
 			## MOVE B1 to the left ##
@@ -627,10 +684,24 @@ for M in range(0,N):
 
 			## SEPARATE F1 and B2 from U_block ##
 			## ------------------------------- ##
-			splist                              = SPLIT(U_block,3,"left",tol,2,-4)
+			#splist                              = SPLIT(U_block,3,"left",tol,2,-4)
+			splist                              = SPLIT(U_block,3,"right",tol,2,-4)
 			block_shape                         = np.array(U_block.shape[1:5])
 			block,statesF[test_var],statesB2[M] = splist[0],splist[1],splist[2]
 			#print("block,F1,B2",block.shape,statesF[test_var].shape,statesB2[M].shape)
+
+			#///OC on B2\\\#
+
+			## B2 expectation values ##
+			## --------------------- ##
+			densB2   = env_dens(statesB2[M])
+			ne_exp2  = exp_res(ne,densB2) #photon number in reservoir 1
+			g2e_exp2 = exp_res(g2e,densB2)/ne_exp2**2 #correlation function from the field in reservoir 1 
+
+			## MOVE OC to B1+S1+F2+S2 ##
+			## ---------------------- ##
+			statesB2[M],statesF,block             = OC_RELOC(M,statesB2[M],block,statesF,test_var,test_var,tol,"left")
+			#print("B1,S2",statesB1[M].shape,statesS[1].shape)
 
 			#///OC on B1+S1+F2+S2 block\\\#			
 
@@ -659,9 +730,22 @@ for M in range(0,N):
 			## ------------------ ##
 			block2                        = UNMERGE(block2,np.concatenate((np.array([block2.shape[0],]),block_shape,np.array([block2.shape[-1],])),axis=0),block_shape,[1,2])
 			#print("block2",block2.shape)
-			splist                        = SPLIT(block2,2,"right",tol,2,0)
+			#splist                        = SPLIT(block2,2,"right",tol,2,0)
+			splist                        = SPLIT(block2,2,"left",tol,2,0)
 			statesB1[M],statesS[0]        = splist[0],splist[1]
 			#print("B1,S1",statesB1[M].shape,statesS[0].shape)
+
+			#///OC on B1\\\#			
+
+			## B1 expectation values ##
+			## --------------------- ##
+			densB1 = env_dens(statesB1[M])
+			ne_exp1  = exp_res(ne,densB1) #photon number in reservoir 1
+			g2e_exp1  = exp_res(g2e,densB1)/ne_exp1**2 #correlation function from the field in reservoir 1 
+
+			## MOVE OC to S1 ##
+			## ------------- ##
+			statesB1[M],statesF,statesS[0] = OC_RELOC(M,statesB1[M],statesS[0],statesF,0,test_var-L,tol,"right",1)
 
 			#///OC on S1\\\#			
 
@@ -671,6 +755,20 @@ for M in range(0,N):
 			#print("S1,S2",statesS[0].shape,statesS[1].shape)
 
 			#///OC on S2\\\#			
+
+
+	#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+	# ENVIRONMENT EXPECTATION VALUES #
+	#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+	#exp_sys(observable,sys_state,which)
+	file_env.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,ne_exp1,ne_exp2,g2e_exp1,g2e_exp2))
+#	file_env.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %(M*dt,ne_exp1,ne_exp2,nf_exp1,nf_exp2,g2e_exp1,g2e_exp2,g2f_exp1,g2f_exp2))
+	file_env.flush()
+
+	#    # Erase the remnants of the states that will not influence the dynamics anymore:
+	#    if M>0:
+	#        statesB[M-1] = None
+	#   It is needed for the spectral calculations
 			
 #	print("system",statesS[0].shape,statesS[1].shape)
 #	print("fibre",statesF[(M)%(2*L)].shape,statesF[(M+1)%(2*L)].shape,statesF[(M+L)%(2*L)].shape,statesF[(M+L+1)%(2*L)].shape)
@@ -720,6 +818,38 @@ g2_exp2  = exp_sys(g2c,sys_state,2)/nc_exp2**2 #correlation function from the fi
 file_evol.write("%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\t%.20f\n" %((M+1)*dt,norm,pop_exp1,pop_exp2,nc_exp1,nc_exp2,g2_exp1,g2_exp2))
 file_evol.flush()
 file_out.close()
+
+if args.spec == True:
+	if test_var<L-1:
+		statesS[1],statesF,statesB2[N-1] = OC_RELOC(M,statesS[1],statesB2[N-1],statesF,test_var+L+1,2*L-1,tol,"right")
+	elif test_var==L-1:
+		statesS[1],statesF,statesB2[N-1] = OC_RELOC(M,statesS[1],statesB2[N-1],statesF,0,0,tol,"right",1)
+	elif test_var>=L and test_var<2*L-1:
+		statesS[1],statesF,statesS[0] = OC_RELOC(M,statesS[1],statesS[0],statesF,test_var-L+1,test_var,tol,"right")
+		statesS[0],statesF,statesB2[N-1] = OC_RELOC(M,statesS[0],statesB2[N-1],statesF,test_var+1,2*L-1,tol,"right")
+	elif test_var==2*L-1:
+		statesS[1],statesF,statesS[0] = OC_RELOC(M,statesS[1],statesS[0],statesF,L,2*L-1,tol,"right")
+		statesS[0],statesF,statesB2[N-1] = OC_RELOC(M,statesS[0],statesB2[N-1],statesF,0,0,tol,"right",1)
+
+	#def spectrum(states,freqs,pmax,N_env,dt):
+	om = np.linspace(-20,20,10000)
+	spect,coherence = spectrum(statesB2,om,args.pspec*L,len_env,dt)
+
+	spec_out = np.transpose(np.vstack((om,np.real(spect),np.imag(spect))))
+	f = open(specname, 'a')
+	f.close()
+	f = open(specname, 'r+')
+	f.truncate()
+	np.savetxt(specname,spec_out)
+
+	#print(np.arange(0,args.pspec*L)*dt)
+	#print(coherence)
+	coh_out = np.transpose(np.vstack((np.arange(0,args.pspec*L)*dt,coherence)))
+	f = open(cohname, 'a')
+	f.close()
+	f = open(cohname, 'r+')
+	f.truncate()
+	np.savetxt(cohname,coh_out)
 
 end = time.time()-start
 h = int(end/3600)
